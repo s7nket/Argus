@@ -4,11 +4,14 @@ import { GlassCard } from './GlassCard';
 import { Check } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
+import { useNavigate } from 'react-router';
+
 import imgLayout2 from '../../assets/layout2.png';
 
 export function AgentFaceOff() {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const navigate = useNavigate();
 
   const points = [
     'Sub-second argument generation',
@@ -23,6 +26,7 @@ export function AgentFaceOff() {
         initial={{ opacity: 0, y: 40 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.7 }}
+        className="will-change-[transform,opacity] transform-gpu"
       >
         <GlassCard className="w-full flex flex-col md:flex-row-reverse items-stretch border border-white/10 shadow-2xl p-0 overflow-hidden">
           
@@ -31,7 +35,9 @@ export function AgentFaceOff() {
             <ImageWithFallback 
               src={imgLayout2} 
               alt="Agent Face Off Background" 
-              className="w-full h-full min-h-[400px] object-cover object-center scale-105 hover:scale-110 transition-transform duration-700 ease-out"
+              className="w-full h-full min-h-[400px] object-cover object-center scale-105 hover:scale-110 transition-transform duration-700 ease-out will-change-transform transform-gpu"
+              loading="lazy"
+              decoding="async"
             />
           </div>
 
@@ -57,7 +63,7 @@ export function AgentFaceOff() {
               ))}
             </ul>
             
-            <button className="bg-white text-black font-['DM_Sans'] text-sm md:text-base font-bold py-3 px-7 rounded-full hover:bg-black hover:text-white border-2 border-transparent hover:border-white transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] w-fit">
+            <button onClick={() => navigate('/dashboard')} className="bg-white text-black font-['DM_Sans'] text-sm md:text-base font-bold py-3 px-7 rounded-full hover:bg-black hover:text-white border-2 border-transparent hover:border-white transition-colors duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] w-fit will-change-[transform,opacity] transform-gpu">
               Start the Face-Off &rarr;
             </button>
           </div>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARGUS | DEBATE ARENA</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=Orbitron:wght@400;700&amp;family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-fixed-dim": "#454747",
+                        "background": "#0a0a0f",
+                        "inverse-surface": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "on-secondary": "#1c1b1b",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#c6c6c7",
+                        "primary-fixed": "#5d5f5f",
+                        "outline-variant": "#474747",
+                        "on-tertiary-fixed": "#ffffff",
+                        "surface-variant": "#353534",
+                        "secondary-fixed-dim": "#adabaa",
+                        "on-primary": "#1a1c1c",
+                        "on-tertiary-fixed-variant": "#e2e2e2",
+                        "tertiary-fixed-dim": "#454747",
+                        "tertiary-container": "#909191",
+                        "secondary-fixed": "#c8c6c5",
+                        "tertiary": "#e2e2e2",
+                        "outline": "#919191",
+                        "secondary-container": "#474746",
+                        "primary-container": "#d4d4d4",
+                        "surface": "#131313",
+                        "primary": "#ffffff",
+                        "on-surface": "#e5e2e1",
+                        "inverse-primary": "#5d5f5f",
+                        "on-primary-fixed": "#ffffff",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "surface-container-highest": "#353534",
+                        "surface-bright": "#3a3939",
+                        "on-tertiary": "#1a1c1c",
+                        "on-secondary-fixed-variant": "#3c3b3b",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-dim": "#131313",
+                        "error-container": "#93000a",
+                        "on-primary-fixed-variant": "#e2e2e2",
+                        "on-tertiary-container": "#000000",
+                        "on-surface-variant": "#c6c6c6",
+                        "on-primary-container": "#000000",
+                        "surface-container-high": "#2a2a2a",
+                        "tertiary-fixed": "#5d5f5f",
+                        "secondary": "#c8c6c5",
+                        "on-background": "#e5e2e1",
+                        "surface-container": "#201f1f",
+                        "surface-container-low": "#1c1b1b",
+                        "on-secondary-container": "#e5e2e1",
+                        "on-secondary-fixed": "#1c1b1b"
+                    },
+                    fontFamily: {
+                        "headline": ["Orbitron", "Space Grotesk"],
+                        "body": ["DM Sans", "Inter"],
+                        "label": ["JetBrains Mono", "Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { background-color: #0a0a0f; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="text-on-surface font-body selection:bg-primary selection:text-on-primary h-screen overflow-hidden flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex justify-between items-center px-8 h-16">
+<div class="text-2xl font-bold tracking-tighter text-white font-headline">ARGUS</div>
+</nav>
+<div class="flex flex-1 pt-16 h-full overflow-hidden">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-white/5 bg-[#1c1b1b] flex flex-col py-8 px-4 gap-6 pt-24 z-40">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-white/10 flex items-center justify-center overflow-hidden">
+<img alt="OPERATOR-01" class="w-full h-full" data-alt="minimalist robot avatar with glowing eyes and futuristic metallic textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANm4Yv8xOanh69PwTldjoVmfJolIdAYAM2FLV2umtVGkmLYYPKEdTWbAUtc5gfN-bhG1NH9yBKMVfvP2r6hSWhwGApSvPehtgVkF6em02yajiQHMwKU2mnzn6BwBsVvVFg7JxRQub2jQYWoQBO9wajNWvXvOctxr84XBHOO21rtTGRVyGA0P6FCW4AzBcZkeSw3eTfwTvdx3PgA0dqXgTWVCwAFp7-LaOIKId4aj5LsN88gZy1OETYh8nqGOcNpKJPNItC9G6xAg"/>
+</div>
+<div>
+<p class="text-white font-['Space_Grotesk'] font-bold text-sm tracking-tight">OPERATOR-01</p>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+<p class="text-[10px] text-white/40 font-label uppercase tracking-tighter">Active Session</p>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#2a2a2a] text-white border-l-4 border-white font-label text-xs font-medium tracking-wider transition-all" href="#">
+<span class="material-symbols-outlined text-sm">sensors</span>
+                    ACTIVE DEBATES
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#474747] hover:bg-[#201f1f] hover:translate-x-1 font-label text-xs font-medium tracking-wider transition-transform duration-300" href="#">
+<span class="material-symbols-outlined text-sm">history</span>
+                    DEBATE HISTORY
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#474747] hover:bg-[#201f1f] hover:translate-x-1 font-label text-xs font-medium tracking-wider transition-transform duration-300" href="#">
+<span class="material-symbols-outlined text-sm">gavel</span>
+                    JUDGE LOGS
+                </a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 h-full relative overflow-y-auto no-scrollbar p-8 pb-32 flex flex-col items-center justify-center">
+<!-- Header Info - Optional: Hide or keep if needed, prompt says empty clean space -->
+<div class="absolute top-8 left-8 border-b border-white/5 pb-8 w-[calc(100%-4rem)] opacity-20 pointer-events-none">
+<p class="font-label text-[10px] text-white/40 tracking-[0.3em] uppercase mb-2">Simulation Protocol v4.2.0</p>
+<h1 class="text-4xl font-headline font-bold text-white tracking-tighter">INITIALIZING ARENA...</h1>
+</div>
+<!-- Empty Arena State -->
+<div class="flex flex-col items-center justify-center text-center max-w-2xl opacity-40">
+<div class="w-24 h-24 mb-6 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-4xl text-white/20 animate-spin-slow">cognition</span>
+</div>
+<h2 class="text-xl font-headline font-medium text-white tracking-widest uppercase mb-2">Awaiting Parameters</h2>
+<p class="text-sm font-body text-white/40 leading-relaxed">Enter a debate topic below to engage neural simulation protocols and deploy active agents.</p>
+</div>
+</main>
+<!-- BottomNavBar (Input Bar) -->
+<div class="fixed bottom-6 w-[90%] max-w-4xl rounded-full border border-white/10 bg-[#3a3939]/40 backdrop-blur-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex justify-between items-center px-6 py-3 z-50 left-64 right-0 mx-auto">
+<div class="flex items-center gap-4 flex-1">
+<span class="material-symbols-outlined text-white">bolt</span>
+<input class="bg-transparent border-none outline-none focus:ring-0 font-['Space_Grotesk'] text-sm font-bold text-white placeholder:text-white/30 uppercase tracking-widest w-full" placeholder="ENTER DEBATE TOPIC..." type="text"/>
+</div>
+<button class="bg-white text-[#131313] rounded-full px-6 py-2 font-['Space_Grotesk'] text-sm font-bold hover:brightness-125 transition-all whitespace-nowrap">
+                START DEBATE ⚡
+            </button>
+</div>
+</div>
+<style>
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 12s linear infinite;
+        }
+    </style>
+</body></html>

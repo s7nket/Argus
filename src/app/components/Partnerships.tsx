@@ -12,7 +12,7 @@ export function Partnerships() {
         Built on open-source LLM infrastructure. Integrates with your existing AI stack.
       </p>
 
-      <button className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/80 font-['DM_Sans'] text-sm hover:bg-white/10 hover:text-white transition-all">
+      <button className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/80 font-['DM_Sans'] text-sm hover:bg-white/10 hover:text-white transition-colors duration-200 will-change-transform transform-gpu">
         Explore Integrations <ArrowRight className="w-4 h-4" />
       </button>
     </section>

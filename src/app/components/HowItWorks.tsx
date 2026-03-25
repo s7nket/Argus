@@ -31,7 +31,7 @@ export function HowItWorks() {
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6 }}
-        className="flex flex-col items-center text-center mb-16"
+        className="flex flex-col items-center text-center mb-16 will-change-[transform,opacity] transform-gpu"
       >
         <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 uppercase tracking-[0.2em] mb-4">
           System Architecture
@@ -51,6 +51,7 @@ export function HowItWorks() {
             initial={{ opacity: 0, y: 40 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
+            className="will-change-[transform,opacity] transform-gpu"
           >
             <GlassCard className="min-w-[85vw] md:min-w-0 p-10 flex flex-col gap-6 snap-center items-start justify-start h-full">
               <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
@@ -68,7 +69,7 @@ export function HowItWorks() {
       </div>
 
       <div className="flex justify-center w-full">
-        <button className="flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 bg-transparent text-white/80 hover:text-white hover:bg-white/5 transition-all font-['JetBrains_Mono'] text-xs tracking-widest uppercase">
+        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 bg-transparent text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200 font-['JetBrains_Mono'] text-xs tracking-widest uppercase will-change-transform transform-gpu">
           Ready to see it live? <span className="text-white ml-2">→ Go to Debate</span>
         </button>
       </div>

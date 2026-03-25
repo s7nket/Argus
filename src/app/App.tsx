@@ -1,8 +1,12 @@
 import React from 'react';
-import { ArgusLanding } from './components/ArgusLanding';
+import { RouterProvider } from 'react-router';
+import { router } from './routes';
+import { MotionConfig } from 'motion/react';
 
 export default function App() {
   return (
-    <ArgusLanding />
+    <MotionConfig reducedMotion="user">
+      <RouterProvider router={router} />
+    </MotionConfig>
   );
 }

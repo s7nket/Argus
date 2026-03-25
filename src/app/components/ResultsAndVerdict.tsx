@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion, useInView } from 'motion/react';
 import { GlassCard } from './GlassCard';
+import { useNavigate } from 'react-router';
 
 export function ResultsAndVerdict() {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const navigate = useNavigate();
 
   const rows = [
     { round: 1, agent: 'Agent A', summary: 'Cited empirical data', score: '8.4', loser: false },
@@ -19,7 +21,7 @@ export function ResultsAndVerdict() {
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6 }}
-        className="flex flex-col items-center text-center mb-16"
+        className="flex flex-col items-center text-center mb-16 will-change-[transform,opacity] transform-gpu"
       >
         <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 uppercase tracking-[0.2em] mb-4">
           Results & Scoring
@@ -33,6 +35,7 @@ export function ResultsAndVerdict() {
         initial={{ opacity: 0, y: 40 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6, delay: 0.2 }}
+        className="will-change-[transform,opacity] transform-gpu"
       >
         <GlassCard className="w-full max-w-4xl p-8 md:p-12 flex flex-col gap-8 mx-auto">
           <div className="overflow-x-auto">
@@ -70,7 +73,7 @@ export function ResultsAndVerdict() {
       </motion.div>
 
       <div className="flex justify-center w-full mt-12">
-        <button className="flex items-center gap-2 px-8 py-4 rounded-full border border-white/20 bg-transparent text-white/80 hover:text-white hover:bg-white/5 transition-all font-['JetBrains_Mono'] text-xs md:text-sm tracking-widest uppercase">
+        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 px-8 py-4 rounded-full border border-white/20 bg-transparent text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200 font-['JetBrains_Mono'] text-xs md:text-sm tracking-widest uppercase will-change-transform transform-gpu">
           See a Real Verdict <span className="text-white ml-2">→</span>
         </button>
       </div>

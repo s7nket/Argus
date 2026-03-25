@@ -20,7 +20,7 @@ export function ArgusLanding() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.03 }}
         transition={{ delay: 1, duration: 1.5 }}
-        className="fixed inset-0 pointer-events-none z-[-40]"
+        className="fixed inset-0 pointer-events-none z-[-40] will-change-opacity transform-gpu"
         style={{
           backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
           backgroundSize: '80px 80px'

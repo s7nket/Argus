@@ -25,7 +25,7 @@ export function ModelsSupported() {
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6 }}
-        className="flex flex-col items-center text-center mb-10"
+        className="flex flex-col items-center text-center mb-10 will-change-[transform,opacity] transform-gpu"
       >
         <h2 className="font-['Orbitron'] text-2xl md:text-3xl font-bold text-white mb-3 tracking-wide">
           All key LLMs supported
@@ -34,7 +34,7 @@ export function ModelsSupported() {
           Pick your model. Start your debate.
         </p>
         
-        <button className="mb-10 flex items-center gap-2 px-6 py-2 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white hover:text-black transition-all font-['JetBrains_Mono'] text-xs font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+        <button className="mb-10 flex items-center gap-2 px-6 py-2 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white hover:text-black transition-colors duration-300 font-['JetBrains_Mono'] text-xs font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(255,255,255,0.1)] will-change-transform transform-gpu">
           Begin &rarr;
         </button>
         
@@ -44,7 +44,7 @@ export function ModelsSupported() {
             <button 
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2 rounded-full font-['JetBrains_Mono'] text-xs font-semibold transition-all ${
+              className={`px-5 py-2 rounded-full font-['JetBrains_Mono'] text-xs font-semibold transition-colors duration-200 ${
                 activeTab === tab 
                   ? 'bg-white text-black border border-white' 
                   : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white'
@@ -64,6 +64,7 @@ export function ModelsSupported() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
+            className="will-change-[transform,opacity] transform-gpu"
           >
             <GlassCard className="p-6 flex flex-col gap-4">
               <div className="flex justify-between items-start">
