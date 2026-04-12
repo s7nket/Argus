@@ -14,7 +14,7 @@ export function Hero() {
   const navigate = useNavigate();
 
   return (
-    <section className="relative z-0 min-h-[100svh] pt-24 pb-32 overflow-hidden flex items-center justify-center w-full">
+    <section id="hero" className="relative z-0 min-h-[100svh] pt-24 pb-32 overflow-hidden flex items-center justify-center w-full">
       
       {/* Background Robots Image */}
       <motion.div
@@ -61,17 +61,25 @@ export function Hero() {
           >
             ARGUS
           </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="font-['Orbitron'] text-sm md:text-base font-semibold text-white/70 mt-4 mb-1 tracking-widest uppercase"
+          >
+            Welcome to ARGUS
+          </motion.p>
           <motion.p 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="font-['JetBrains_Mono'] text-[11px] md:text-xs uppercase tracking-[0.2em] mt-6 bg-white/10 px-5 py-2 rounded-full border border-white/20 mb-10 relative isolate before:absolute before:inset-0 before:-z-10 before:rounded-full before:backdrop-blur-md will-change-[transform,opacity] transform-gpu"
+            className="font-['JetBrains_Mono'] text-[11px] md:text-xs uppercase tracking-[0.2em] mt-3 bg-white/10 px-5 py-2 rounded-full border border-white/20 mb-10 relative isolate before:absolute before:inset-0 before:-z-10 before:rounded-full before:backdrop-blur-md will-change-[transform,opacity] transform-gpu"
           >
             Multi-Agent Debate System
           </motion.p>
           
           <motion.button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/debate-dashboard')}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
@@ -101,7 +109,7 @@ export function Hero() {
               Two autonomous AI agents, engineered for logic, precision, and adversarial reasoning — debating any topic in real time.
             </p>
             <motion.button 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/debate-dashboard')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="w-full bg-white/10 text-white font-['DM_Sans'] text-sm font-semibold py-2.5 rounded-full border border-white/20 transition-[background-color,color] duration-300 hover:bg-white hover:text-black will-change-transform transform-gpu"

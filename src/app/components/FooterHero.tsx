@@ -29,7 +29,7 @@ export function FooterHero() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <button onClick={() => navigate('/dashboard')} className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-black font-['DM_Sans'] text-base font-bold hover:bg-black hover:text-white border-2 border-transparent hover:border-white transition-colors duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] will-change-transform transform-gpu">
+          <button onClick={() => navigate('/debate-dashboard')} className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-black font-['DM_Sans'] text-base font-bold hover:bg-black hover:text-white border-2 border-transparent hover:border-white transition-colors duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] will-change-transform transform-gpu">
             Start Debate
           </button>
           <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-transparent text-white font-['DM_Sans'] text-base font-semibold border border-white hover:bg-white/10 transition-colors duration-300 flex items-center justify-center gap-2 will-change-transform transform-gpu">

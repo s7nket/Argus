@@ -14,7 +14,7 @@ export function DebateInAction() {
   const navigate = useNavigate();
 
   const features = [
-    'Real-time argument generation',
+    'Real-time Generation',
     'Fallacy detection engine',
     'Multi-round debate flow',
     'Live scoring per argument'
@@ -51,9 +51,13 @@ export function DebateInAction() {
               For Researchers & Builders
             </span>
             
-            <h2 className="font-['Orbitron'] text-2xl md:text-3xl font-bold text-white mb-5 leading-tight tracking-wide">
-              Run any argument.<br className="hidden md:block"/> At scale.
+            <h2 className="font-['Orbitron'] text-xl font-bold text-white mb-1 tracking-wide">
+              Debate in Action
             </h2>
+
+            <h3 className="font-['Orbitron'] text-2xl md:text-3xl font-bold text-white mb-5 leading-tight tracking-wide">
+              Run any argument.<br className="hidden md:block"/> At scale.
+            </h3>
             
             <p className="font-['DM_Sans'] text-sm md:text-base text-white/70 leading-relaxed mb-8 max-w-lg">
               ARGUS processes any debate topic, assigns agents to opposing sides, generates structured arguments round by round, scores each move, and reveals the winner with full reasoning — all inside the platform.
@@ -70,7 +74,7 @@ export function DebateInAction() {
               ))}
             </div>
 
-            <button onClick={() => navigate('/dashboard')} className="mt-8 bg-white text-black font-['DM_Sans'] text-sm md:text-base font-bold py-3 px-7 rounded-full hover:bg-black hover:text-white border-2 border-transparent hover:border-white transition-colors duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] w-fit will-change-transform transform-gpu">
+            <button onClick={() => navigate('/debate-dashboard')} className="mt-8 bg-white text-black font-['DM_Sans'] text-sm md:text-base font-bold py-3 px-7 rounded-full hover:bg-black hover:text-white border-2 border-transparent hover:border-white transition-colors duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] w-fit will-change-transform transform-gpu">
               Watch a Live Debate &rarr;
             </button>
           </div>

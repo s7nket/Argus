@@ -1,0 +1,180 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - React 18
+  - Vite 6
+  - Tailwind CSS v4
+  - React Router v7
+  - Motion (Framer Motion)
+  - shadcn/ui
+  - Radix UI
+  - Lucide React
+  - Recharts
+  - Orbitron / JetBrains Mono / DM Sans fonts
+routes:
+  - path: /
+    file: src/app/components/ArgusLanding.tsx
+    auth_required: false
+    description: Marketing and product landing page for the Argus AI debate system
+  - path: /dashboard
+    file: src/app/components/DebateDashboard.tsx
+    auth_required: false
+    description: Interactive debate arena where users enter a topic and watch two AI agents debate
+features:
+  - name: Landing Page — Navbar
+    description: Sticky glassmorphic navigation bar with logo and nav links
+    files:
+      - src/app/components/Navbar.tsx
+      - src/app/components/ArgusLanding.tsx
+    entry_route: /
+    user_interactions:
+      - View sticky navbar at top of page
+      - Click ARGUS logo or nav links
+    api_calls: []
+    auth_required: false
+  - name: Landing Page — Hero Section
+    description: Full-viewport hero with dual-robot background, parallax scroll, pulsing radial glow, and two glassmorphic CTA cards
+    files:
+      - src/app/components/Hero.tsx
+    entry_route: /
+    user_interactions:
+      - View hero section with ARGUS headline
+      - Scroll to trigger parallax animation
+      - View Agent A and Judge-0 intro cards
+    api_calls: []
+    auth_required: false
+  - name: Landing Page — How It Works
+    description: Three glassmorphic cards describing Agent A (Proponent), Agent B (Opponent), Judge-0 (Evaluator)
+    files:
+      - src/app/components/HowItWorks.tsx
+    entry_route: /
+    user_interactions:
+      - Scroll to How It Works section
+      - View three feature cards
+    api_calls: []
+    auth_required: false
+  - name: Landing Page — Results & Verdict
+    description: Live scoring table showing per-round argument scores with winner declaration
+    files:
+      - src/app/components/ResultsAndVerdict.tsx
+    entry_route: /
+    user_interactions:
+      - Scroll to Results section
+      - View scoring table with agent scores
+    api_calls: []
+    auth_required: false
+  - name: Landing Page — Debate In Action
+    description: Feature highlights split section covering real-time generation, fallacy detection, multi-language support, export
+    files:
+      - src/app/components/DebateInAction.tsx
+    entry_route: /
+    user_interactions:
+      - Scroll to Debate in Action section
+      - View feature highlight cards
+    api_calls: []
+    auth_required: false
+  - name: Landing Page — Models Supported
+    description: Tab-filtered grid showing supported LLMs (GPT-4o, Claude, Gemini, LLaMA, Mistral, custom)
+    files:
+      - src/app/components/ModelsSupported.tsx
+    entry_route: /
+    user_interactions:
+      - Scroll to Models Supported section
+      - Click tabs to filter models
+      - View model cards in filtered grid
+    api_calls: []
+    auth_required: false
+  - name: Landing Page — Agent Face-Off
+    description: Full-bleed cinematic section with performance stats
+    files:
+      - src/app/components/AgentFaceOff.tsx
+    entry_route: /
+    user_interactions:
+      - Scroll to Agent Face-Off section
+      - View agent performance stats
+    api_calls: []
+    auth_required: false
+  - name: Landing Page — Footer Hero
+    description: Final CTA section with site navigation columns
+    files:
+      - src/app/components/FooterHero.tsx
+    entry_route: /
+    user_interactions:
+      - Scroll to footer
+      - Click CTA button
+      - View footer links
+    api_calls: []
+    auth_required: false
+  - name: Debate Dashboard — Sidebar Navigation
+    description: Collapsible sidebar with Active Debates, Debate History, Judge Logs nav and OPERATOR-01 profile
+    files:
+      - src/app/components/DebateDashboard.tsx
+    entry_route: /dashboard
+    user_interactions:
+      - View ARGUS logo in sidebar
+      - Click Active Debates nav item
+      - Click Debate History nav item
+      - Click Judge Logs nav item
+      - Click Main Landing back button to navigate to /
+    api_calls: []
+    auth_required: false
+  - name: Debate Dashboard — Arena Header
+    description: Status header showing SIMULATION PROTOCOL V4.2.0 and ghost-stroke title that changes on debate start
+    files:
+      - src/app/components/DebateDashboard.tsx
+    entry_route: /dashboard
+    user_interactions:
+      - View INITIALIZING ARENA... title before debate starts
+      - View ARENA ACTIVE title after debate starts
+    api_calls: []
+    auth_required: false
+  - name: Debate Dashboard — Start a Debate
+    description: User enters a topic in the input bar and clicks Start Debate to begin the AI debate simulation
+    files:
+      - src/app/components/DebateDashboard.tsx
+    entry_route: /dashboard
+    user_interactions:
+      - View awaiting parameters state with brain icon
+      - Type a debate topic into the input field
+      - Click Start Debate button or press Enter
+      - View debate thread with Agent-01 and Agent-02 arguments
+      - Observe header changes from INITIALIZING ARENA to ARENA ACTIVE
+    api_calls: []
+    auth_required: false
+  - name: Debate Dashboard — Judge-0 Verdict Modal
+    description: Request ML Verdict button opens Judge-0 Omni modal showing logic scores, fallacy flags, and verdict summary
+    files:
+      - src/app/components/DebateDashboard.tsx
+    entry_route: /dashboard
+    user_interactions:
+      - Click Request ML Verdict button after debate starts
+      - View Judge-0 Omni modal with logic scores for Agent-01 and Agent-02
+      - View verdict summary text
+      - Click Accept Verdict to close modal
+      - Click X button to close modal
+      - Click backdrop to close modal
+    api_calls: []
+    auth_required: false
+  - name: Route Navigation — Landing to Dashboard
+    description: Navigate from landing page to debate dashboard via CTA links
+    files:
+      - src/app/routes.tsx
+      - src/app/components/ArgusLanding.tsx
+      - src/app/components/DebateDashboard.tsx
+    entry_route: /
+    user_interactions:
+      - Click a CTA or navigation link that routes to /dashboard
+      - Confirm /dashboard is loaded
+    api_calls: []
+    auth_required: false
+known_limitations:
+  - issue: Debate agents produce static hardcoded arguments (no real LLM backend connected)
+    location: src/app/components/DebateDashboard.tsx
+    impact: Debate thread always shows the same two messages regardless of topic entered
+  - issue: Judge-0 scores and verdict summary are hardcoded static values
+    location: src/app/components/DebateDashboard.tsx
+    impact: Logic scores (84, 91) and verdict text are always identical regardless of debate content
+  - issue: Sidebar nav items (Debate History, Judge Logs) are non-functional buttons
+    location: src/app/components/DebateDashboard.tsx
+    impact: Clicking these items does not navigate or display any content

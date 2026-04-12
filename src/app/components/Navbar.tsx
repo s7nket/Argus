@@ -56,7 +56,7 @@ export function Navbar() {
         </div>
 
         {/* Right CTA */}
-        <button onClick={() => navigate('/dashboard')} className="hidden md:flex items-center justify-center px-6 py-2.5 rounded-full bg-white text-black font-['DM_Sans'] text-sm font-medium hover:bg-black hover:text-white border border-transparent hover:border-white transition-colors duration-300 will-change-transform transform-gpu">
+        <button onClick={() => navigate('/debate-dashboard')} className="hidden md:flex items-center justify-center px-6 py-2.5 rounded-full bg-white text-black font-['DM_Sans'] text-sm font-medium hover:bg-black hover:text-white border border-transparent hover:border-white transition-colors duration-300 will-change-transform transform-gpu">
           Live Debate
         </button>
 

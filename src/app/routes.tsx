@@ -8,7 +8,7 @@ export const router = createBrowserRouter([
     Component: ArgusLanding,
   },
   {
-    path: "/dashboard",
+    path: "/debate-dashboard",
     Component: DebateDashboard,
   }
 ]);

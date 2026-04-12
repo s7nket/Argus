@@ -2,16 +2,18 @@ import React from 'react';
 import { motion, useInView } from 'motion/react';
 import { GlassCard } from './GlassCard';
 import { Diamond, XCircle, SquareDot } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 export function HowItWorks() {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const navigate = useNavigate();
 
   const cards = [
     {
       icon: <Diamond className="w-5 h-5 text-white/80" />,
       title: 'Agent A · Proponent',
-      body: 'Constructs structured arguments, pulls evidence, adapts in real-time.'
+      body: 'Agent A presents arguments — constructs structured claims, pulls evidence, and adapts in real-time.'
     },
     {
       icon: <XCircle className="w-5 h-5 text-white/80" />,
@@ -36,9 +38,12 @@ export function HowItWorks() {
         <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 uppercase tracking-[0.2em] mb-4">
           System Architecture
         </span>
-        <h2 className="font-['Orbitron'] text-3xl md:text-4xl font-bold text-white mb-3 tracking-wide">
-          Intelligence that argues.
+        <h2 className="font-['Orbitron'] text-3xl md:text-4xl font-bold text-white mb-1 tracking-wide">
+          How It Works
         </h2>
+        <p className="font-['DM_Sans'] text-white/50 text-sm mb-2">
+          Intelligence that argues.
+        </p>
         <p className="font-['DM_Sans'] text-white/60 italic text-base md:text-lg">
           Two agents. One judge. Zero bias.
         </p>
@@ -69,7 +74,7 @@ export function HowItWorks() {
       </div>
 
       <div className="flex justify-center w-full">
-        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 bg-transparent text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200 font-['JetBrains_Mono'] text-xs tracking-widest uppercase will-change-transform transform-gpu">
+        <button onClick={() => navigate('/debate-dashboard')} className="flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 bg-transparent text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200 font-['JetBrains_Mono'] text-xs tracking-widest uppercase will-change-transform transform-gpu">
           Ready to see it live? <span className="text-white ml-2">→ Go to Debate</span>
         </button>
       </div>

@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "executionArgs": {
+    "projectName": "Argus",
+    "projectPath": "d:\\Argus",
+    "testIds": [],
+    "additionalInstruction": "",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-5XODruC6jjoZ6tScYanQMitOQ03kjLJGho1biZaZsF8Dbzd-PG8PkgC1YeZbDyOKl25JjrJfXulqn8WCIze8BO6_L8c2dSAaxyM_8ZhHCnX9oYSq2jIcys4uzWc0SmFBvcg"
+    }
+  },
+  "serverPort": 61187,
+  "proxy": "http://a29979ae-f6f7-4752-8bf6-6b64572bbf6b:qnB8hkVi0uoiuxjY2vrOG1ODj48Zhcrd@tun.testsprite.com:8080"
+}

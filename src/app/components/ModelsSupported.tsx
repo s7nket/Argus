@@ -57,14 +57,14 @@ export function ModelsSupported() {
       </motion.div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl mt-8">
+      <div className="models-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl mt-8">
         {models.map((model, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
-            className="will-change-[transform,opacity] transform-gpu"
+            className="model-card will-change-[transform,opacity] transform-gpu"
           >
             <GlassCard className="p-6 flex flex-col gap-4">
               <div className="flex justify-between items-start">
