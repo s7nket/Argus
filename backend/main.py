@@ -1,3 +1,5 @@
+import os
+import httpx
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -13,6 +15,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/judge/health")
+async def judge_health():
+    """
+    Pings the Kaggle llama-server to check if the judge is alive.
+    Returns: { "status": "online" | "offline", "url": str }
+    """
+    judge_url = os.getenv("JUDGE_BASE_URL", "http://127.0.0.1:8001/v1")
+    health_url = judge_url.replace("/v1", "") + "/health"
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(health_url)
+            if resp.status_code == 200:
+                return {"status": "online", "url": judge_url}
+    except Exception:
+        pass
+    return {"status": "offline", "url": judge_url}
+
 
 @app.websocket("/ws/debate")
 async def debate_websocket(websocket: WebSocket):

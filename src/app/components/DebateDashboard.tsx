@@ -22,6 +22,7 @@ export function DebateDashboard() {
   const [typingAgent, setTypingAgent] = useState<string | null>(null);
   const [debateComplete, setDebateComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [judgeStatus, setJudgeStatus] = useState<'online' | 'offline' | 'checking'>('checking');
   const rounds = 3;
   const wsRef = useRef<WebSocket | null>(null);
   const typingStartRef = useRef<number>(0);
@@ -35,9 +36,31 @@ export function DebateDashboard() {
     return () => { wsRef.current?.close(); };
   }, []);
 
+  useEffect(() => {
+    const checkJudge = async () => {
+      setJudgeStatus('checking');
+      try {
+        const res = await fetch('http://localhost:8000/judge/health');
+        const data = await res.json();
+        setJudgeStatus(data.status === 'online' ? 'online' : 'offline');
+      } catch {
+        setJudgeStatus('offline');
+      }
+    };
+
+    checkJudge();
+    const interval = setInterval(checkJudge, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleStartDebate = React.useCallback((e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!prompt.trim() || typingAgent) return;
+
+    if (judgeStatus !== 'online') {
+      setError('Judge is offline. Start your Kaggle session first, then wait for the green indicator.');
+      return;
+    }
     setIsDebating(true);
     setMessages([]);
     setTypingAgent(null);
@@ -90,7 +113,7 @@ export function DebateDashboard() {
     };
     ws.onerror = () => { setError('WebSocket connection failed. Is the backend running?'); setTypingAgent(null); };
     ws.onclose = () => { wsRef.current = null; };
-  }, [prompt, rounds, typingAgent]);
+  }, [prompt, rounds, typingAgent, judgeStatus]);
 
   const lastFinalVerdict = messages.find((m: any) => m.type === 'final_verdict');
 
@@ -129,7 +152,26 @@ export function DebateDashboard() {
             ))}
           </nav>
         </div>
-        <div className="p-6">
+        <div className="p-6 flex flex-col gap-3">
+          {/* Judge Status Badge */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
+            <span
+              className={cn(
+                "w-2 h-2 rounded-full shrink-0",
+                judgeStatus === 'online'   && "bg-emerald-400 shadow-[0_0_6px_#34d399]",
+                judgeStatus === 'offline'  && "bg-red-500 shadow-[0_0_6px_#ef4444]",
+                judgeStatus === 'checking' && "bg-yellow-400 animate-pulse"
+              )}
+            />
+            <span className={cn(
+              "font-['JetBrains_Mono'] text-[10px] tracking-widest font-bold uppercase",
+              judgeStatus === 'online'   && "text-emerald-400",
+              judgeStatus === 'offline'  && "text-red-400",
+              judgeStatus === 'checking' && "text-yellow-400"
+            )}>
+              JUDGE {judgeStatus === 'checking' ? 'CHECKING...' : judgeStatus.toUpperCase()}
+            </span>
+          </div>
           <button onClick={() => navigate('/')} className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-white/40 hover:text-white hover:bg-white/[0.04] transition-colors duration-200">
             <ArrowLeft className="w-4 h-4" />
             <span className="font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest uppercase">Main Landing</span>
@@ -240,35 +282,146 @@ export function DebateDashboard() {
                 );
               }
               if (msg.type === 'final_verdict') {
+                const winner = msg.data.overall_winner as 'pro' | 'con' | 'tie';
+                const proTotal = msg.data.pro_total as number;
+                const conTotal = msg.data.con_total as number;
+                const roundVerdicts = messages.filter((m: any) => m.type === 'verdict');
+                const fallacies = roundVerdicts.filter((m: any) => m.data.fallacy_detected);
+
+                const winnerConfig = {
+                  pro: {
+                    label: 'AGENT-01 // PRO WINS',
+                    color: 'text-emerald-400',
+                    border: 'border-emerald-500/30',
+                    bg: 'bg-emerald-500/[0.06]',
+                    glow: 'shadow-[0_0_30px_rgba(52,211,153,0.08)]',
+                  },
+                  con: {
+                    label: 'AGENT-02 // CON WINS',
+                    color: 'text-rose-400',
+                    border: 'border-rose-500/30',
+                    bg: 'bg-rose-500/[0.06]',
+                    glow: 'shadow-[0_0_30px_rgba(251,113,133,0.08)]',
+                  },
+                  tie: {
+                    label: 'DRAW // TIE',
+                    color: 'text-yellow-400',
+                    border: 'border-yellow-500/30',
+                    bg: 'bg-yellow-500/[0.04]',
+                    glow: 'shadow-[0_0_30px_rgba(250,204,21,0.06)]',
+                  },
+                }[winner];
+
                 return (
-                  <motion.div key={idx} initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex justify-center will-change-[transform,opacity] transform-gpu">
-                    <div className="bg-[#111114] border border-white/10 rounded-3xl p-8 max-w-2xl w-full shadow-[0_0_60px_rgba(99,102,241,0.08)]">
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, scale: 0.97, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                    className="flex justify-center will-change-[transform,opacity] transform-gpu"
+                  >
+                    <div className={`bg-[#111114] border border-white/10 rounded-3xl p-8 max-w-2xl w-full ${winnerConfig.glow}`}>
+
+                      {/* Header */}
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400"><Gavel className="w-5 h-5" /></div>
+                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                          <Gavel className="w-5 h-5" />
+                        </div>
                         <div>
-                          <span className="font-['Orbitron'] text-lg font-bold text-white block">FINAL VERDICT</span>
-                          <span className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest uppercase">JUDGE-0 OMNI</span>
+                          <span className="font-['Orbitron'] text-lg font-bold text-white block tracking-widest">FINAL VERDICT</span>
+                          <span className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest uppercase">JUDGE-0 OMNI · NEMOTRON 30B</span>
                         </div>
                       </div>
+                      <div className="h-[1px] bg-white/[0.05] mb-6" />
+
+                      {/* Winner Announcement */}
+                      <div className={`${winnerConfig.bg} border ${winnerConfig.border} rounded-2xl p-5 text-center mb-6`}>
+                        <span className={`font-['Orbitron'] text-2xl font-black tracking-widest ${winnerConfig.color}`}>
+                          {winnerConfig.label}
+                        </span>
+                      </div>
+
+                      {/* Score Breakdown */}
                       <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-white/[0.02] border border-white/[0.05] p-5 rounded-2xl text-center">
-                          <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 tracking-widest uppercase mb-2 block">PRO Total</span>
-                          <div className="text-3xl font-['DM_Sans'] text-white font-semibold">{msg.data.pro_total}</div>
+                        {/* PRO */}
+                        <div className="bg-emerald-500/[0.04] border border-emerald-500/10 rounded-2xl p-4">
+                          <div className="font-['JetBrains_Mono'] text-[9px] text-emerald-400/70 tracking-widest uppercase mb-2">AGENT-01 PRO</div>
+                          <div className="font-['DM_Sans'] text-3xl font-semibold text-white mb-3">
+                            {proTotal}<span className="text-sm text-white/30">/30</span>
+                          </div>
+                          <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-400 rounded-full transition-all duration-1000"
+                              style={{ width: `${(proTotal / 30) * 100}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="bg-white/[0.02] border border-white/[0.05] p-5 rounded-2xl text-center">
-                          <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 tracking-widest uppercase mb-2 block">CON Total</span>
-                          <div className="text-3xl font-['DM_Sans'] text-white font-semibold">{msg.data.con_total}</div>
+                        {/* CON */}
+                        <div className="bg-rose-500/[0.04] border border-rose-500/10 rounded-2xl p-4">
+                          <div className="font-['JetBrains_Mono'] text-[9px] text-rose-400/70 tracking-widest uppercase mb-2">AGENT-02 CON</div>
+                          <div className="font-['DM_Sans'] text-3xl font-semibold text-white mb-3">
+                            {conTotal}<span className="text-sm text-white/30">/30</span>
+                          </div>
+                          <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-rose-400 rounded-full transition-all duration-1000"
+                              style={{ width: `${(conTotal / 30) * 100}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
-                      <div className="text-center mb-4">
-                        <span className="font-['Orbitron'] text-sm text-white/50 tracking-widest uppercase">OVERALL WINNER: </span>
-                        <span className="font-['Orbitron'] text-lg text-white font-bold tracking-widest">{msg.data.overall_winner.toUpperCase()}</span>
+
+                      {/* Round-by-Round Summary Table */}
+                      <div className="border border-white/[0.05] rounded-xl overflow-hidden mb-6">
+                        <div className="grid grid-cols-4 bg-white/[0.03] px-4 py-2">
+                          {['ROUND', 'PRO', 'CON', 'WINNER'].map(h => (
+                            <span key={h} className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest uppercase">{h}</span>
+                          ))}
+                        </div>
+                        {roundVerdicts.map((rv: any, i: number) => (
+                          <div key={i} className={`grid grid-cols-4 px-4 py-3 ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
+                            <span className="font-['JetBrains_Mono'] text-[10px] text-white/50">R{rv.round}</span>
+                            <span className="font-['JetBrains_Mono'] text-[10px] text-white/70">{rv.data.pro_scores.total}</span>
+                            <span className="font-['JetBrains_Mono'] text-[10px] text-white/70">{rv.data.con_scores.total}</span>
+                            <span className={cn(
+                              "font-['JetBrains_Mono'] text-[10px] font-bold",
+                              rv.data.round_winner === 'pro' && 'text-emerald-400',
+                              rv.data.round_winner === 'con' && 'text-rose-400',
+                              rv.data.round_winner === 'tie' && 'text-yellow-400',
+                            )}>
+                              {rv.data.round_winner === 'pro' ? 'PRO ▲' : rv.data.round_winner === 'con' ? 'CON ▲' : 'TIE'}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                      <p className="font-['DM_Sans'] text-base text-white/70 leading-relaxed text-center">{msg.data.final_reasoning}</p>
+
+                      {/* Final Reasoning */}
+                      <div className="mb-6">
+                        <div className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest uppercase mb-2">JUDGE REASONING</div>
+                        <p className="font-['DM_Sans'] text-sm text-white/60 leading-relaxed">{msg.data.final_reasoning}</p>
+                      </div>
+
+                      {/* Fallacy Detection Summary */}
+                      <div className="border-t border-white/[0.05] pt-4">
+                        <div className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest uppercase mb-2">FALLACY DETECTION</div>
+                        {fallacies.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            {fallacies.map((f: any, i: number) => (
+                              <span key={i} className="font-['JetBrains_Mono'] text-[10px] text-amber-400/70">
+                                Round {f.round}: {f.data.fallacy_detected}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="font-['JetBrains_Mono'] text-[10px] text-emerald-400/50">NO FALLACIES DETECTED</span>
+                        )}
+                      </div>
+
                     </div>
                   </motion.div>
                 );
               }
+
               return null;
             })}
 
@@ -282,6 +435,20 @@ export function DebateDashboard() {
                 <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 tracking-widest uppercase">
                   {typingAgent === 'pro' ? 'AGENT-01' : typingAgent === 'con' ? 'AGENT-02' : 'JUDGE-0 OMNI'} {typingAgent === 'judge' ? 'evaluating' : 'generating'}...
                 </span>
+              </motion.div>
+            )}
+
+            {judgeStatus === 'offline' && !isDebating && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
+                <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/5 max-w-md w-full">
+                  <span className="mt-0.5 text-red-400 shrink-0">⚠</span>
+                  <div>
+                    <p className="font-['JetBrains_Mono'] text-[11px] font-bold text-red-400 tracking-widest uppercase mb-1">Judge Offline</p>
+                    <p className="font-['DM_Sans'] text-sm text-red-300/80 leading-relaxed">
+                      Open your Kaggle notebook and run all cells. The judge will come online automatically within ~90 seconds.
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             )}
 

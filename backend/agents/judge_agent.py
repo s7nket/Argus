@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from openai import AsyncOpenAI
 
@@ -21,7 +22,7 @@ You evaluate the ENTIRE round (all sub-rounds combined) on three criteria per ag
 
 Total score per agent = average of the three criteria, rounded to 1 decimal place.
 
-<think> through each agent's full performance before scoring. </think>
+Think through each agent's full performance before scoring.
 
 You MUST respond with ONLY a valid JSON object. No markdown. No explanation outside the JSON. No preamble.
 
@@ -47,14 +48,20 @@ JSON schema:
 }"""
 
 
+def _clean_response(raw: str) -> str:
+    """Strip <think>...</think> blocks, markdown fences, and whitespace."""
+    # Remove think blocks (model reasoning traces)
+    raw = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL)
+    # Remove markdown code fences
+    raw = raw.replace("```json", "").replace("```", "")
+    return raw.strip()
+
+
 async def judge_round(
     topic: str,
     round_num: int,
-    exchange: list[dict],   # ordered list of {"speaker": "pro"|"con", "sub_round": int, "text": str}
+    exchange: list[dict],
 ) -> dict:
-    """
-    exchange: all utterances from all 3 sub-rounds for this main round.
-    """
     exchange_block = _format_exchange_for_judge(exchange)
 
     response = await client.chat.completions.create(
@@ -68,11 +75,15 @@ async def judge_round(
                 f"Score both agents across the entire round. Return ONLY the JSON object."
             )}
         ],
-        max_tokens=400,
+        max_tokens=1500,
         temperature=0.3,
     )
-    raw = response.choices[0].message.content.strip()
-    raw = raw.replace("```json", "").replace("```", "").strip()
+
+    raw = _clean_response(response.choices[0].message.content)
+
+    if not raw:
+        raise ValueError(f"Judge returned empty response for round {round_num}.")
+
     return json.loads(raw)
 
 
@@ -94,9 +105,6 @@ async def judge_final_verdict(
     topic: str,
     all_rounds: list[dict]
 ) -> dict:
-    """
-    all_rounds: list of round scoring dicts returned by judge_round()
-    """
     pro_total = round(sum(r["pro_scores"]["total"] for r in all_rounds), 1)
     con_total = round(sum(r["con_scores"]["total"] for r in all_rounds), 1)
 
@@ -118,11 +126,14 @@ async def judge_final_verdict(
                 f"Deliver the final verdict. Return ONLY the JSON object."
             )}
         ],
-        max_tokens=300,
+        max_tokens=1500,
         temperature=0.3,
     )
-    raw = response.choices[0].message.content.strip()
-    raw = raw.replace("```json", "").replace("```", "").strip()
+
+    raw = _clean_response(response.choices[0].message.content)
+
+    if not raw:
+        raise ValueError("Judge returned empty final verdict.")
 
     result = json.loads(raw)
     result["pro_total"] = pro_total
