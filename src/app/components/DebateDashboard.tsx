@@ -90,7 +90,7 @@ export function DebateDashboard() {
         case 'con_argument': {
           const latency = Date.now() - typingStartRef.current;
           setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'con', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: 'llama-3.1-8b-instant' }]);
+          setMessages(prev => [...prev, { type: 'con', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: 'llama-3.3-70b-versatile' }]);
           break;
         }
         case 'round_verdict':
@@ -197,7 +197,29 @@ export function DebateDashboard() {
                 <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center"><Brain className="w-5 h-5 text-white/30" /></div>
               </div>
               <h2 className="font-['Orbitron'] text-xl tracking-[0.2em] text-white/60 mb-4 uppercase font-semibold">Awaiting Parameters</h2>
-              <p className="font-['DM_Sans'] text-sm text-white/30 leading-relaxed font-medium">Enter a debate topic below to engage neural simulation protocols and deploy active agents.</p>
+              <p className="font-['DM_Sans'] text-sm text-white/30 leading-relaxed font-medium mb-10">Enter a debate topic below to engage neural simulation protocols and deploy active agents.</p>
+              
+              {judgeStatus === 'offline' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center mb-6">
+                  <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/5 max-w-md w-full text-left">
+                    <span className="mt-0.5 text-red-400 shrink-0">⚠</span>
+                    <div>
+                      <p className="font-['JetBrains_Mono'] text-[11px] font-bold text-red-400 tracking-widest uppercase mb-1">Judge Offline</p>
+                      <p className="font-['DM_Sans'] text-sm text-red-300/80 leading-relaxed">
+                        Open your Kaggle notebook and run all cells. The judge will come online automatically within ~90 seconds.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {error && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center mb-6">
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-6 py-4 text-center max-w-md">
+                    <span className="font-['JetBrains_Mono'] text-xs text-red-400 tracking-widest">{error}</span>
+                  </div>
+                </motion.div>
+              )}
             </div>
           </div>
         ) : (
@@ -438,19 +460,7 @@ export function DebateDashboard() {
               </motion.div>
             )}
 
-            {judgeStatus === 'offline' && !isDebating && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
-                <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/5 max-w-md w-full">
-                  <span className="mt-0.5 text-red-400 shrink-0">⚠</span>
-                  <div>
-                    <p className="font-['JetBrains_Mono'] text-[11px] font-bold text-red-400 tracking-widest uppercase mb-1">Judge Offline</p>
-                    <p className="font-['DM_Sans'] text-sm text-red-300/80 leading-relaxed">
-                      Open your Kaggle notebook and run all cells. The judge will come online automatically within ~90 seconds.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+
 
             {error && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">

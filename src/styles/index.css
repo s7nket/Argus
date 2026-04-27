@@ -2,6 +2,16 @@
 @import './tailwind.css';
 @import './theme.css';
 
+/* Universally hide scrollbars but allow scrolling */
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari and WebKit */
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
