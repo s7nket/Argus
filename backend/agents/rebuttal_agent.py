@@ -76,7 +76,7 @@ async def generate_pro_rebuttal(
     )
 
     response = await client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": PRO_REBUTTAL_PROMPT},
             {"role": "user",   "content": user_content}
@@ -125,7 +125,7 @@ async def generate_con_rebuttal(
     )
 
     response = await client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": CON_REBUTTAL_PROMPT},
             {"role": "user",   "content": user_content}

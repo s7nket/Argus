@@ -8,53 +8,41 @@ client = AsyncOpenAI(
     api_key="sk-no-key-required"
 )
 
-JUDGE_SYSTEM_PROMPT = """You are JUDGE-0 OMNI, a strict and impartial AI debate judge powered by Nemotron.
+# ── Fix 3 (tighter prompts kept from previous suggestion, included for completeness) ──
 
-Each main round consists of 3 sub-rounds:
-  Sub-round 1 — Opening: PRO makes their main argument, CON responds.
-  Sub-round 2 — Counter: PRO rebuts CON, CON counters back.
-  Sub-round 3 — Justify: PRO justifies, CON delivers a closing counter.
+JUDGE_SYSTEM_PROMPT = """You are a strict debate judge. Score PRO and CON across 3 sub-rounds.
 
-You evaluate the ENTIRE round (all sub-rounds combined) on three criteria per agent:
-- Evidence   (0–10): Are real-world facts, data, or concrete examples cited across the sub-rounds?
-- Logic      (0–10): Is the argument structurally sound with no logical fallacies?
-- Relevance  (0–10): Does the argument directly and consistently address the debate topic?
+Criteria (0–10 each): Evidence, Logic, Relevance. Total = average, 1 decimal.
 
-Total score per agent = average of the three criteria, rounded to 1 decimal place.
+Return ONLY this JSON, no markdown, no explanation:
+{"pro_scores":{"evidence":int,"logic":int,"relevance":int,"total":float},"con_scores":{"evidence":int,"logic":int,"relevance":int,"total":float},"round_winner":"pro"|"con"|"tie","reasoning":"1 sentence.","fallacy_detected":null|"fallacy name"}"""
 
-Think through each agent's full performance before scoring.
+FINAL_VERDICT_SYSTEM_PROMPT = """You are a strict debate judge delivering a final verdict.
 
-You MUST respond with ONLY a valid JSON object. No markdown. No explanation outside the JSON. No preamble.
-
-JSON schema for round scoring:
-{
-  "pro_scores":       { "evidence": int, "logic": int, "relevance": int, "total": float },
-  "con_scores":       { "evidence": int, "logic": int, "relevance": int, "total": float },
-  "round_winner":     "pro" | "con" | "tie",
-  "reasoning":        "1–2 sentences explaining why the round winner prevailed across all sub-rounds.",
-  "fallacy_detected": null | "Name of the fallacy if one was detected in either agent's arguments"
-}"""
-
-FINAL_VERDICT_SYSTEM_PROMPT = """You are JUDGE-0 OMNI. All rounds are complete. Deliver the final debate verdict.
-
-You MUST respond with ONLY a valid JSON object. No markdown. No preamble.
-
-JSON schema:
-{
-  "overall_winner":   "pro" | "con" | "tie",
-  "pro_total":        float,
-  "con_total":        float,
-  "final_reasoning":  "2–3 sentences explaining why the overall winner prevailed, referencing specific rounds."
-}"""
+Return ONLY this JSON, no markdown, no explanation:
+{"overall_winner":"pro"|"con"|"tie","pro_total":float,"con_total":float,"final_reasoning":"2 sentences."}"""
 
 
 def _clean_response(raw: str) -> str:
-    """Strip <think>...</think> blocks, markdown fences, and whitespace."""
-    # Remove think blocks (model reasoning traces)
+    """Strip <think>...</think> blocks, markdown fences, then extract
+    the first complete JSON object via brace counting."""
     raw = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL)
-    # Remove markdown code fences
-    raw = raw.replace("```json", "").replace("```", "")
-    return raw.strip()
+    raw = raw.replace("```json", "").replace("```", "").strip()
+
+    # Extract the first complete {...} object, handling nested braces
+    start = raw.find("{")
+    if start == -1:
+        return raw
+    depth = 0
+    for i, ch in enumerate(raw[start:], start):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return raw[start:i + 1]
+    # If we never balanced, return whatever we have (will fail json.loads with a clear error)
+    return raw[start:]
 
 
 async def judge_round(
@@ -68,15 +56,14 @@ async def judge_round(
         model="unsloth/Nemotron-3-Nano-30B-A3B",
         messages=[
             {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
-            {"role": "user",   "content": (
-                f"Debate Topic: {topic}\n\n"
-                f"Round {round_num} — Full Exchange (3 sub-rounds):\n\n"
-                f"{exchange_block}\n\n"
-                f"Score both agents across the entire round. Return ONLY the JSON object."
+            {"role": "user", "content": (
+                f"Topic: {topic}\n\n"
+                f"Round {round_num} exchange:\n{exchange_block}\n\n"
+                f"Return ONLY the JSON object."
             )}
         ],
-        max_tokens=1500,
-        temperature=0.3,
+        max_tokens=500,
+        temperature=0,
     )
 
     raw = _clean_response(response.choices[0].message.content)
@@ -88,17 +75,31 @@ async def judge_round(
 
 
 def _format_exchange_for_judge(exchange: list[dict]) -> str:
+    """
+    Truncates each turn to 300 chars to minimise input tokens while
+    preserving enough content for accurate scoring.
+    """
     lines = []
     current_sub = 0
     sub_labels = {1: "Opening", 2: "Counter", 3: "Justify"}
+
     for turn in exchange:
         sr = turn["sub_round"]
         if sr != current_sub:
             current_sub = sr
-            lines.append(f"--- Sub-round {sr}: {sub_labels.get(sr, str(sr))} ---")
-        label = "AGENT-01 (PRO)" if turn["speaker"] == "pro" else "AGENT-02 (CON)"
-        lines.append(f"{label}: {turn['text']}")
-    return "\n\n".join(lines)
+            lines.append(f"-- Sub-round {sr}: {sub_labels.get(sr, str(sr))} --")
+
+        label = "PRO" if turn["speaker"] == "pro" else "CON"
+        text = turn["text"]
+
+        # Fix 6: truncate long turns — judge needs the gist, not every word
+        if len(text) > 300:
+            text = text[:300].rsplit(" ", 1)[0] + "…"
+
+        lines.append(f"{label}: {text}")
+
+    # single \n instead of \n\n saves tokens
+    return "\n".join(lines)
 
 
 async def judge_final_verdict(
@@ -109,7 +110,7 @@ async def judge_final_verdict(
     con_total = round(sum(r["con_scores"]["total"] for r in all_rounds), 1)
 
     rounds_summary = "\n".join([
-        f"Round {i+1}: PRO={r['pro_scores']['total']} CON={r['con_scores']['total']} "
+        f"R{i+1}: PRO={r['pro_scores']['total']} CON={r['con_scores']['total']} "
         f"Winner={r['round_winner'].upper()} — {r['reasoning']}"
         for i, r in enumerate(all_rounds)
     ])
@@ -118,16 +119,15 @@ async def judge_final_verdict(
         model="unsloth/Nemotron-3-Nano-30B-A3B",
         messages=[
             {"role": "system", "content": FINAL_VERDICT_SYSTEM_PROMPT},
-            {"role": "user",   "content": (
-                f"Debate Topic: {topic}\n\n"
-                f"Round-by-round results:\n{rounds_summary}\n\n"
-                f"PRO cumulative score: {pro_total}\n"
-                f"CON cumulative score: {con_total}\n\n"
-                f"Deliver the final verdict. Return ONLY the JSON object."
+            {"role": "user", "content": (
+                f"Topic: {topic}\n\n"
+                f"Results:\n{rounds_summary}\n\n"
+                f"PRO total: {pro_total} | CON total: {con_total}\n\n"
+                f"Return ONLY the JSON object."
             )}
         ],
-        max_tokens=1500,
-        temperature=0.3,
+        max_tokens=300,
+        temperature=0,
     )
 
     raw = _clean_response(response.choices[0].message.content)
@@ -136,6 +136,7 @@ async def judge_final_verdict(
         raise ValueError("Judge returned empty final verdict.")
 
     result = json.loads(raw)
+    # Always enforce computed totals (don't trust model arithmetic)
     result["pro_total"] = pro_total
     result["con_total"] = con_total
     return result
