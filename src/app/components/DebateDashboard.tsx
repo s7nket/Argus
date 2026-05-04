@@ -84,13 +84,13 @@ export function DebateDashboard() {
         case 'pro_argument': {
           const latency = Date.now() - typingStartRef.current;
           setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'pro', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: 'llama-3.3-70b-versatile' }]);
+          setMessages(prev => [...prev, { type: 'pro', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: msg.model || 'unknown' }]);
           break;
         }
         case 'con_argument': {
           const latency = Date.now() - typingStartRef.current;
           setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'con', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: 'llama-3.3-70b-versatile' }]);
+          setMessages(prev => [...prev, { type: 'con', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: msg.model || 'unknown' }]);
           break;
         }
         case 'round_verdict':
@@ -262,7 +262,7 @@ export function DebateDashboard() {
               }
               if (msg.type === 'con') {
                 return (
-                  <motion.div key={idx} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col gap-4 max-w-3xl self-end text-right will-change-[transform,opacity] transform-gpu">
+                  <motion.div key={idx} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col gap-4 max-w-3xl self-end text-left will-change-[transform,opacity] transform-gpu">
                     <div className="flex items-center gap-3 w-full justify-end">
                       <span className="font-['JetBrains_Mono'] text-[10px] text-white/30 tracking-widest">R{msg.round}</span>
                       <span className="font-['JetBrains_Mono'] text-[10px] text-rose-400/80 tracking-widest font-bold">CON</span>
@@ -308,7 +308,6 @@ export function DebateDashboard() {
                 const proTotal = msg.data.pro_total as number;
                 const conTotal = msg.data.con_total as number;
                 const roundVerdicts = messages.filter((m: any) => m.type === 'verdict');
-                const fallacies = roundVerdicts.filter((m: any) => m.data.fallacy_detected);
 
                 const winnerConfig = {
                   pro: {
@@ -423,21 +422,6 @@ export function DebateDashboard() {
                         <p className="font-['DM_Sans'] text-sm text-white/60 leading-relaxed">{msg.data.final_reasoning}</p>
                       </div>
 
-                      {/* Fallacy Detection Summary */}
-                      <div className="border-t border-white/[0.05] pt-4">
-                        <div className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest uppercase mb-2">FALLACY DETECTION</div>
-                        {fallacies.length > 0 ? (
-                          <div className="flex flex-col gap-1">
-                            {fallacies.map((f: any, i: number) => (
-                              <span key={i} className="font-['JetBrains_Mono'] text-[10px] text-amber-400/70">
-                                Round {f.round}: {f.data.fallacy_detected}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="font-['JetBrains_Mono'] text-[10px] text-emerald-400/50">NO FALLACIES DETECTED</span>
-                        )}
-                      </div>
 
                     </div>
                   </motion.div>

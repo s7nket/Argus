@@ -37,9 +37,6 @@ SUB_ROUND_LABELS = {
 }
 
 
-def _build_round_summary(sr1: str, sr2: str, sr3: str) -> str:
-    """Compress all 3 sub-round responses into a single history entry."""
-    return f"[Opening] {sr1} | [Counter] {sr2} | [Justify] {sr3}"
 
 
 def clean_text(text: str) -> str:
@@ -82,7 +79,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "sub_round": 1
         })
         try:
-            pro_open = await generate_pro_argument(
+            pro_open, pro_model = await generate_pro_argument(
                 topic=topic,
                 round_num=round_num,
                 pro_history=pro_history,
@@ -98,7 +95,8 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "type": "pro_argument",
             "round": round_num,
             "sub_round": 1,
-            "text": pro_open
+            "text": pro_open,
+            "model": pro_model
         })
 
         await asyncio.sleep(0.4)
@@ -111,7 +109,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "sub_round": 1
         })
         try:
-            con_open = await generate_con_argument(
+            con_open, con_model = await generate_con_argument(
                 topic=topic,
                 round_num=round_num,
                 current_pro_argument=pro_open,
@@ -128,7 +126,8 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "type": "con_argument",
             "round": round_num,
             "sub_round": 1,
-            "text": con_open
+            "text": con_open,
+            "model": con_model
         })
 
         await asyncio.sleep(0.4)
@@ -149,7 +148,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "sub_round": 2
         })
         try:
-            pro_counter = await generate_pro_rebuttal(
+            pro_counter, pro_model = await generate_pro_rebuttal(
                 topic=topic,
                 round_num=round_num,
                 sub_round=2,
@@ -167,7 +166,8 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "type": "pro_argument",
             "round": round_num,
             "sub_round": 2,
-            "text": pro_counter
+            "text": pro_counter,
+            "model": pro_model
         })
 
         await asyncio.sleep(0.4)
@@ -180,7 +180,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "sub_round": 2
         })
         try:
-            con_counter = await generate_con_rebuttal(
+            con_counter, con_model = await generate_con_rebuttal(
                 topic=topic,
                 round_num=round_num,
                 sub_round=2,
@@ -198,7 +198,8 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "type": "con_argument",
             "round": round_num,
             "sub_round": 2,
-            "text": con_counter
+            "text": con_counter,
+            "model": con_model
         })
 
         await asyncio.sleep(0.4)
@@ -219,7 +220,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "sub_round": 3
         })
         try:
-            pro_justify = await generate_pro_rebuttal(
+            pro_justify, pro_model = await generate_pro_rebuttal(
                 topic=topic,
                 round_num=round_num,
                 sub_round=3,
@@ -237,7 +238,8 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "type": "pro_argument",
             "round": round_num,
             "sub_round": 3,
-            "text": pro_justify
+            "text": pro_justify,
+            "model": pro_model
         })
 
         await asyncio.sleep(0.4)
@@ -250,7 +252,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "sub_round": 3
         })
         try:
-            con_justify = await generate_con_rebuttal(
+            con_justify, con_model = await generate_con_rebuttal(
                 topic=topic,
                 round_num=round_num,
                 sub_round=3,
@@ -268,7 +270,8 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "type": "con_argument",
             "round": round_num,
             "sub_round": 3,
-            "text": con_justify
+            "text": con_justify,
+            "model": con_model
         })
 
         await asyncio.sleep(0.4)
@@ -299,11 +302,11 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "data": verdict
         })
 
-        # Store FULL round summaries (all 3 sub-rounds) as cross-round context.
-        # Previously only pro_open/con_open were stored — agents had no memory
-        # of sub-rounds 2 and 3 when entering the next main round.
-        pro_history.append(_build_round_summary(pro_open, pro_counter, pro_justify))
-        con_history.append(_build_round_summary(con_open, con_counter, con_justify))
+        # Store only the opening arguments in the history to prevent the context
+        # window from growing too large and increasing agent latency. Sub-rounds 
+        # 2 and 3 (rebuttals) are intentionally dropped from historical memory.
+        pro_history.append(pro_open)
+        con_history.append(con_open)
 
         await asyncio.sleep(0.4)
 

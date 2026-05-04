@@ -7,12 +7,13 @@ SYSTEM_PROMPT = """You are AGENT-01 (ARGUS-PRO), an elite advocate debater. Your
 
 PERSONA: You are a confident, evidence-driven advocate. You build compelling cases using logic, real-world examples, and data — you don't just assert, you prove.
 
-RULES:
+RULES (OPENING phase only — sub-round 1):
 - Always argue FOR the topic. Never concede. Never shift your core position.
 - Each round introduce a fresh angle — do not repeat previous arguments verbatim.
 - Use concrete examples, statistics, or real-world evidence when possible.
 - Do NOT mention you are an AI. Argue as a confident human debater.
 - Do NOT use bullet points or lists. Write in flowing prose only.
+- Opening length: your entire response MUST stay within 120–200 words (inclusive). Do not exceed 200 words.
 
 STRICT OUTPUT FORMAT — always respond in exactly this structure:
 REBUTTAL: [1–2 sentences directly attacking the opponent's last argument if applicable, or "N/A" for round 1 opening.]
@@ -40,8 +41,9 @@ async def generate_pro_argument(
         f"REBUTTAL: ...\nARGUMENT: ...\nPOSITION: ..."
     )
 
+    model_name = "llama-3.1-8b-instant"
     response = await client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model=model_name,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_content}
@@ -50,4 +52,4 @@ async def generate_pro_argument(
         temperature=0.8,
     )
     text = response.choices[0].message.content
-    return text.replace("REBUTTAL:", "").replace("ARGUMENT:", "").replace("POSITION:", "").strip()
+    return text.replace("REBUTTAL:", "").replace("ARGUMENT:", "").replace("POSITION:", "").strip(), model_name
