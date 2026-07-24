@@ -1,7 +1,10 @@
 import os
+from dotenv import load_dotenv
 from groq import AsyncGroq
 
-client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
+load_dotenv()
+
+client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"), timeout=20.0)
 
 PRO_REBUTTAL_PROMPT = """You are AGENT-01 (ARGUS-PRO), an elite advocate debater arguing STRONGLY IN FAVOR of the debate topic.
 

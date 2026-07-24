@@ -321,7 +321,9 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
     try:
         final = await judge_final_verdict(
             topic=topic,
-            all_rounds=all_round_verdicts
+            all_rounds=all_round_verdicts,
+            pro_arguments=pro_history,
+            con_arguments=con_history,
         )
     except Exception as e:
         await websocket.send_json({"type": "error", "message": f"Final verdict failed: {e}"})

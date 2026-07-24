@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ARGUS — Component Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f0f0f0; display: flex; justify-content: center; padding: 24px; font-family: 'Segoe UI', Arial, sans-serif; }
+    .a4-landscape {
+      width: 1123px; min-height: 794px; background: #ffffff;
+      padding: 32px 40px; display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 6px 40px rgba(0,0,0,0.18);
+    }
+    .hdr { text-align: center; padding-bottom: 12px; border-bottom: 3px solid #4f46e5; }
+    .hdr .sub { font-size: 11px; font-weight: 700; color: #6366f1; letter-spacing: .1em; text-transform: uppercase; }
+    .hdr h1 { font-size: 24px; font-weight: 900; color: #1e1b4b; margin-top: 4px; }
+    
+    .diagram { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    .diagram .mermaid { width: 100%; text-align: center; }
+    .diagram svg { width: 100% !important; height: auto !important; max-height: 560px; }
+
+    .ftr { border-top: 1px solid #e2e8f0; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+    .ftr span { font-size: 10px; color: #94a3b8; }
+    .ftr .pill { background: #ede9fe; color: #6d28d9; padding: 3px 10px; border-radius: 99px; font-size: 10px; font-weight: 800; letter-spacing: .06em; }
+  </style>
+</head>
+<body>
+<div class="a4-landscape">
+  <div class="hdr">
+    <div class="sub">AI Multi-Agent Debate System · May 2026</div>
+    <h1>ARGUS — Component Diagram</h1>
+  </div>
+  <div class="diagram">
+    <div class="mermaid">
+classDiagram
+    class Frontend {
+        <<React>>
+        +Dashboard
+        +WebSocket
+        +startDebate()
+        +renderStream()
+    }
+    class FastAPIBackend {
+        <<FastAPI>>
+        +websocket_endpoint()
+        +health_check()
+    }
+    class DebateOrchestrator {
+        <<Orchestrator>>
+        +run_debate()
+        +manage_subrounds()
+        +format_exchange()
+    }
+    class GroqAgents {
+        <<Cloud>>
+        +ProAgent
+        +ConAgent
+        +RebuttalAgent
+    }
+    class JudgeOrchestrator {
+        <<Logic>>
+        +get_ft_scores()
+        +get_explanation()
+        +judge_final_verdict()
+    }
+    class KaggleGPU {
+        <<Environment>>
+        +Port8001
+        +Port8002
+        +NemotronModel
+        +LlamaModel
+    }
+
+    Frontend ..> FastAPIBackend : WS_REST
+    FastAPIBackend --> DebateOrchestrator : Initialize
+    DebateOrchestrator --> GroqAgents : API_Calls
+    DebateOrchestrator --> JudgeOrchestrator : Debate_History
+    JudgeOrchestrator --> KaggleGPU : HTTP_via_ngrok
+    </div>
+  </div>
+  <div class="ftr">
+    <span>ARGUS</span>
+    <span class="pill">COMPONENT DIAGRAM</span>
+    <span>A4 Landscape · 297 × 210 mm</span>
+  </div>
+</div>
+<script>
+  mermaid.initialize({
+    startOnLoad: true, theme: 'base',
+    themeVariables: { primaryColor: '#ede9fe', primaryBorderColor: '#6366f1', primaryTextColor: '#1e1b4b', lineColor: '#64748b', fontSize: '14px' }
+  });
+</script>
+</body>
+</html>

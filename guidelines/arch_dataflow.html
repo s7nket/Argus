@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ARGUS — Data Flow Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f0f0f0; display: flex; justify-content: center; padding: 24px; font-family: 'Segoe UI', Arial, sans-serif; }
+    .a4-landscape {
+      width: 1123px; min-height: 794px; background: #ffffff;
+      padding: 32px 40px; display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 6px 40px rgba(0,0,0,0.18);
+    }
+    .hdr { text-align: center; padding-bottom: 12px; border-bottom: 3px solid #4f46e5; }
+    .hdr .sub { font-size: 11px; font-weight: 700; color: #6366f1; letter-spacing: .1em; text-transform: uppercase; }
+    .hdr h1 { font-size: 24px; font-weight: 900; color: #1e1b4b; margin-top: 4px; }
+    
+    .diagram { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    .diagram .mermaid { width: 100%; text-align: center; }
+    .diagram svg { width: 100% !important; height: auto !important; max-height: 560px; }
+
+    .ftr { border-top: 1px solid #e2e8f0; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+    .ftr span { font-size: 10px; color: #94a3b8; }
+    .ftr .pill { background: #ede9fe; color: #6d28d9; padding: 3px 10px; border-radius: 99px; font-size: 10px; font-weight: 800; letter-spacing: .06em; }
+  </style>
+</head>
+<body>
+<div class="a4-landscape">
+  <div class="hdr">
+    <div class="sub">AI Multi-Agent Debate System · May 2026</div>
+    <h1>ARGUS — Data Flow Diagram (DFD)</h1>
+  </div>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart LR
+    classDef external fill:#ede9fe,stroke:#6366f1,color:#1e1b4b,rx:6
+    classDef process fill:#e0f2fe,stroke:#0ea5e9,color:#0c4a6e,rx:12
+
+    User([User]):::external
+    UI[Frontend Interface]:::process
+    API[FastAPI Router]:::process
+    Orch[Debate Orchestrator]:::process
+    Groq{Groq API}:::external
+    JudgeO[Judge Orchestrator]:::process
+    Scorer[Llama 4B PEFT]:::external
+    Explainer[Nemotron 30B]:::external
+
+    User -->|1. Enter Topic| UI
+    UI -->|2. Start Debate| API
+    API -->|3. Establish WS| Orch
+    Orch -->|4. Topic Prompts| Groq
+    Groq -->|5. Open Args| Orch
+    Orch -->|6. Rebuttal Ctx| Groq
+    Groq -->|7. Rebuttals| Orch
+    Orch -->|8. Push Stream| UI
+    Orch -->|9. Round History| JudgeO
+    JudgeO -->|10. Exchange| Scorer
+    Scorer -->|11. Scores| JudgeO
+    JudgeO -->|12. Scores+Ctx| Explainer
+    Explainer -->|13. Explanation| JudgeO
+    JudgeO -->|14. Final Verdict| Orch
+    Orch -->|15. Verdict Stream| UI
+    UI -->|16. Render Report| User
+    </div>
+  </div>
+  <div class="ftr">
+    <span>ARGUS</span>
+    <span class="pill">DATA FLOW DIAGRAM</span>
+    <span>A4 Landscape · 297 × 210 mm</span>
+  </div>
+</div>
+<script>
+  mermaid.initialize({
+    startOnLoad: true, theme: 'base',
+    themeVariables: { primaryColor: '#ede9fe', primaryBorderColor: '#6366f1', primaryTextColor: '#1e1b4b', lineColor: '#64748b', fontSize: '13px' },
+    flowchart: { useMaxWidth: true, htmlLabels: true, rankSpacing: 70, nodeSpacing: 25 }
+  });
+</script>
+</body>
+</html>

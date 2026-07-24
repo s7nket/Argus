@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ARGUS — Architecture Diagrams</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f0f0f0; display: flex; justify-content: center; padding: 24px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .a4 {
+      width: 794px; min-height: 1123px; background: #ffffff;
+      padding: 24px 28px; display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 6px 40px rgba(0,0,0,0.18);
+    }
+    .hdr { text-align: center; padding-bottom: 8px; border-bottom: 2.5px solid #4f46e5; }
+    .hdr .sub { font-size: 9px; font-weight: 700; color: #6366f1; letter-spacing: .1em; text-transform: uppercase; }
+    .hdr h1 { font-size: 18px; font-weight: 900; color: #1e1b4b; margin-top: 2px; }
+    .hdr .desc { font-size: 9px; color: #64748b; margin-top: 3px; }
+    
+    .section { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+    .section-title { font-size: 11px; font-weight: 800; color: #1e293b; background: #f1f5f9; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; }
+    
+    .diagram { width: 100%; display: flex; justify-content: center; overflow: hidden; }
+    .diagram .mermaid { width: 100%; text-align: center; }
+    .diagram svg { width: 100% !important; height: auto !important; max-height: 290px; }
+
+    .ftr { border-top: 1px solid #e2e8f0; padding-top: 7px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+    .ftr span { font-size: 8px; color: #94a3b8; }
+    .ftr .pill { background: #ede9fe; color: #6d28d9; padding: 2px 8px; border-radius: 99px; font-size: 8px; font-weight: 800; letter-spacing: .06em; }
+  </style>
+</head>
+<body>
+<div class="a4">
+
+  <div class="hdr">
+    <div class="sub">AI Multi-Agent Debate System · May 2026</div>
+    <h1>ARGUS — Architecture & Data Flow</h1>
+    <div class="desc">System Architecture, Data Flow (DFD), and Component Structure</div>
+  </div>
+
+  <!-- 1. System Architecture -->
+  <div class="section">
+    <div class="section-title">1. System Architecture Diagram</div>
+    <div class="diagram">
+      <div class="mermaid">
+flowchart LR
+    %% Styling
+    classDef client fill:#ede9fe,stroke:#6366f1,color:#1e1b4b,rx:4
+    classDef server fill:#e0f2fe,stroke:#0ea5e9,color:#0c4a6e,rx:4
+    classDef external fill:#fef3c7,stroke:#f59e0b,color:#78350f,rx:4
+    classDef gpu fill:#dcfce7,stroke:#22c55e,color:#14532d,rx:4
+
+    User((User))
+
+    subgraph ClientLayer [Client Tier]
+        direction TB
+        Frontend["React / Vite Frontend"]
+    end
+
+    subgraph BackendLayer [Backend Server Tier]
+        direction TB
+        FastAPI["FastAPI Backend\n(WS + REST)"]
+        JudgeOrch["Judge Orchestrator"]
+    end
+
+    subgraph GroqLayer [Groq Cloud API]
+        direction TB
+        ProAgent["PRO Agent\n(llama-3.3-70b)"]
+        ConAgent["CON Agent\n(mixtral-8x7b)"]
+        RebAgent["Rebuttal Agent\n(Groq Models)"]
+    end
+
+    subgraph KaggleLayer [Kaggle T4 GPU Environment]
+        direction TB
+        Ngrok1["ngrok port 8001"]
+        Ngrok2["ngrok port 8002"]
+        Nemotron["Nemotron 30B\n(Explanation)"]
+        Llama4B["Llama 4B PEFT\n(Scoring)"]
+        Ngrok1 --> Nemotron
+        Ngrok2 --> Llama4B
+    end
+
+    User <-->|HTTP/WS| Frontend
+    Frontend <-->|WS + REST| FastAPI
+    FastAPI -->|Requests| ProAgent
+    FastAPI -->|Requests| ConAgent
+    FastAPI -->|Requests| RebAgent
+    FastAPI --> JudgeOrch
+    JudgeOrch -->|REST| Ngrok1
+    JudgeOrch -->|REST| Ngrok2
+
+    class User,Frontend client
+    class FastAPI,JudgeOrch server
+    class ProAgent,ConAgent,RebAgent external
+    class Ngrok1,Ngrok2,Nemotron,Llama4B gpu
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Data Flow Diagram -->
+  <div class="section">
+    <div class="section-title">2. Data Flow Diagram (DFD)</div>
+    <div class="diagram">
+      <div class="mermaid">
+flowchart LR
+    %% Styling
+    classDef external fill:#ede9fe,stroke:#6366f1,color:#1e1b4b
+    classDef process fill:#e0f2fe,stroke:#0ea5e9,color:#0c4a6e,rx:10
+
+    User([User]):::external
+    UI[Frontend]:::process
+    API[FastAPI]:::process
+    Orch[Debate Orchestrator]:::process
+    Groq{Groq API}:::external
+    JudgeO[Judge Orchestrator]:::process
+    Scorer[Llama 4B PEFT]:::external
+    Explainer[Nemotron 30B]:::external
+
+    User -->|1. Enter Topic| UI
+    UI -->|2. Start Debate| API
+    API -->|3. Establish WS| Orch
+    Orch -->|4. Topic Prompts| Groq
+    Groq -->|5. Open Args| Orch
+    Orch -->|6. Rebuttal Ctx| Groq
+    Groq -->|7. Rebuttals| Orch
+    Orch -->|8. Push Stream| UI
+    Orch -->|9. Round History| JudgeO
+    JudgeO -->|10. Exchange| Scorer
+    Scorer -->|11. Scores| JudgeO
+    JudgeO -->|12. Scores+Ctx| Explainer
+    Explainer -->|13. Explanation| JudgeO
+    JudgeO -->|14. Final Verdict| Orch
+    Orch -->|15. Verdict Stream| UI
+    UI -->|16. Render Report| User
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Component Diagram -->
+  <div class="section">
+    <div class="section-title">3. Component Diagram</div>
+    <div class="diagram">
+      <div class="mermaid">
+classDiagram
+    class Frontend {
+        <<React_Vite>>
+        +DebateDashboard_tsx
+        +WebSocketClient
+        +startDebate()
+        +renderStream()
+    }
+    class FastAPIBackend {
+        <<main_py>>
+        +websocket_endpoint()
+        +health_check()
+    }
+    class DebateOrchestrator {
+        <<orchestrator_py>>
+        +run_debate()
+        +manage_subrounds()
+        +format_exchange()
+    }
+    class GroqAgents {
+        <<agents>>
+        +pro_agent_py
+        +con_agent_py
+        +rebuttal_agent_py
+    }
+    class JudgeOrchestrator {
+        <<judge_agent_py>>
+        +get_ft_scores()
+        +get_explanation()
+        +judge_final_verdict()
+    }
+    class KaggleGPU {
+        <<External_Hosting>>
+        +ngrok_port_8001
+        +ngrok_port_8002
+        +Nemotron_30B
+        +Llama_4B_PEFT
+    }
+
+    Frontend ..> FastAPIBackend : WS_REST
+    FastAPIBackend --> DebateOrchestrator : Initialize
+    DebateOrchestrator --> GroqAgents : API_Calls
+    DebateOrchestrator --> JudgeOrchestrator : Debate_History
+    JudgeOrchestrator --> KaggleGPU : HTTP_via_ngrok
+      </div>
+    </div>
+  </div>
+
+  <div class="ftr">
+    <span>ARGUS · AI Multi-Agent Debate System · May 2026 · Sanket</span>
+    <span class="pill">ARCHITECTURE</span>
+    <span>A4 Portrait · 210 × 297 mm</span>
+  </div>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#ede9fe',
+      primaryBorderColor: '#6366f1',
+      primaryTextColor: '#1e1b4b',
+      lineColor: '#64748b',
+      fontSize: '10px'
+    },
+    flowchart: { useMaxWidth: true, htmlLabels: true, rankSpacing: 35, nodeSpacing: 15 }
+  });
+</script>
+</body>
+</html>

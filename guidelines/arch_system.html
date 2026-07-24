@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ARGUS — System Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f0f0f0; display: flex; justify-content: center; padding: 24px; font-family: 'Segoe UI', Arial, sans-serif; }
+    .a4-landscape {
+      width: 1123px; min-height: 794px; background: #ffffff;
+      padding: 32px 40px; display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 6px 40px rgba(0,0,0,0.18);
+    }
+    .hdr { text-align: center; padding-bottom: 12px; border-bottom: 3px solid #4f46e5; }
+    .hdr .sub { font-size: 11px; font-weight: 700; color: #6366f1; letter-spacing: .1em; text-transform: uppercase; }
+    .hdr h1 { font-size: 24px; font-weight: 900; color: #1e1b4b; margin-top: 4px; }
+    
+    .diagram { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    .diagram .mermaid { width: 100%; text-align: center; }
+    .diagram svg { width: 100% !important; height: auto !important; max-height: 560px; }
+
+    .ftr { border-top: 1px solid #e2e8f0; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+    .ftr span { font-size: 10px; color: #94a3b8; }
+    .ftr .pill { background: #ede9fe; color: #6d28d9; padding: 3px 10px; border-radius: 99px; font-size: 10px; font-weight: 800; letter-spacing: .06em; }
+  </style>
+</head>
+<body>
+<div class="a4-landscape">
+  <div class="hdr">
+    <div class="sub">AI Multi-Agent Debate System · May 2026</div>
+    <h1>ARGUS — System Architecture</h1>
+  </div>
+  <div class="diagram">
+    <div class="mermaid">
+flowchart LR
+    classDef client fill:#ede9fe,stroke:#6366f1,color:#1e1b4b,rx:8
+    classDef server fill:#e0f2fe,stroke:#0ea5e9,color:#0c4a6e,rx:8
+    classDef external fill:#fef3c7,stroke:#f59e0b,color:#78350f,rx:8
+    classDef gpu fill:#dcfce7,stroke:#22c55e,color:#14532d,rx:8
+
+    User((User))
+
+    subgraph ClientLayer [Client Tier]
+        direction TB
+        Frontend["React / Vite Frontend"]
+    end
+
+    subgraph BackendLayer [Backend Server Tier]
+        direction TB
+        FastAPI["FastAPI Backend\n(WS + REST)"]
+        JudgeOrch["Judge Orchestrator"]
+    end
+
+    subgraph GroqLayer [Groq Cloud API]
+        direction TB
+        ProAgent["PRO Agent\n(llama-3.3-70b)"]
+        ConAgent["CON Agent\n(mixtral-8x7b)"]
+        RebAgent["Rebuttal Agent\n(Groq Models)"]
+    end
+
+    subgraph KaggleLayer [Kaggle T4 GPU Environment]
+        direction TB
+        Ngrok1["ngrok port 8001"]
+        Ngrok2["ngrok port 8002"]
+        Nemotron["Nemotron 30B\n(Explanation)"]
+        Llama4B["Llama 4B PEFT\n(Scoring)"]
+        Ngrok1 --> Nemotron
+        Ngrok2 --> Llama4B
+    end
+
+    User <-->|HTTP/WS| Frontend
+    Frontend <-->|WS + REST| FastAPI
+    FastAPI -->|Requests| ProAgent
+    FastAPI -->|Requests| ConAgent
+    FastAPI -->|Requests| RebAgent
+    FastAPI --> JudgeOrch
+    JudgeOrch -->|REST| Ngrok1
+    JudgeOrch -->|REST| Ngrok2
+
+    class User,Frontend client
+    class FastAPI,JudgeOrch server
+    class ProAgent,ConAgent,RebAgent external
+    class Ngrok1,Ngrok2,Nemotron,Llama4B gpu
+    </div>
+  </div>
+  <div class="ftr">
+    <span>ARGUS</span>
+    <span class="pill">SYSTEM ARCHITECTURE</span>
+    <span>A4 Landscape · 297 × 210 mm</span>
+  </div>
+</div>
+<script>
+  mermaid.initialize({
+    startOnLoad: true, theme: 'base',
+    themeVariables: { primaryColor: '#ede9fe', primaryBorderColor: '#6366f1', primaryTextColor: '#1e1b4b', lineColor: '#64748b', fontSize: '14px' },
+    flowchart: { useMaxWidth: true, htmlLabels: true, rankSpacing: 60, nodeSpacing: 25 }
+  });
+</script>
+</body>
+</html>
