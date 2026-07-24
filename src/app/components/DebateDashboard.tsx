@@ -25,8 +25,12 @@ export function DebateDashboard() {
   const [judgeStatus, setJudgeStatus] = useState<'online' | 'offline' | 'checking'>('checking');
   const rounds = 3;
   const wsRef = useRef<WebSocket | null>(null);
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const typingStartRef = useRef<number>(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const judgeFailuresRef = useRef(0);
+  const debateCompleteRef = useRef(false);
+  const errorOccurredRef = useRef(false);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -38,18 +42,29 @@ export function DebateDashboard() {
 
   useEffect(() => {
     const checkJudge = async () => {
-      setJudgeStatus('checking');
       try {
         const res = await fetch('http://localhost:8000/judge/health');
         const data = await res.json();
-        setJudgeStatus(data.status === 'online' ? 'online' : 'offline');
+        if (data.status === 'online') {
+          judgeFailuresRef.current = 0;
+          setJudgeStatus('online');
+          return;
+        }
+        judgeFailuresRef.current += 1;
+        if (judgeFailuresRef.current >= 2) {
+          setJudgeStatus('offline');
+        }
       } catch {
-        setJudgeStatus('offline');
+        judgeFailuresRef.current += 1;
+        if (judgeFailuresRef.current >= 2) {
+          setJudgeStatus('offline');
+        }
       }
     };
 
+    setJudgeStatus('checking');
     checkJudge();
-    const interval = setInterval(checkJudge, 30000);
+    const interval = setInterval(checkJudge, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -57,19 +72,29 @@ export function DebateDashboard() {
     if (e) e.preventDefault();
     if (!prompt.trim() || typingAgent) return;
 
-    if (judgeStatus !== 'online') {
-      setError('Judge is offline. Start your Kaggle session first, then wait for the green indicator.');
+    if (judgeStatus === 'offline') {
+      setError('Judge is offline. Start your Kaggle FT scorer (FT_JUDGE_URL) and set JUDGE_GROQ_API_KEY in backend/.env.');
       return;
     }
     setIsDebating(true);
     setMessages([]);
     setTypingAgent(null);
     setDebateComplete(false);
+    debateCompleteRef.current = false;
+    errorOccurredRef.current = false;
     setError(null);
 
     const ws = new WebSocket('ws://localhost:8000/ws/debate');
     wsRef.current = ws;
-    ws.onopen = () => { ws.send(JSON.stringify({ topic: prompt, rounds })); };
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ topic: prompt, rounds }));
+      // Browsers cannot emit WS ping frames; agent generation can leave the
+      // socket silent for 30-60s, long enough for a middlebox to drop the idle
+      // connection (close 1006). A periodic outbound frame keeps it warm.
+      heartbeatRef.current = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' }));
+      }, 15000);
+    };
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
@@ -102,20 +127,35 @@ export function DebateDashboard() {
           setMessages(prev => [...prev, { type: 'final_verdict', data: msg.data }]);
           break;
         case 'debate_end':
+          debateCompleteRef.current = true;
           setDebateComplete(true);
           setTypingAgent(null);
           break;
         case 'error':
+          errorOccurredRef.current = true;
           setError(msg.message);
           setTypingAgent(null);
           break;
       }
     };
-    ws.onerror = () => { setError('WebSocket connection failed. Is the backend running?'); setTypingAgent(null); };
-    ws.onclose = () => { wsRef.current = null; };
+    ws.onerror = () => {
+      errorOccurredRef.current = true;
+      setError('WebSocket connection failed. Is the backend running?');
+      setTypingAgent(null);
+      setIsDebating(false);
+    };
+    ws.onclose = () => {
+      if (heartbeatRef.current) { clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
+      wsRef.current = null;
+      setTypingAgent(null);
+      setIsDebating(false);
+      if (!debateCompleteRef.current && !errorOccurredRef.current) {
+        setError('Connection lost. The debate was interrupted.');
+      }
+    };
   }, [prompt, rounds, typingAgent, judgeStatus]);
 
-  const lastFinalVerdict = messages.find((m: any) => m.type === 'final_verdict');
+  const hasStarted = isDebating || messages.length > 0;
 
   return (
     <div className="flex h-screen w-full bg-[#0a0a0c] text-white font-sans overflow-hidden selection:bg-white/20">
@@ -185,11 +225,11 @@ export function DebateDashboard() {
           <h1 className="sr-only">Debate Dashboard</h1>
           <div className="font-['JetBrains_Mono'] text-[10px] text-white/30 tracking-[0.2em] uppercase mb-4 font-bold">SIMULATION PROTOCOL V4.2.0</div>
           <h1 className="font-['Orbitron'] text-4xl md:text-5xl lg:text-6xl font-black tracking-[0.1em] text-transparent" style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.15)' }}>
-            {!isDebating ? 'INITIALIZING ARENA...' : 'ARENA ACTIVE'}
+            {!hasStarted ? 'INITIALIZING ARENA...' : isDebating ? 'ARENA ACTIVE' : 'DEBATE CONCLUDED'}
           </h1>
         </div>
 
-        {!isDebating ? (
+        {!hasStarted ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 mt-10">
             <div className="flex flex-col items-center max-w-[400px] text-center">
               <div className="w-32 h-32 rounded-full border border-dashed border-white/10 flex items-center justify-center mb-10 relative">
@@ -206,7 +246,7 @@ export function DebateDashboard() {
                     <div>
                       <p className="font-['JetBrains_Mono'] text-[11px] font-bold text-red-400 tracking-widest uppercase mb-1">Judge Offline</p>
                       <p className="font-['DM_Sans'] text-sm text-red-300/80 leading-relaxed">
-                        Open your Kaggle notebook and run all cells. The judge will come online automatically within ~90 seconds.
+                        Scores need Kaggle FT judge (port 8002 → FT_JUDGE_URL in backend/.env). Verdicts use JUDGE_GROQ_API_KEY on Groq. Restart the backend after updating .env. Status refreshes every 5 seconds.
                       </p>
                     </div>
                   </div>
@@ -307,7 +347,6 @@ export function DebateDashboard() {
                 const winner = msg.data.overall_winner as 'pro' | 'con' | 'tie';
                 const proTotal = msg.data.pro_total as number;
                 const conTotal = msg.data.con_total as number;
-                const roundVerdicts = messages.filter((m: any) => m.type === 'verdict');
 
                 const winnerConfig = {
                   pro: {
@@ -333,6 +372,25 @@ export function DebateDashboard() {
                   },
                 }[winner];
 
+                const d = msg.data;
+                const accuracy = d.accuracy ?? { pro: 0, con: 0 };
+                const winnerAnalysis = d.winner ?? {};
+                const loserAnalysis = d.loser ?? {};
+                const fallacies: string[] = d.fallacies ?? [];
+                const verdictText: string = d.verdict ?? d.final_reasoning ?? '';
+                // support both old field name (strengths) and new (points)
+                const winnerPoints: string[] = winnerAnalysis.points ?? winnerAnalysis.strengths ?? [];
+                // support both old field name (missed_opportunities) and new (missed_points)
+                const loserMissed: string[] = loserAnalysis.missed_points ?? loserAnalysis.missed_opportunities ?? [];
+                const rounds: any[] = d.rounds ?? messages
+                  .filter((m: any) => m.type === 'verdict')
+                  .map((rv: any) => ({
+                    r: rv.round,
+                    winner: rv.data.round_winner,
+                    margin: Math.abs(rv.data.pro_scores.total - rv.data.con_scores.total).toFixed(1),
+                    swing: rv.data.reasoning,
+                  }));
+
                 return (
                   <motion.div
                     key={idx}
@@ -350,7 +408,7 @@ export function DebateDashboard() {
                         </div>
                         <div>
                           <span className="font-['Orbitron'] text-lg font-bold text-white block tracking-widest">FINAL VERDICT</span>
-                          <span className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest uppercase">JUDGE-0 OMNI · NEMOTRON 30B</span>
+                          <span className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest uppercase">JUDGE-0 OMNI · FT SCORER + GROQ VERDICT</span>
                         </div>
                       </div>
                       <div className="h-[1px] bg-white/[0.05] mb-6" />
@@ -360,17 +418,23 @@ export function DebateDashboard() {
                         <span className={`font-['Orbitron'] text-2xl font-black tracking-widest ${winnerConfig.color}`}>
                           {winnerConfig.label}
                         </span>
+                        {winnerAnalysis.decisive_argument && (
+                          <p className="font-['DM_Sans'] text-sm text-white/70 mt-3 leading-relaxed">
+                            "{winnerAnalysis.decisive_argument}"
+                          </p>
+                        )}
                       </div>
 
-                      {/* Score Breakdown */}
-                      <div className="grid grid-cols-2 gap-4 mb-6">
+                      {/* Score Breakdown with Accuracy */}
+                      <div className="grid grid-cols-2 gap-4 mb-3">
                         {/* PRO */}
                         <div className="bg-emerald-500/[0.04] border border-emerald-500/10 rounded-2xl p-4">
-                          <div className="font-['JetBrains_Mono'] text-[9px] text-emerald-400/70 tracking-widest uppercase mb-2">AGENT-01 PRO</div>
-                          <div className="font-['DM_Sans'] text-3xl font-semibold text-white mb-3">
+                          <div className="font-['DM_Sans'] text-xs text-emerald-400/70 font-semibold uppercase mb-2">Agent 01 — PRO side</div>
+                          <div className="font-['DM_Sans'] text-3xl font-semibold text-white mb-1">
                             {proTotal}<span className="text-sm text-white/30">/30</span>
                           </div>
-                          <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                          <div className="font-['DM_Sans'] text-xs text-emerald-400/70 mb-3">{accuracy.pro.toFixed(1)}% of possible points</div>
+                          <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
                             <div
                               className="h-full bg-emerald-400 rounded-full transition-all duration-1000"
                               style={{ width: `${(proTotal / 30) * 100}%` }}
@@ -379,11 +443,12 @@ export function DebateDashboard() {
                         </div>
                         {/* CON */}
                         <div className="bg-rose-500/[0.04] border border-rose-500/10 rounded-2xl p-4">
-                          <div className="font-['JetBrains_Mono'] text-[9px] text-rose-400/70 tracking-widest uppercase mb-2">AGENT-02 CON</div>
-                          <div className="font-['DM_Sans'] text-3xl font-semibold text-white mb-3">
+                          <div className="font-['DM_Sans'] text-xs text-rose-400/70 font-semibold uppercase mb-2">Agent 02 — CON side</div>
+                          <div className="font-['DM_Sans'] text-3xl font-semibold text-white mb-1">
                             {conTotal}<span className="text-sm text-white/30">/30</span>
                           </div>
-                          <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                          <div className="font-['DM_Sans'] text-xs text-rose-400/70 mb-3">{accuracy.con.toFixed(1)}% of possible points</div>
+                          <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
                             <div
                               className="h-full bg-rose-400 rounded-full transition-all duration-1000"
                               style={{ width: `${(conTotal / 30) * 100}%` }}
@@ -392,36 +457,114 @@ export function DebateDashboard() {
                         </div>
                       </div>
 
-                      {/* Round-by-Round Summary Table */}
-                      <div className="border border-white/[0.05] rounded-xl overflow-hidden mb-6">
-                        <div className="grid grid-cols-4 bg-white/[0.03] px-4 py-2">
-                          {['ROUND', 'PRO', 'CON', 'WINNER'].map(h => (
-                            <span key={h} className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest uppercase">{h}</span>
+                      {/* Score Explanations */}
+                      {(d.score_explanation?.pro || d.score_explanation?.con) && (
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                          {d.score_explanation?.pro && (
+                            <div className="bg-white/[0.02] rounded-xl px-3 py-2.5">
+                              <div className="font-['DM_Sans'] text-[10px] text-white/30 font-semibold uppercase mb-1">Why PRO got this score</div>
+                              <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{d.score_explanation.pro}</p>
+                            </div>
+                          )}
+                          {d.score_explanation?.con && (
+                            <div className="bg-white/[0.02] rounded-xl px-3 py-2.5">
+                              <div className="font-['DM_Sans'] text-[10px] text-white/30 font-semibold uppercase mb-1">Why CON got this score</div>
+                              <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{d.score_explanation.con}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Winner / Loser Deep-Dive — specific points */}
+                      {(winnerPoints.length > 0 || loserAnalysis.fatal_weakness || loserMissed.length > 0) && (
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                          <div className="bg-emerald-500/[0.03] border border-emerald-500/10 rounded-2xl p-4 flex flex-col gap-2">
+                            <div className="font-['DM_Sans'] text-xs font-bold text-emerald-400/80 uppercase mb-1">
+                              Winning points
+                            </div>
+                            {winnerPoints.map((s: string, i: number) => (
+                              <div key={i} className="flex items-start gap-2">
+                                <span className="text-emerald-400 text-sm shrink-0">▲</span>
+                                <span className="font-['DM_Sans'] text-sm text-white/75 leading-snug">{s}</span>
+                              </div>
+                            ))}
+                            {winnerAnalysis.strongest_round && (
+                              <div className="mt-2 font-['DM_Sans'] text-xs text-white/30">
+                                Best round: Round {winnerAnalysis.strongest_round}
+                              </div>
+                            )}
+                          </div>
+                          <div className="bg-rose-500/[0.03] border border-rose-500/10 rounded-2xl p-4 flex flex-col gap-2">
+                            <div className="font-['DM_Sans'] text-xs font-bold text-rose-400/80 uppercase mb-1">
+                              Why they lost
+                            </div>
+                            {loserAnalysis.fatal_weakness && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-rose-400 text-sm shrink-0">✗</span>
+                                <span className="font-['DM_Sans'] text-sm text-white/75 leading-snug">{loserAnalysis.fatal_weakness}</span>
+                              </div>
+                            )}
+                            {loserMissed.map((m: string, i: number) => (
+                              <div key={i} className="flex items-start gap-2">
+                                <span className="text-amber-400/80 text-sm shrink-0">–</span>
+                                <span className="font-['DM_Sans'] text-sm text-white/60 leading-snug">{m}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Round-by-Round Breakdown */}
+                      {rounds.length > 0 && (
+                        <div className="mb-6">
+                          <div className="font-['DM_Sans'] text-xs font-bold text-white/40 uppercase mb-2">Round by Round</div>
+                          <div className="border border-white/[0.05] rounded-xl overflow-hidden">
+                            <div className="grid grid-cols-4 bg-white/[0.03] px-4 py-2">
+                              {['Round', 'Winner', 'Gap', 'Key Argument'].map(h => (
+                                <span key={h} className="font-['DM_Sans'] text-[10px] font-semibold text-white/30 uppercase">{h}</span>
+                              ))}
+                            </div>
+                            {rounds.map((rv: any, i: number) => (
+                              <div key={i} className={`grid grid-cols-4 px-4 py-3 items-start ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
+                                <span className="font-['DM_Sans'] text-xs text-white/50">Round {rv.r}</span>
+                                <span className={cn(
+                                  "font-['DM_Sans'] text-xs font-bold",
+                                  rv.winner === 'pro' && 'text-emerald-400',
+                                  rv.winner === 'con' && 'text-rose-400',
+                                  rv.winner === 'tie' && 'text-yellow-400',
+                                )}>
+                                  {rv.winner === 'pro' ? 'PRO ▲' : rv.winner === 'con' ? 'CON ▲' : 'TIE'}
+                                </span>
+                                <span className="font-['DM_Sans'] text-xs text-white/40">
+                                  {typeof rv.margin === 'number' ? `+${rv.margin.toFixed(1)}` : `+${rv.margin}`} pts
+                                </span>
+                                <span className="font-['DM_Sans'] text-xs text-white/55 leading-snug pr-1">{rv.swing}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Flagged Fallacies */}
+                      {fallacies.length > 0 && (
+                        <div className="border border-amber-500/10 bg-amber-500/[0.03] rounded-xl px-4 py-3 mb-6 flex flex-col gap-1.5">
+                          <div className="font-['DM_Sans'] text-xs font-bold text-amber-400/80 uppercase mb-1">⚠ Logical Mistakes Spotted</div>
+                          {fallacies.map((f: string, i: number) => (
+                            <span key={i} className="font-['DM_Sans'] text-xs text-amber-300/70">{f}</span>
                           ))}
                         </div>
-                        {roundVerdicts.map((rv: any, i: number) => (
-                          <div key={i} className={`grid grid-cols-4 px-4 py-3 ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
-                            <span className="font-['JetBrains_Mono'] text-[10px] text-white/50">R{rv.round}</span>
-                            <span className="font-['JetBrains_Mono'] text-[10px] text-white/70">{rv.data.pro_scores.total}</span>
-                            <span className="font-['JetBrains_Mono'] text-[10px] text-white/70">{rv.data.con_scores.total}</span>
-                            <span className={cn(
-                              "font-['JetBrains_Mono'] text-[10px] font-bold",
-                              rv.data.round_winner === 'pro' && 'text-emerald-400',
-                              rv.data.round_winner === 'con' && 'text-rose-400',
-                              rv.data.round_winner === 'tie' && 'text-yellow-400',
-                            )}>
-                              {rv.data.round_winner === 'pro' ? 'PRO ▲' : rv.data.round_winner === 'con' ? 'CON ▲' : 'TIE'}
-                            </span>
+                      )}
+
+                      {/* 3-Sentence Plain Verdict */}
+                      {verdictText && (
+                        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Gavel className="w-3.5 h-3.5 text-indigo-400" />
+                            <span className="font-['DM_Sans'] text-xs font-bold text-indigo-400 uppercase tracking-wide">Judge's Final Call</span>
                           </div>
-                        ))}
-                      </div>
-
-                      {/* Final Reasoning */}
-                      <div className="mb-6">
-                        <div className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest uppercase mb-2">JUDGE REASONING</div>
-                        <p className="font-['DM_Sans'] text-sm text-white/60 leading-relaxed">{msg.data.final_reasoning}</p>
-                      </div>
-
+                          <p className="font-['DM_Sans'] text-sm text-white/80 leading-relaxed">{verdictText}</p>
+                        </div>
+                      )}
 
                     </div>
                   </motion.div>

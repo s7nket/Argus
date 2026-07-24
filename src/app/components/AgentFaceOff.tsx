@@ -63,7 +63,7 @@ export function AgentFaceOff() {
               ))}
             </ul>
             
-            <button onClick={() => navigate('/dashboard')} className="bg-white text-black font-['DM_Sans'] text-sm md:text-base font-bold py-3 px-7 rounded-full hover:bg-black hover:text-white border-2 border-transparent hover:border-white transition-colors duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] w-fit will-change-[transform,opacity] transform-gpu">
+            <button onClick={() => navigate('/debate-dashboard')} className="bg-white text-black font-['DM_Sans'] text-sm md:text-base font-bold py-3 px-7 rounded-full hover:bg-black hover:text-white border-2 border-transparent hover:border-white transition-colors duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] w-fit will-change-[transform,opacity] transform-gpu">
               Start the Face-Off &rarr;
             </button>
           </div>

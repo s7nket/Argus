@@ -73,7 +73,7 @@ export function ResultsAndVerdict() {
       </motion.div>
 
       <div className="flex justify-center w-full mt-12">
-        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 px-8 py-4 rounded-full border border-white/20 bg-transparent text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200 font-['JetBrains_Mono'] text-xs md:text-sm tracking-widest uppercase will-change-transform transform-gpu">
+        <button onClick={() => navigate('/debate-dashboard')} className="flex items-center gap-2 px-8 py-4 rounded-full border border-white/20 bg-transparent text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200 font-['JetBrains_Mono'] text-xs md:text-sm tracking-widest uppercase will-change-transform transform-gpu">
           See a Real Verdict <span className="text-white ml-2">→</span>
         </button>
       </div>
