@@ -44,7 +44,11 @@ def _probe_url_sync(url: str, headers: dict) -> bool:
         with urllib.request.urlopen(req, timeout=2.5) as response:
             return response.status == 200
     except urllib.error.HTTPError as e:
-        if e.code in (200, 404, 405, 422):
+        # 405/422 prove a real handler is behind the URL and only rejected the
+        # method or payload. 404 does NOT: an offline ngrok tunnel serves its own
+        # 404 page, so accepting it reported the Kaggle scorer as online while
+        # every scoring call was silently falling back to Groq.
+        if e.code in (200, 405, 422):
             return True
         return False
     except Exception:

@@ -5,6 +5,7 @@ from agents.pro_agent import generate_pro_argument
 from agents.con_agent import generate_con_argument
 from agents.rebuttal_agent import generate_pro_rebuttal, generate_con_rebuttal
 from agents.judge_agent import judge_round, judge_final_verdict
+from debate.topic import parse_topic
 
 
 # ── WebSocket message types sent to frontend ───────────────────────────────────
@@ -39,23 +40,46 @@ SUB_ROUND_LABELS = {
 
 
 
+# POSITION: was missing from the old alternation, so every Counter and Justify
+# turn rendered with a raw "POSITION:" label in the UI. The trailing-punctuation
+# class after N/A removes the dangling comma that used to leave round 2 and 3
+# openings starting mid-sentence with ", as this is the PRO's opening argument".
+_LABEL_RE = re.compile(
+    r'(?:\bN/?A\b[\s,.;:—–-]*|REBUTTAL:\s*|ARGUMENT:\s*|POSITION:\s*)+',
+    flags=re.IGNORECASE,
+)
+_LEADING_PUNCT_RE = re.compile(r'^[\s,.;:—–-]+')
+
+
 def clean_text(text: str) -> str:
     if not text:
         return ""
-    # Remove N/A, REBUTTAL:, and ARGUMENT: anywhere in the text
-    return re.sub(r'(?:N/A\s*|REBUTTAL:\s*|ARGUMENT:\s*)+', '', text, flags=re.IGNORECASE).strip()
+    return _LEADING_PUNCT_RE.sub('', _LABEL_RE.sub('', text)).strip()
 
 
 async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
+    # Resolve the topic into two explicit stances BEFORE any agent runs. On a
+    # comparative topic ("Athens or Sparta?") the old code told CON to "argue
+    # against the topic", so CON attacked Athens and nobody ever argued for Sparta.
+    sides = await parse_topic(topic)
+    pro_side, con_side = sides["pro_side"], sides["con_side"]
+
     await websocket.send_json({
         "type": "debate_start",
         "topic": topic,
-        "rounds": rounds
+        "rounds": rounds,
+        "resolution": sides.get("resolution", topic),
+        "topic_type": sides.get("type", "proposition"),
+        "pro_side": pro_side,
+        "con_side": con_side,
     })
 
-    # Full round summaries (all 3 sub-rounds) accumulated across rounds
+    # Opening arguments only — kept short to bound agent context growth.
     pro_history: list[str] = []
     con_history: list[str] = []
+    # Every utterance, per side — used for the deterministic repetition penalty.
+    pro_all_texts: list[str] = []
+    con_all_texts: list[str] = []
     all_round_verdicts: list[dict] = []
 
     for round_num in range(1, rounds + 1):
@@ -83,7 +107,9 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 topic=topic,
                 round_num=round_num,
                 pro_history=pro_history,
-                con_history=con_history
+                con_history=con_history,
+                pro_side=pro_side,
+                con_side=con_side,
             )
         except Exception as e:
             await websocket.send_json({"type": "error", "message": f"PRO agent failed (R{round_num}S1): {e}"})
@@ -114,7 +140,9 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 round_num=round_num,
                 current_pro_argument=pro_open,
                 pro_history=pro_history,
-                con_history=con_history
+                con_history=con_history,
+                pro_side=pro_side,
+                con_side=con_side,
             )
         except Exception as e:
             await websocket.send_json({"type": "error", "message": f"CON agent failed (R{round_num}S1): {e}"})
@@ -154,7 +182,9 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 sub_round=2,
                 exchange_so_far=exchange,
                 pro_history=pro_history,
-                con_history=con_history
+                con_history=con_history,
+                pro_side=pro_side,
+                con_side=con_side,
             )
         except Exception as e:
             await websocket.send_json({"type": "error", "message": f"PRO rebuttal failed (R{round_num}S2): {e}"})
@@ -186,7 +216,9 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 sub_round=2,
                 exchange_so_far=exchange,
                 pro_history=pro_history,
-                con_history=con_history
+                con_history=con_history,
+                pro_side=pro_side,
+                con_side=con_side,
             )
         except Exception as e:
             await websocket.send_json({"type": "error", "message": f"CON rebuttal failed (R{round_num}S2): {e}"})
@@ -226,7 +258,9 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 sub_round=3,
                 exchange_so_far=exchange,
                 pro_history=pro_history,
-                con_history=con_history
+                con_history=con_history,
+                pro_side=pro_side,
+                con_side=con_side,
             )
         except Exception as e:
             await websocket.send_json({"type": "error", "message": f"PRO rebuttal failed (R{round_num}S3): {e}"})
@@ -258,7 +292,9 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 sub_round=3,
                 exchange_so_far=exchange,
                 pro_history=pro_history,
-                con_history=con_history
+                con_history=con_history,
+                pro_side=pro_side,
+                con_side=con_side,
             )
         except Exception as e:
             await websocket.send_json({"type": "error", "message": f"CON rebuttal failed (R{round_num}S3): {e}"})
@@ -286,9 +322,13 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
 
         try:
             verdict = await judge_round(
-                topic=topic,
+                topic=sides.get("resolution", topic),
                 round_num=round_num,
-                exchange=exchange
+                exchange=exchange,
+                # Prior rounds only — this round's turns are appended below, after
+                # scoring, so a side is never penalised for repeating itself here.
+                prior_pro_texts=list(pro_all_texts),
+                prior_con_texts=list(con_all_texts),
             )
         except Exception as e:
             await websocket.send_json({"type": "error", "message": f"Judge failed (R{round_num}): {e}"})
@@ -308,6 +348,10 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
         pro_history.append(pro_open)
         con_history.append(con_open)
 
+        # Full per-side text feeds the repetition penalty in later rounds.
+        pro_all_texts.extend(t["text"] for t in exchange if t["speaker"] == "pro")
+        con_all_texts.extend(t["text"] for t in exchange if t["speaker"] == "con")
+
         await asyncio.sleep(0.4)
 
     # ── Final verdict after all main rounds ─────────────────────────────────
@@ -320,7 +364,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
 
     try:
         final = await judge_final_verdict(
-            topic=topic,
+            topic=sides.get("resolution", topic),
             all_rounds=all_round_verdicts,
             pro_arguments=pro_history,
             con_arguments=con_history,
