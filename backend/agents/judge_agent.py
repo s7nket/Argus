@@ -228,6 +228,61 @@ def repetition_ratio(current_texts: list[str], prior_texts: list[str]) -> float:
 _NON_FALLACY_LABELS = {"", "none", "n/a", "na", "null", "no fallacy", "no fallacy detected"}
 
 
+def _as_text(value) -> str:
+    """
+    Flatten whatever the model returned into a plain sentence.
+
+    The verdict schema asks for strings, but a language model asked for "exactly
+    3 sentences: (1) who won, (2) what the loser got wrong, (3) the turning
+    point" will sometimes helpfully return {"result": ..., "loser_error": ...,
+    "turning_point": ...} instead. The frontend renders these fields directly, so
+    an object reaches React as a child and crashes the whole dashboard with
+    "Objects are not valid as a React child".
+
+    Values are joined rather than dropped — the content is correct, only the
+    shape is wrong.
+    """
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, (int, float, bool)):
+        return str(value)
+    if isinstance(value, dict):
+        return " ".join(t for t in (_as_text(v) for v in value.values()) if t)
+    if isinstance(value, (list, tuple)):
+        return " ".join(t for t in (_as_text(v) for v in value) if t)
+    return str(value)
+
+
+def _coerce_verdict_strings(result: dict) -> None:
+    """
+    Force every field the UI renders as text to actually be text.
+
+    Applied in place, after parsing and before the deterministic fields are
+    written, so a malformed shape from the model can never reach the client.
+    """
+    for key in ("verdict", "final_reasoning"):
+        if key in result:
+            result[key] = _as_text(result[key])
+
+    for section, fields in (
+        ("score_explanation", ("pro", "con")),
+        ("winner", ("decisive_argument",)),
+        ("loser", ("fatal_weakness",)),
+    ):
+        block = result.get(section)
+        if isinstance(block, dict):
+            for f in fields:
+                if f in block:
+                    block[f] = _as_text(block[f])
+
+    for section, field in (("winner", "points"), ("loser", "missed_points")):
+        block = result.get(section)
+        if isinstance(block, dict) and isinstance(block.get(field), list):
+            block[field] = [_as_text(p) for p in block[field] if _as_text(p)]
+
+
 def _normalise_claim(text: str) -> str:
     """Lowercase, strip punctuation and collapse whitespace, for comparison only."""
     return " ".join(re.sub(r"[^a-z0-9\s]", " ", str(text).lower()).split())
@@ -531,7 +586,7 @@ async def judge_round(
         for f in fallacies if f.get("valid") is False
     ]
 
-    reasoning = next((p.get("reasoning", "") for p in passes if p.get("reasoning")), "")
+    reasoning = _as_text(next((p.get("reasoning") for p in passes if p.get("reasoning")), ""))
 
     return {
         "pro_scores":            pro_scores,
@@ -666,6 +721,10 @@ async def judge_final_verdict(
                 "Key turning point occurred in the mid-round exchanges."
         }
 
+    # Shape first: the model is free to return the right content in the wrong
+    # container, and the client renders these fields directly.
+    _coerce_verdict_strings(result)
+
     # Deterministic fields always win over anything the model returned.
     result["overall_winner"] = overall_winner
     result["pro_total"] = pro_total
@@ -686,7 +745,9 @@ async def judge_final_verdict(
             "r": i + 1,
             "winner": r["round_winner"],
             "margin": round(abs(r["pro_scores"]["total"] - r["con_scores"]["total"]), 1),
-            "swing": (model_rounds.get(i + 1, {}).get("swing") or r.get("reasoning", ""))[:80],
+            # _as_text, not a bare slice: a dict here raises TypeError on [:80].
+            "swing": (_as_text(model_rounds.get(i + 1, {}).get("swing"))
+                      or _as_text(r.get("reasoning")))[:80],
         }
         for i, r in enumerate(all_rounds)
     ]

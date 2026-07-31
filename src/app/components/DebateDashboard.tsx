@@ -13,6 +13,29 @@ import {
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router';
 
+/**
+ * Coerce a judge field to renderable text.
+ *
+ * The verdict schema asks for strings, but the model occasionally answers a
+ * request for "3 sentences: who won, what the loser got wrong, the turning
+ * point" with an object keyed by those three parts. Rendering that object
+ * crashes the whole dashboard with "Objects are not valid as a React child",
+ * losing a completed debate the user just waited minutes for.
+ *
+ * The backend coerces these too; this is the second line of defence, because a
+ * malformed field should degrade one paragraph, never the page.
+ */
+function asText(value: unknown): string {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return value.map(asText).filter(Boolean).join(' ');
+  if (typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).map(asText).filter(Boolean).join(' ');
+  }
+  return String(value);
+}
+
 export function DebateDashboard() {
   const navigate = useNavigate();
   const [judgeOpen, setJudgeOpen] = useState(false);
@@ -338,7 +361,7 @@ export function DebateDashboard() {
                         </div>
                       </div>
                       <div className="font-['JetBrains_Mono'] text-[10px] text-white/60 tracking-widest uppercase mb-2">WINNER: <span className="text-white font-bold">{msg.data.round_winner.toUpperCase()}</span></div>
-                      <p className="font-['DM_Sans'] text-sm text-white/50 leading-relaxed">{msg.data.reasoning}</p>
+                      <p className="font-['DM_Sans'] text-sm text-white/50 leading-relaxed">{asText(msg.data.reasoning)}</p>
                     </div>
                   </motion.div>
                 );
@@ -376,12 +399,12 @@ export function DebateDashboard() {
                 const accuracy = d.accuracy ?? { pro: 0, con: 0 };
                 const winnerAnalysis = d.winner ?? {};
                 const loserAnalysis = d.loser ?? {};
-                const fallacies: string[] = d.fallacies ?? [];
-                const verdictText: string = d.verdict ?? d.final_reasoning ?? '';
+                const fallacies: string[] = (d.fallacies ?? []).map(asText);
+                const verdictText: string = asText(d.verdict ?? d.final_reasoning);
                 // support both old field name (strengths) and new (points)
-                const winnerPoints: string[] = winnerAnalysis.points ?? winnerAnalysis.strengths ?? [];
+                const winnerPoints: string[] = (winnerAnalysis.points ?? winnerAnalysis.strengths ?? []).map(asText);
                 // support both old field name (missed_opportunities) and new (missed_points)
-                const loserMissed: string[] = loserAnalysis.missed_points ?? loserAnalysis.missed_opportunities ?? [];
+                const loserMissed: string[] = (loserAnalysis.missed_points ?? loserAnalysis.missed_opportunities ?? []).map(asText);
                 const rounds: any[] = d.rounds ?? messages
                   .filter((m: any) => m.type === 'verdict')
                   .map((rv: any) => ({
@@ -420,7 +443,7 @@ export function DebateDashboard() {
                         </span>
                         {winnerAnalysis.decisive_argument && (
                           <p className="font-['DM_Sans'] text-sm text-white/70 mt-3 leading-relaxed">
-                            "{winnerAnalysis.decisive_argument}"
+                            "{asText(winnerAnalysis.decisive_argument)}"
                           </p>
                         )}
                       </div>
@@ -463,13 +486,13 @@ export function DebateDashboard() {
                           {d.score_explanation?.pro && (
                             <div className="bg-white/[0.02] rounded-xl px-3 py-2.5">
                               <div className="font-['DM_Sans'] text-[10px] text-white/30 font-semibold uppercase mb-1">Why PRO got this score</div>
-                              <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{d.score_explanation.pro}</p>
+                              <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{asText(d.score_explanation.pro)}</p>
                             </div>
                           )}
                           {d.score_explanation?.con && (
                             <div className="bg-white/[0.02] rounded-xl px-3 py-2.5">
                               <div className="font-['DM_Sans'] text-[10px] text-white/30 font-semibold uppercase mb-1">Why CON got this score</div>
-                              <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{d.score_explanation.con}</p>
+                              <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{asText(d.score_explanation.con)}</p>
                             </div>
                           )}
                         </div>
@@ -501,7 +524,7 @@ export function DebateDashboard() {
                             {loserAnalysis.fatal_weakness && (
                               <div className="flex items-start gap-2">
                                 <span className="text-rose-400 text-sm shrink-0">✗</span>
-                                <span className="font-['DM_Sans'] text-sm text-white/75 leading-snug">{loserAnalysis.fatal_weakness}</span>
+                                <span className="font-['DM_Sans'] text-sm text-white/75 leading-snug">{asText(loserAnalysis.fatal_weakness)}</span>
                               </div>
                             )}
                             {loserMissed.map((m: string, i: number) => (
@@ -538,7 +561,7 @@ export function DebateDashboard() {
                                 <span className="font-['DM_Sans'] text-xs text-white/40">
                                   {typeof rv.margin === 'number' ? `+${rv.margin.toFixed(1)}` : `+${rv.margin}`} pts
                                 </span>
-                                <span className="font-['DM_Sans'] text-xs text-white/55 leading-snug pr-1">{rv.swing}</span>
+                                <span className="font-['DM_Sans'] text-xs text-white/55 leading-snug pr-1">{asText(rv.swing)}</span>
                               </div>
                             ))}
                           </div>
