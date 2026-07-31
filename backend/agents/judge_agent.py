@@ -2,10 +2,12 @@ import asyncio
 import os
 import re
 import json
+import time
 import httpx
 from dotenv import load_dotenv
 from groq import AsyncGroq
 
+import config
 from config import (
     BLIND_PASSES,
     NO_EVIDENCE_CAP,
@@ -83,12 +85,29 @@ each one holds. Judge only what is on the page.
 STEP 1 — EXTRACT BEFORE YOU SCORE.
 For each debater, list the evidence they ACTUALLY cited. Evidence means verifiable specifics:
 named people, dates, places, events, numbers, laws, institutions, named works or named sources.
+
+Write each item as a COMPLETE, SELF-CONTAINED STATEMENT that someone could check against a
+reference source without having read this debate. A bare fragment is not checkable and must not
+be emitted on its own.
+  BAD:  "508 BCE"        "Cleisthenes"        "the Agoge"
+  GOOD: "Cleisthenes established the Athenian democratic assembly in 508 BCE."
+        "The Spartan Agoge was a state-run military education system."
+
+ATTRIBUTE BY RELIANCE, NOT BY MENTION. An item belongs to the debater who used it to support
+their OWN case. If a debater names a specific only to deny it, reframe it, or turn it against
+its author, it is NOT their evidence and must not appear in their list.
+  Example: CON cites "Thermopylae, 480 BCE" as proof of Spartan strength; PRO replies
+  "Thermopylae was a defeat". Thermopylae belongs to CON's list ONLY.
+
+MERGE DUPLICATES. One entry per distinct factual claim. "Thermopylae", "480 BCE" and
+"Thermopylae in 480 BCE" are one claim, not three — emit the single complete statement.
+
 - A debater describing their own case as "evidence-based", "empirical", "data-driven" or "nuanced"
   is NOT evidence. Ignore all self-description entirely.
 - Gesturing at evidence without naming it ("the archaeological record shows", "studies confirm",
   "history demonstrates") is NOT evidence. It is an unsupported claim.
-- Quote the specifics. If a debater cited nothing verifiable, return an empty list.
-  Empty lists are common and correct. Do not pad them.
+- If a debater cited nothing verifiable, return an empty list. Empty lists are common and
+  correct. Do not pad them, and never invent a statement the debater did not make.
 
 STEP 2 — LIST UNSUPPORTED CLAIMS: statements presented as established fact with nothing behind them,
 and any claim you can identify as factually false.
@@ -121,8 +140,8 @@ must not exceed 3. Repeating a position more forcefully is not an argument and e
 
 Return ONLY valid JSON. No markdown.
 {
-  "x_evidence_cited": [str],
-  "y_evidence_cited": [str],
+  "x_evidence_cited": [str],   // complete checkable statements, deduplicated
+  "y_evidence_cited": [str],   // complete checkable statements, deduplicated
   "x_unsupported_claims": [str],
   "y_unsupported_claims": [str],
   "fallacy_claims": [{"by": "x" | "y", "named": str, "quote": str, "valid": true | false, "note": str}],
@@ -209,6 +228,49 @@ def repetition_ratio(current_texts: list[str], prior_texts: list[str]) -> float:
 _NON_FALLACY_LABELS = {"", "none", "n/a", "na", "null", "no fallacy", "no fallacy detected"}
 
 
+def _normalise_claim(text: str) -> str:
+    """Lowercase, strip punctuation and collapse whitespace, for comparison only."""
+    return " ".join(re.sub(r"[^a-z0-9\s]", " ", str(text).lower()).split())
+
+
+def _dedup_claims(items: list) -> list:
+    """
+    Collapse restatements of the same claim into the longest phrasing.
+
+    Exact-match dedup was enough while extraction emitted bare spans, but it is
+    not once the extractor emits full sentences: the two blind passes word the
+    same claim slightly differently, and a short fragment is frequently a
+    substring of a fuller statement of the same fact ("Thermopylae" inside
+    "Sparta resisted Persia at Thermopylae in 480 BCE"). Both used to survive and
+    count twice, inflating the denominator that coverage and precision divide by.
+
+    Keeping the longest form is deliberate — it is the most checkable, which is
+    what the verification channel needs.
+
+    Longest-first is what makes this order-independent: a single greedy pass in
+    input order can absorb one fragment and then stop, leaving a second fragment
+    of the same claim alive.
+
+    Containment is tested on space-padded text so matches land on word
+    boundaries — a raw substring test merges "art" into "Sparta".
+    """
+    indexed = []
+    for i, item in enumerate(items):
+        norm = _normalise_claim(item)
+        if norm:
+            indexed.append((i, norm, item))
+
+    kept: list[tuple[int, str, Any]] = []
+    for entry in sorted(indexed, key=lambda t: len(t[1]), reverse=True):
+        _, norm, _item = entry
+        if not any(f" {norm} " in f" {k} " for _, k, _ in kept):
+            kept.append(entry)
+
+    # Restore the transcript order the extractor emitted; sorting was only a
+    # device for deciding which phrasing survives.
+    return [item for _, _, item in sorted(kept, key=lambda t: t[0])]
+
+
 def _is_real_fallacy_claim(f) -> bool:
     return isinstance(f, dict) and str(f.get("named", "")).strip().lower() not in _NON_FALLACY_LABELS
 
@@ -289,21 +351,33 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
 
 
 async def _get_ft_round_scores(topic: str, exchange_text: str) -> dict | None:
-    """Queries the fine-tuned 4B scorer on Kaggle via FT_JUDGE_URL."""
+    """
+    Queries the fine-tuned 4B scorer on Kaggle via FT_JUDGE_URL.
+
+    Failures are logged with the exception TYPE, not just its message: httpx
+    timeouts stringify to "", so the old handler printed a bare "failed:" and hid
+    the fact that every call was timing out rather than erroring.
+    """
+    started = time.monotonic()
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 f"{FT_JUDGE_URL.rstrip('/')}/ft-judge",
                 json={"topic": topic, "exchange": exchange_text},
                 headers=NGROK_HEADERS,
-                timeout=12.0
+                timeout=config.FT_JUDGE_TIMEOUT,
             )
             if resp.status_code == 200:
                 result = resp.json()
                 if "pro_scores" in result and "con_scores" in result:
+                    print(f"[FT] scored in {time.monotonic() - started:.1f}s")
                     return result
+                print(f"[FT] 200 but unusable payload, keys={list(result)[:6]}")
+            else:
+                print(f"[FT] HTTP {resp.status_code}")
     except Exception as e:
-        print(f"Kaggle FT scoring attempt failed, falling back to Groq: {e}")
+        print(f"[FT] {type(e).__name__} after {time.monotonic() - started:.1f}s "
+              f"(limit {config.FT_JUDGE_TIMEOUT}s) — falling back to Groq: {e or '<no message>'}")
     return None
 
 
@@ -334,6 +408,35 @@ def _apply_evidence_cap(scores: dict, cited: list) -> None:
     """A side that cited nothing verifiable cannot be scored as evidence-based."""
     if not cited and scores["evidence"] > NO_EVIDENCE_CAP:
         scores["evidence"] = NO_EVIDENCE_CAP
+
+
+async def _ground_side(cited: list) -> dict | None:
+    """
+    Check one side's cited specifics against the retrieval corpus.
+
+    Returns None when verification is disabled or there was nothing to check, in
+    which case the caller leaves the score untouched.
+    """
+    if not config.VERIFICATION_ENABLED or not cited:
+        return None
+    from debate.verifier import grounding_report, verify_claims
+    return grounding_report(await verify_claims([str(c) for c in cited]))
+
+
+def _apply_grounding(scores: dict, report: dict | None) -> None:
+    """
+    Bound the evidence score by what retrieval could actually confirm.
+
+    Only ever lowers a score. The ceiling is computed over claims the corpus could
+    rule on, so an empty or off-topic corpus yields a ceiling of 10.0 and this is
+    a no-op — the verification channel can never invent grounding, only withhold
+    credit for grounding that is absent.
+    """
+    if not report:
+        return
+    cap = report.get("evidence_cap", 10.0)
+    penalty = report.get("fabrication_penalty", 0.0)
+    scores["evidence"] = round(max(0.0, min(scores["evidence"], cap) - penalty), 1)
 
 
 def _total(scores: dict, penalty: float) -> float:
@@ -382,8 +485,10 @@ async def judge_round(
                     out.append(item)
         return out
 
-    pro_evidence = merged("pro_evidence_cited")
-    con_evidence = merged("con_evidence_cited")
+    # Evidence lists get the stronger collapse — they are what the verification
+    # channel divides by, so a claim counted twice distorts coverage directly.
+    pro_evidence = _dedup_claims(merged("pro_evidence_cited"))
+    con_evidence = _dedup_claims(merged("con_evidence_cited"))
 
     # The FT scorer, when online, supplies the raw numbers — but the blind audit
     # still governs the evidence ceiling, so FT cannot certify evidence that the
@@ -397,6 +502,18 @@ async def judge_round(
 
     _apply_evidence_cap(pro_scores, pro_evidence)
     _apply_evidence_cap(con_scores, con_evidence)
+
+    # Retrieval-grounded verification. Runs after extraction because it consumes
+    # the extracted specifics rather than the raw transcript — the scorer says what
+    # was cited, the corpus says whether it holds. Both sides check concurrently.
+    pro_grounding, con_grounding = await asyncio.gather(
+        _ground_side(pro_evidence), _ground_side(con_evidence), return_exceptions=True,
+    )
+    pro_grounding = pro_grounding if isinstance(pro_grounding, dict) else None
+    con_grounding = con_grounding if isinstance(con_grounding, dict) else None
+
+    _apply_grounding(pro_scores, pro_grounding)
+    _apply_grounding(con_scores, con_grounding)
 
     pro_rep = repetition_ratio([t["text"] for t in exchange if t["speaker"] == "pro"], prior_pro_texts or [])
     con_rep = repetition_ratio([t["text"] for t in exchange if t["speaker"] == "con"], prior_con_texts or [])
@@ -436,6 +553,9 @@ async def judge_round(
             "con_repetition":          round(con_rep, 2),
             "pro_repetition_penalty":  pro_penalty,
             "con_repetition_penalty":  con_penalty,
+            "pro_grounding":           pro_grounding,
+            "con_grounding":           con_grounding,
+            "verification_backend":    config.NLI_BACKEND if config.VERIFICATION_ENABLED else "disabled",
             "scorer":                  "kaggle-ft (audited)" if ft_used else "groq-blind-swap",
             "blind_passes":            len(passes),
             "label_disagreement":      round(abs(

@@ -4,3 +4,4 @@ groq
 openai
 python-dotenv
 httpx
+chromadb

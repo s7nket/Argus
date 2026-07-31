@@ -1,2 +1,18 @@
 node_modules
 .env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ChromaDB persistent store — regenerated on startup from
+# backend/debate/seed_evidence.py, and a binary SQLite file that conflicts on
+# every merge. The corpus SOURCE is versioned; the index is not.
+backend/chroma_db/
+
+# Build output
+dist/
+.vite/

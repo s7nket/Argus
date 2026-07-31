@@ -11,6 +11,8 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from debate.orchestrator import run_debate
 
+from debate.vector_store import get_vector_store
+
 app = FastAPI()
 
 app.add_middleware(
@@ -20,15 +22,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+async def startup_event():
+    vs = get_vector_store()
+    if vs.is_available:
+        seeded = vs.seed_default_knowledge()
+        print(f"[VectorDB] ChromaDB ready. Seeded {seeded} evidence documents.")
+
+
 @app.get("/")
 async def root():
+    vs = get_vector_store()
     return {
         "name": "Argus AI Debate Backend",
         "status": "online",
         "health_check": "/judge/health",
         "websocket": "/ws/debate",
+        "vector_db": vs.get_stats(),
         "frontend_url": "http://localhost:5174/"
     }
+
+
+@app.get("/vector-db/stats")
+async def vector_db_stats():
+    vs = get_vector_store()
+    return vs.get_stats()
+
+
+@app.get("/vector-db/seed")
+async def vector_db_seed():
+    vs = get_vector_store()
+    count = vs.seed_default_knowledge()
+    return {"seeded": count, "stats": vs.get_stats()}
+
+
+@app.get("/vector-db/query")
+async def vector_db_query(q: str, top_k: int = 3):
+    vs = get_vector_store()
+    evidence = vs.query_evidence(query=q, top_k=top_k)
+    rebuttals = vs.query_similar_rebuttals(claim=q, top_k=top_k)
+    return {
+        "query": q,
+        "evidence": evidence,
+        "history_matches": rebuttals
+    }
+
 
 NGROK_HEADERS = {"ngrok-skip-browser-warning": "true"}
 
