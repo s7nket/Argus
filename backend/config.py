@@ -44,6 +44,21 @@ CHROMA_EVIDENCE_COLLECTION = os.getenv("CHROMA_EVIDENCE_COLLECTION", "argus_evid
 CHROMA_HISTORY_COLLECTION = os.getenv("CHROMA_HISTORY_COLLECTION", "argus_debate_history")
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
 
+# ── Conformal prediction ─────────────────────────────────────────────────────
+# Verdict sets with a distribution-free coverage guarantee, so the judge can
+# abstain instead of calling a round it cannot separate. See debate/conformal.py.
+#
+# alpha is the miscoverage rate: 0.1 targets 90% coverage. It also sets the
+# minimum useful calibration size, ceil(1/alpha) - 1, below which no set can be
+# narrower than "every outcome".
+CONFORMAL_ALPHA = float(os.getenv("CONFORMAL_ALPHA", "0.1"))
+CONFORMAL_STATE_PATH = os.getenv(
+    "CONFORMAL_STATE_PATH", os.path.join(os.path.dirname(__file__), "data", "conformal.json")
+)
+# Attach a verdict set to the final verdict when a calibrated predictor exists.
+CONFORMAL_ENABLED = os.getenv("CONFORMAL_ENABLED", "1") not in ("0", "false", "False")
+
+
 # ── LLM rate-limit retry ─────────────────────────────────────────────────────
 # Groq's free tier is 6000 tokens/minute and one debate round costs about that,
 # so 429s are routine rather than exceptional. Without retry the orchestrator
