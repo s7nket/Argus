@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from groq import AsyncGroq
 
 from config import debater_model
+from llm_retry import groq_call
 
 load_dotenv()
 
@@ -80,7 +81,7 @@ async def generate_con_argument(
     )
 
     model_name = debater_model("con")
-    response = await client.chat.completions.create(
+    response = await groq_call(client.chat.completions.create,
         model=model_name,
         messages=[
             {"role": "system", "content": _system_prompt(pro_side, con_side)},

@@ -30,6 +30,7 @@ from typing import Any
 
 import config
 from debate.vector_store import get_vector_store
+from llm_retry import groq_call
 
 logger = logging.getLogger("argus.verifier")
 
@@ -118,35 +119,82 @@ def _strip_json(raw: str) -> str:
     return raw[start:end + 1] if start != -1 and end > start else raw
 
 
-async def _entail_groq(items: list[tuple[str, list[dict]]]) -> list[tuple[str, float]]:
-    """One call for every claim in the round — batching keeps judge latency flat."""
+def _block_for(index: int, claim: str, passages: list[dict]) -> str:
+    ev = "\n".join(f"  - {p.get('text', '')[:config.NLI_PASSAGE_CHARS]}" for p in passages) \
+         or "  (no passages retrieved)"
+    return f"[{index}] CLAIM: {claim}\nPASSAGES:\n{ev}"
+
+
+def _chunk_items(items: list[tuple[str, list[dict]]]) -> list[list[int]]:
+    """
+    Split claims into batches that fit the per-request token budget.
+
+    A single call per round was fine against the 11-document seed corpus, whose
+    entries were one sentence each. Wikipedia passages are ~180 words, so the
+    same 12 claims produced a 7389-token request against a 6000 TPM ceiling and
+    failed with 413 — the verification channel silently degraded to all-NEI
+    exactly when the corpus finally got good enough to be useful.
+
+    Budgeting on characters is crude but robust; the alternative is a tokenizer
+    dependency for a limit that only needs to be approximately right.
+    """
+    budget = config.NLI_CHARS_PER_REQUEST
+    chunks: list[list[int]] = []
+    current: list[int] = []
+    size = 0
+    for i, (claim, passages) in enumerate(items):
+        block = len(_block_for(i, claim, passages))
+        if current and size + block > budget:
+            chunks.append(current)
+            current, size = [], 0
+        current.append(i)
+        size += block
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+async def _entail_groq(items: list[tuple[str, list[dict]]]) -> list[tuple[str, float, str]]:
+    """
+    Entailment over the claims of one round, in as few calls as the token budget
+    allows. Chunks run sequentially rather than concurrently: they share one TPM
+    bucket, so firing them together only converts a size error into a rate limit.
+    """
     from agents.judge_agent import groq_client  # shared client, shared key
 
-    blocks = []
-    for i, (claim, passages) in enumerate(items):
-        ev = "\n".join(f"  - {p.get('text', '')}" for p in passages) or "  (no passages retrieved)"
-        blocks.append(f"[{i}] CLAIM: {claim}\nPASSAGES:\n{ev}")
-
-    response = await groq_client.chat.completions.create(
-        model=config.NLI_MODEL,
-        messages=[
-            {"role": "system", "content": _NLI_PROMPT},
-            {"role": "user", "content": "\n\n".join(blocks) + "\n\nReturn ONLY the JSON array."},
-        ],
-        max_tokens=700,
-        temperature=0,
-    )
-    parsed = json.loads(_strip_json(response.choices[0].message.content))
-
     out: list[tuple[str, float, str]] = [(NEI, 0.0, "")] * len(items)
-    for row in parsed:
-        if not isinstance(row, dict):
+    chunks = _chunk_items(items)
+    if len(chunks) > 1:
+        logger.info(f"NLI split into {len(chunks)} requests to stay under the token budget")
+
+    for chunk in chunks:
+        blocks = [_block_for(i, items[i][0], items[i][1]) for i in chunk]
+        response = await groq_call(
+            groq_client.chat.completions.create,
+            model=config.NLI_MODEL,
+            messages=[
+                {"role": "system", "content": _NLI_PROMPT},
+                {"role": "user", "content": "\n\n".join(blocks) + "\n\nReturn ONLY the JSON array."},
+            ],
+            max_tokens=700,
+            temperature=0,
+        )
+        try:
+            parsed = json.loads(_strip_json(response.choices[0].message.content))
+        except Exception as e:
+            # One malformed chunk leaves its claims at NEI rather than losing the
+            # whole round's verification.
+            logger.warning(f"NLI chunk unparseable, leaving {len(chunk)} claim(s) at NEI: {e}")
             continue
-        i = int(row.get("i", -1))
-        label = str(row.get("label", NEI)).strip().upper()
-        if 0 <= i < len(items) and label in (SUPPORTED, REFUTED, NEI):
-            out[i] = (label, float(row.get("confidence", 0.0) or 0.0),
-                      str(row.get("contradicted_by", "") or ""))
+
+        for row in parsed:
+            if not isinstance(row, dict):
+                continue
+            i = int(row.get("i", -1))
+            label = str(row.get("label", NEI)).strip().upper()
+            if i in chunk and label in (SUPPORTED, REFUTED, NEI):
+                out[i] = (label, float(row.get("confidence", 0.0) or 0.0),
+                          str(row.get("contradicted_by", "") or ""))
     return out
 
 

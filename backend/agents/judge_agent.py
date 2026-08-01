@@ -15,6 +15,7 @@ from config import (
     REPETITION_MAX_PENALTY,
     TIE_BAND,
 )
+from llm_retry import groq_call
 
 load_dotenv()
 
@@ -360,7 +361,7 @@ def _repetition_penalty(ratio: float) -> float:
 
 async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dict:
     """One blind scoring pass. Returns scores keyed by 'pro'/'con' after unmapping X/Y."""
-    response = await groq_client.chat.completions.create(
+    response = await groq_call(groq_client.chat.completions.create,
         model=JUDGE_MODEL,
         messages=[
             {"role": "system", "content": ROUND_SCORING_SYSTEM_PROMPT},
@@ -405,34 +406,65 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
     }
 
 
+# An ngrok free tunnel drops idle connections and serves its OWN 404 page until
+# traffic re-establishes it. Rounds are minutes apart once rate limiting slows
+# the agents, which is long enough for the tunnel to go cold — a full debate was
+# observed scoring on FT for only 1 of 3 rounds, silently falling back to Groq
+# for the rest. So a 404 here is transient, unlike a 404 from a real API.
+#
+# 500 is deliberately NOT retried: it means the notebook raised, and greedy
+# decoding is deterministic, so the identical request would fail identically.
+_FT_RETRYABLE_STATUS = {404, 408, 425, 429, 502, 503, 504}
+
+
 async def _get_ft_round_scores(topic: str, exchange_text: str) -> dict | None:
     """
     Queries the fine-tuned 4B scorer on Kaggle via FT_JUDGE_URL.
 
-    Failures are logged with the exception TYPE, not just its message: httpx
-    timeouts stringify to "", so the old handler printed a bare "failed:" and hid
-    the fact that every call was timing out rather than erroring.
+    Retries transient tunnel failures, then gives up and returns None so the
+    caller falls back to the blind-swap scores. Failures are logged with the
+    exception TYPE, not just its message: httpx timeouts stringify to "", so the
+    original handler printed a bare "failed:" and hid the fact that every call
+    was timing out rather than erroring.
     """
+    attempts = max(1, config.FT_MAX_ATTEMPTS)
     started = time.monotonic()
-    try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{FT_JUDGE_URL.rstrip('/')}/ft-judge",
-                json={"topic": topic, "exchange": exchange_text},
-                headers=NGROK_HEADERS,
-                timeout=config.FT_JUDGE_TIMEOUT,
-            )
-            if resp.status_code == 200:
-                result = resp.json()
-                if "pro_scores" in result and "con_scores" in result:
-                    print(f"[FT] scored in {time.monotonic() - started:.1f}s")
-                    return result
-                print(f"[FT] 200 but unusable payload, keys={list(result)[:6]}")
-            else:
-                print(f"[FT] HTTP {resp.status_code}")
-    except Exception as e:
-        print(f"[FT] {type(e).__name__} after {time.monotonic() - started:.1f}s "
-              f"(limit {config.FT_JUDGE_TIMEOUT}s) — falling back to Groq: {e or '<no message>'}")
+
+    for attempt in range(attempts):
+        reason = None
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"{FT_JUDGE_URL.rstrip('/')}/ft-judge",
+                    json={"topic": topic, "exchange": exchange_text},
+                    headers=NGROK_HEADERS,
+                    timeout=config.FT_JUDGE_TIMEOUT,
+                )
+                if resp.status_code == 200:
+                    result = resp.json()
+                    if "pro_scores" in result and "con_scores" in result:
+                        print(f"[FT] scored in {time.monotonic() - started:.1f}s"
+                              f"{f' (attempt {attempt + 1})' if attempt else ''}")
+                        return result
+                    # The notebook returns {"error": ...} on a parse failure.
+                    err = str(result.get("error", ""))[:160] if isinstance(result, dict) else ""
+                    print(f"[FT] 200 but unusable payload, keys={list(result)[:6]} {err}")
+                    return None
+                if resp.status_code not in _FT_RETRYABLE_STATUS:
+                    print(f"[FT] HTTP {resp.status_code} — not retryable")
+                    return None
+                reason = f"HTTP {resp.status_code}"
+        except Exception as e:
+            reason = f"{type(e).__name__}: {e or '<no message>'}"
+
+        if attempt == attempts - 1:
+            print(f"[FT] {reason} after {time.monotonic() - started:.1f}s, "
+                  f"{attempts} attempt(s) — falling back to Groq")
+            return None
+
+        print(f"[FT] {reason} — retry {attempt + 1}/{attempts - 1} in {config.FT_RETRY_DELAY:.1f}s")
+        await asyncio.sleep(config.FT_RETRY_DELAY)
+
     return None
 
 
@@ -442,7 +474,7 @@ async def _get_explanation(topic: str, exchange_text: str, scores: dict) -> str:
     con = scores.get("con_scores", {}).get("total", 0)
     winner = scores.get("round_winner", "tie")
 
-    response = await groq_client.chat.completions.create(
+    response = await groq_call(groq_client.chat.completions.create,
         model=JUDGE_MODEL,
         messages=[
             {"role": "system", "content": EXPLANATION_SYSTEM_PROMPT},
@@ -675,7 +707,7 @@ async def judge_final_verdict(
         f"Strongest round for the winner: Round {strongest_round}."
     )
 
-    response = await groq_client.chat.completions.create(
+    response = await groq_call(groq_client.chat.completions.create,
         model=JUDGE_MODEL,
         messages=[
             {"role": "system", "content": FINAL_VERDICT_SYSTEM_PROMPT},

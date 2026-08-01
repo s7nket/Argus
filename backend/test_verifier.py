@@ -10,6 +10,13 @@ Checks the three properties the scoring path depends on:
 """
 
 import asyncio
+import sys
+
+# The corpus now holds Wikipedia prose with Greek names and accented characters,
+# which the default Windows console codepage (cp1252) cannot encode — printing a
+# retrieved passage raised UnicodeEncodeError and took the whole suite down.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 import config
 from debate.verifier import (

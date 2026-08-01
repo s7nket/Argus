@@ -42,6 +42,7 @@ from agents.judge_agent import (
 )
 from eval import metrics
 from eval.dataset import DEFAULT_PATH, RoundRecord, labelled, load
+from llm_retry import groq_call
 
 # The exact pre-fix rubric, kept here so the improvement can be measured rather
 # than asserted. Never imported by production code.
@@ -76,7 +77,7 @@ def _avg_total(scores: dict) -> float:
 # ── Arms ─────────────────────────────────────────────────────────────────────
 
 async def arm_legacy(rec: RoundRecord) -> dict:
-    response = await groq_client.chat.completions.create(
+    response = await groq_call(groq_client.chat.completions.create,
         model=JUDGE_MODEL,
         messages=[
             {"role": "system", "content": LEGACY_ROUND_SCORING_PROMPT},

@@ -16,6 +16,7 @@ import re
 
 from dotenv import load_dotenv
 from groq import AsyncGroq
+from llm_retry import groq_call
 
 load_dotenv()
 
@@ -72,7 +73,7 @@ def _fallback(topic: str) -> dict:
 async def parse_topic(topic: str) -> dict:
     """Resolve a raw topic string into explicit PRO and CON stances."""
     try:
-        response = await _client.chat.completions.create(
+        response = await groq_call(_client.chat.completions.create,
             model=PARSER_MODEL,
             messages=[
                 {"role": "system", "content": TOPIC_PARSER_PROMPT},
