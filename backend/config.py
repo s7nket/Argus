@@ -118,6 +118,14 @@ RETRIEVAL_MAX_DISTANCE = float(os.getenv("RETRIEVAL_MAX_DISTANCE", "1.20"))
 # citing nothing at all.
 GROUNDING_FLOOR = float(os.getenv("GROUNDING_FLOOR", "3.0"))
 
+# Re-check every refutation on its own before it costs a debater anything. The
+# batch screen labelled true claims as refuted ~17% of the time even against a
+# 2298-document corpus, and its labels shift with whichever claims share the
+# call. Only refutations pay for the extra request, so cost scales with how often
+# the system accuses rather than with corpus size. Set 0 to measure the raw
+# single-pass behaviour as an ablation.
+CONFIRM_REFUTATIONS = os.getenv("CONFIRM_REFUTATIONS", "1") not in ("0", "false", "False")
+
 # Per-refuted-claim penalty applied to the evidence score. Fabricating a citation
 # is worse than omitting one, so this bites on top of the ceiling.
 FABRICATION_WEIGHT = float(os.getenv("FABRICATION_WEIGHT", "1.0"))

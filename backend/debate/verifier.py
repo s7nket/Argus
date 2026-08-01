@@ -268,6 +268,78 @@ async def _entail_lexical(items: list[tuple[str, list[dict]]]) -> list[tuple[str
 _BACKENDS = {"groq": _entail_groq, "local": _entail_local, "lexical": _entail_lexical}
 
 
+# ── Refutation confirmation ──────────────────────────────────────────────────
+
+_CONFIRM_PROMPT = """You are checking ONE claim against ONE set of reference passages. A previous pass flagged this claim as contradicted. Your job is to confirm or reject that flag.
+
+Answer CONFIRM only if a passage states something that CANNOT be true at the same time as the claim — a different date for the same event, a different number for the same quantity, a different person credited for the same act, or the opposite outcome. You must quote the exact contradicting words.
+
+Answer REJECT in every other case, including:
+- the passages do not mention the claim at all
+- the passages discuss the general subject but not this specific point
+- the claim is broader, narrower, or differently worded than a passage but not inconsistent with it
+- the claim is plausible and the passages simply do not address it
+- you believe the claim is false from your own knowledge, but no passage says so
+
+Being unable to find a contradiction is the normal outcome. REJECT is the safe answer and is expected most of the time.
+
+Return ONLY JSON: {"decision": "CONFIRM" | "REJECT", "quote": "verbatim contradicting words, empty if REJECT"}"""
+
+
+async def _confirm_refutation(claim: str, passages: list[dict]) -> tuple[bool, str]:
+    """
+    Re-check a single refutation in isolation.
+
+    Two independent problems make a batch-screened REFUTED untrustworthy:
+
+    1. False positives. Against a 2298-document corpus the batch pass still
+       labelled true claims as refuted ~17% of the time — "Athens paid jurors so
+       the poor could serve" and "rent control reduces long-run rental supply"
+       are both defensible and neither is contradicted by anything retrieved.
+       A refutation costs the debater a fabrication penalty and has been observed
+       flipping a round's winner.
+
+    2. Context dependence. The batch pass scores many claims in one prompt, so a
+       claim's label shifts with whichever other claims happen to share the call
+       — the same claim was observed flipping REFUTED/SUPPORTED between runs.
+       That is a reproducibility problem for any published number.
+
+    Checking one claim alone removes the shared context and forces the model to
+    justify the accusation on its own terms. SUPPORTED and NEI are left alone:
+    only the punitive label earns the extra call, so the cost is proportional to
+    how often the system accuses someone rather than to corpus size.
+    """
+    from agents.judge_agent import groq_client
+
+    evidence = "\n".join(f"  - {p.get('text', '')[:config.NLI_PASSAGE_CHARS]}" for p in passages)
+    if not evidence:
+        return False, ""
+
+    try:
+        response = await groq_call(
+            groq_client.chat.completions.create,
+            model=config.NLI_MODEL,
+            messages=[
+                {"role": "system", "content": _CONFIRM_PROMPT},
+                {"role": "user", "content": f"CLAIM: {claim}\n\nPASSAGES:\n{evidence}\n\nReturn ONLY the JSON object."},
+            ],
+            max_tokens=200,
+            temperature=0,
+        )
+        raw = response.choices[0].message.content or ""
+        raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL)
+        raw = raw.replace("```json", "").replace("```", "").strip()
+        start, end = raw.find("{"), raw.rfind("}")
+        parsed = json.loads(raw[start:end + 1]) if start != -1 and end > start else {}
+    except Exception as e:
+        # An unavailable confirmer must not be able to create a refutation.
+        logger.warning(f"refutation confirmation failed, rejecting: {e}")
+        return False, ""
+
+    confirmed = str(parsed.get("decision", "")).strip().upper() == "CONFIRM"
+    return confirmed, str(parsed.get("quote", "") or "")
+
+
 # ── Public API ───────────────────────────────────────────────────────────────
 
 async def verify_claims(claims: list[str]) -> list[ClaimVerdict]:
@@ -290,10 +362,30 @@ async def verify_claims(claims: list[str]) -> list[ClaimVerdict]:
         logger.warning(f"NLI backend '{config.NLI_BACKEND}' failed, defaulting to NEI: {e}")
         labels = [(NEI, 0.0, "")] * len(items)
 
-    return [
+    verdicts = [
         ClaimVerdict(claim=c, **_guard_refutation(lab, conf, quote, ps), evidence=ps)
         for (c, ps), (lab, conf, quote) in zip(items, labels)
     ]
+
+    # Second, isolated pass over refutations only. The batch screen is sensitive
+    # to which other claims shared its prompt, and refutation is the one label
+    # that penalises a debater, so it alone has to survive being re-checked on
+    # its own. Confirmations are independent, so they run together.
+    if config.CONFIRM_REFUTATIONS:
+        flagged = [i for i, v in enumerate(verdicts) if v.label == REFUTED]
+        if flagged:
+            results = await asyncio.gather(
+                *(_confirm_refutation(verdicts[i].claim, verdicts[i].evidence) for i in flagged),
+                return_exceptions=True,
+            )
+            for i, outcome in zip(flagged, results):
+                confirmed = isinstance(outcome, tuple) and outcome[0]
+                if not confirmed:
+                    logger.info(f"refutation rejected on isolated re-check: {verdicts[i].claim[:70]}")
+                    verdicts[i].label = NEI
+                    verdicts[i].confidence = 0.0
+
+    return verdicts
 
 
 def _guard_refutation(label: str, confidence: float, quote: str, passages: list[dict]) -> dict:
