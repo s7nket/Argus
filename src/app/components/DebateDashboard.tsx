@@ -317,13 +317,11 @@ export function DebateDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 relative h-full">
-        <div className="absolute top-0 left-0 w-full p-8 md:p-12 z-10 pointer-events-none">
-          <h1 className="sr-only">Debate Dashboard</h1>
-          <div className="font-['JetBrains_Mono'] text-[10px] text-white/30 tracking-[0.2em] uppercase mb-4 font-bold">SIMULATION PROTOCOL V4.2.0</div>
-          <h1 className="font-['Orbitron'] text-4xl md:text-5xl lg:text-6xl font-black tracking-[0.1em] text-transparent" style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.15)' }}>
-            {!hasStarted ? 'INITIALIZING ARENA...' : isDebating ? 'ARENA ACTIVE' : 'DEBATE CONCLUDED'}
-          </h1>
-        </div>
+        {/* The "SIMULATION PROTOCOL V4.2.0" strapline and the outlined
+            INITIALIZING ARENA banner were removed: a fixed version string and a
+            state label already shown elsewhere, overlaying the content they sat
+            on top of. The heading stays for screen readers. */}
+        <h1 className="sr-only">Debate Dashboard</h1>
 
         {view === 'history' ? (
           <div className="flex-1 overflow-y-auto p-6">
