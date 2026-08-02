@@ -16,3 +16,7 @@ backend/chroma_db/
 # Build output
 dist/
 .vite/
+
+# Cached eval data — regenerable via `python -m eval.datasets`, and the scored
+# set is a measurement artifact that should be rebuilt rather than merged.
+backend/data/ibm_rank_*.json
