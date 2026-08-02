@@ -652,6 +652,54 @@ async def judge_round(
     }
 
 
+def _verdict_confidence(pro_total: float, con_total: float) -> dict:
+    """
+    Attach a conformal verdict set to the final result.
+
+    The point verdict is still computed and still returned — this does not
+    override it. What it adds is an honest statement of how much separation the
+    scores actually carry, backed by a distribution-free guarantee rather than by
+    the judge's own confidence, which is exactly the thing that cannot be trusted.
+
+    Absent calibration this reports "uncalibrated" and claims nothing. That is
+    the common case on a fresh checkout, and it must never look like a guarantee:
+    a coverage claim with no calibration behind it is worse than none.
+    """
+    if not config.CONFORMAL_ENABLED:
+        return {"available": False, "reason": "disabled"}
+
+    try:
+        from debate.conformal import get_predictor
+        predictor = get_predictor()
+    except Exception as e:
+        logger_msg = f"conformal unavailable: {type(e).__name__}: {e}"
+        print(f"[conformal] {logger_msg}")
+        return {"available": False, "reason": "error"}
+
+    if predictor is None or predictor.quantile is None:
+        return {
+            "available": False,
+            "reason": "uncalibrated",
+            "hint": "run `python -m eval.calibrate` to fit a predictor",
+        }
+
+    prediction = predictor.predict(pro_total, con_total)
+    return {
+        "available": True,
+        "verdict_set": prediction["verdict_set"],
+        "abstain": prediction["abstain"],
+        "reason": prediction["reason"],
+        "alpha": prediction["alpha"],
+        "target_coverage": round(1 - prediction["alpha"], 3),
+        "n_calibration": prediction["n_calibration"],
+        # Stated so the number is never read as a claim about this one round.
+        "guarantee": (
+            f"Over exchangeable rounds this set contains the true winner at least "
+            f"{round((1 - prediction['alpha']) * 100)}% of the time."
+        ),
+    }
+
+
 async def judge_final_verdict(
     topic: str,
     all_rounds: list[dict],
@@ -769,6 +817,7 @@ async def judge_final_verdict(
     }
     result.setdefault("winner", {})
     result["winner"]["strongest_round"] = strongest_round
+    result["confidence"] = _verdict_confidence(pro_total, con_total)
 
     # Per-round winners and margins come from the scores, never from the model.
     model_rounds = {r.get("r"): r for r in (result.get("rounds") or []) if isinstance(r, dict)}

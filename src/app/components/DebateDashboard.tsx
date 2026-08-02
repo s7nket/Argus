@@ -589,6 +589,49 @@ export function DebateDashboard() {
                         </div>
                       )}
 
+                      {/* Conformal verdict set. The point verdict above is a
+                          single answer; this says how much the scores actually
+                          separated, with a coverage guarantee that does not
+                          depend on the judge being well calibrated. */}
+                      {d.confidence?.available && (
+                        <div className={cn(
+                          "rounded-2xl p-5 border",
+                          d.confidence.abstain
+                            ? "bg-amber-500/[0.06] border-amber-500/25"
+                            : "bg-emerald-500/[0.06] border-emerald-500/25"
+                        )}>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Brain className={cn("w-3.5 h-3.5", d.confidence.abstain ? "text-amber-400" : "text-emerald-400")} />
+                            <span className={cn(
+                              "font-['DM_Sans'] text-xs font-bold uppercase tracking-wide",
+                              d.confidence.abstain ? "text-amber-400" : "text-emerald-400"
+                            )}>
+                              {d.confidence.abstain ? 'Too Close To Call' : 'Statistically Decisive'}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                            {(d.confidence.verdict_set ?? []).map((o: string) => (
+                              <span key={o} className="px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 font-['DM_Sans'] text-xs font-bold text-white/85 uppercase tracking-wide">
+                                {o}
+                              </span>
+                            ))}
+                            {(d.confidence.verdict_set ?? []).length === 0 && (
+                              <span className="font-['DM_Sans'] text-xs text-white/50">no outcome fits the calibration data</span>
+                            )}
+                          </div>
+
+                          <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">
+                            {d.confidence.abstain
+                              ? `The scores do not separate these outcomes reliably, so the system declines to commit. ${asText(d.confidence.guarantee)}`
+                              : asText(d.confidence.guarantee)}
+                          </p>
+                          <p className="font-['DM_Sans'] text-[11px] text-white/35 mt-2">
+                            calibrated on {d.confidence.n_calibration} human-labelled rounds · α={d.confidence.alpha}
+                          </p>
+                        </div>
+                      )}
+
                     </div>
                   </motion.div>
                 );
