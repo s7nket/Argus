@@ -20,3 +20,8 @@ dist/
 # Cached eval data — regenerable via `python -m eval.datasets`, and the scored
 # set is a measurement artifact that should be rebuilt rather than merged.
 backend/data/ibm_rank_*.json
+
+# Saved debates are runtime output — they accumulate with use and would conflict
+# on every merge. The evaluation records (pairs.json, scored_pairs.json) are
+# versioned deliberately; these are not.
+backend/data/debates/

@@ -5,7 +5,7 @@ import {
   Gavel,
   Radio,
   Zap,
-  User,
+  Scale,
   X,
   Brain,
   ArrowLeft
@@ -46,6 +46,15 @@ export function DebateDashboard() {
   const [debateComplete, setDebateComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [judgeStatus, setJudgeStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+  const [view, setView] = useState<'active' | 'history' | 'logs'>('active');
+  const [history, setHistory] = useState<any[] | null>(null);
+  const [logs, setLogs] = useState<any[] | null>(null);
+  const [openDebate, setOpenDebate] = useState<any | null>(null);
+  // Real backend state for the sidebar identity card. The card used to read
+  // "OPERATOR-01 / ACTIVE SESSION", which is a user account this system does not
+  // have; the useful thing to show in that slot is which judge is actually
+  // running and what it has to verify against.
+  const [stack, setStack] = useState<{ model?: string; scorer?: string; ftOnline?: boolean; docs?: number }>({});
   const rounds = 3;
   const wsRef = useRef<WebSocket | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -68,6 +77,7 @@ export function DebateDashboard() {
       try {
         const res = await fetch('http://localhost:8000/judge/health');
         const data = await res.json();
+        setStack(s => ({ ...s, model: data.model, scorer: data.scorer, ftOnline: data.ft_online }));
         if (data.status === 'online') {
           judgeFailuresRef.current = 0;
           setJudgeStatus('online');
@@ -88,6 +98,14 @@ export function DebateDashboard() {
     setJudgeStatus('checking');
     checkJudge();
     const interval = setInterval(checkJudge, 5000);
+
+    // Corpus size is fetched once, not polled: it only changes when the corpus
+    // is rebuilt, and it has no business on a 5-second timer.
+    fetch('http://localhost:8000/')
+      .then(r => r.json())
+      .then(d => setStack(s => ({ ...s, docs: d?.vector_db?.evidence_count })))
+      .catch(() => { /* card degrades to the judge line alone */ });
+
     return () => clearInterval(interval);
   }, []);
 
@@ -178,6 +196,33 @@ export function DebateDashboard() {
     };
   }, [prompt, rounds, typingAgent, judgeStatus]);
 
+  // Fetched when the tab is opened rather than on mount, so the dashboard does
+  // not pay for data most sessions never look at. Refetched on every open so a
+  // debate finished since the last visit shows up.
+  useEffect(() => {
+    if (view === 'active') return;
+    const url = view === 'history'
+      ? 'http://localhost:8000/debates?limit=50'
+      : 'http://localhost:8000/judge/logs?limit=100';
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (cancelled) return;
+        if (view === 'history') setHistory(data.debates ?? []);
+        else setLogs(data.logs ?? []);
+      } catch {
+        if (cancelled) return;
+        // Empty array, not null: null means "still loading", and a backend that
+        // is down should read as "nothing here" rather than spin forever.
+        if (view === 'history') setHistory([]);
+        else setLogs([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [view]);
+
   const hasStarted = isDebating || messages.length > 0;
 
   return (
@@ -189,30 +234,58 @@ export function DebateDashboard() {
           <div className="h-20 flex items-center px-8 cursor-pointer" onClick={() => navigate('/')}>
             <span className="font-['Orbitron'] font-bold text-2xl tracking-widest text-white/90">ARGUS</span>
           </div>
+          {/* Which judge is actually running, and what it can verify against.
+              The scorer line matters because the fine-tuned model silently falls
+              back to Groq whenever its tunnel drops, and that swap changes how
+              every score in the session was produced. */}
           <div className="px-8 py-6 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-black border border-white/10 flex items-center justify-center shrink-0">
-              <User className="w-5 h-5 text-white/60" />
+              <Scale className="w-[18px] h-[18px] text-white/60" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-['Orbitron'] text-xs font-bold text-white tracking-widest">OPERATOR-01</span>
+            <div className="flex flex-col min-w-0">
+              <span className="font-['Orbitron'] text-xs font-bold text-white tracking-widest">
+                {stack.ftOnline ? 'ARGUSCORE-4B' : 'JUDGE-0'}
+              </span>
               <div className="flex items-center gap-1.5 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest uppercase">ACTIVE SESSION</span>
+                <div className={cn(
+                  "w-1.5 h-1.5 rounded-full shrink-0",
+                  judgeStatus === 'online'   && (stack.ftOnline ? "bg-emerald-500" : "bg-amber-400"),
+                  judgeStatus === 'offline'  && "bg-red-500",
+                  judgeStatus === 'checking' && "bg-yellow-400 animate-pulse",
+                )} />
+                <span className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest uppercase truncate">
+                  {judgeStatus === 'checking'
+                    ? 'Connecting'
+                    : judgeStatus === 'offline'
+                      ? 'Judge offline'
+                      : stack.ftOnline ? 'Fine-tuned scorer' : 'Groq fallback'}
+                </span>
               </div>
+              {stack.docs != null && (
+                <span className="font-['JetBrains_Mono'] text-[9px] text-white/25 tracking-widest uppercase mt-1">
+                  {stack.docs.toLocaleString()} evidence docs
+                </span>
+              )}
             </div>
           </div>
           <nav className="px-4 mt-8 flex flex-col gap-1.5">
-            {[
-              { id: 'active', label: 'ACTIVE DEBATES', icon: Radio, active: true },
+            {([
+              { id: 'active', label: 'ACTIVE DEBATES', icon: Radio },
               { id: 'history', label: 'DEBATE HISTORY', icon: History },
               { id: 'logs', label: 'JUDGE LOGS', icon: Gavel },
-            ].map((item) => (
-              <button key={item.id} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-colors duration-200 relative", item.active ? "active bg-white/[0.06] text-white" : "text-white/40 hover:text-white hover:bg-white/[0.02]")}>
-                {item.active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-1/2 bg-white rounded-r-md" />}
+            ] as const).map((item) => {
+              const active = view === item.id;
+              return (
+              <button
+                key={item.id}
+                onClick={() => { setView(item.id); setOpenDebate(null); }}
+                className={cn("flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-colors duration-200 relative", active ? "active bg-white/[0.06] text-white" : "text-white/40 hover:text-white hover:bg-white/[0.02]")}>
+                {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-1/2 bg-white rounded-r-md" />}
                 <item.icon className="w-4 h-4 shrink-0" />
                 <span className="font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest uppercase">{item.label}</span>
               </button>
-            ))}
+              );
+            })}
           </nav>
         </div>
         <div className="p-6 flex flex-col gap-3">
@@ -252,7 +325,130 @@ export function DebateDashboard() {
           </h1>
         </div>
 
-        {!hasStarted ? (
+        {view === 'history' ? (
+          <div className="flex-1 overflow-y-auto p-6">
+            {openDebate ? (
+              <div className="max-w-3xl mx-auto">
+                <button onClick={() => setOpenDebate(null)} className="flex items-center gap-2 mb-6 text-white/40 hover:text-white transition-colors">
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="font-['JetBrains_Mono'] text-[11px] tracking-widest uppercase">Back to history</span>
+                </button>
+                <h2 className="font-['Orbitron'] text-lg text-white/90 mb-1">{asText(openDebate.topic)}</h2>
+                <p className="font-['JetBrains_Mono'] text-[10px] text-white/35 tracking-widest uppercase mb-6">
+                  {new Date(openDebate.created_at).toLocaleString()} · {(openDebate.rounds ?? []).length} rounds
+                </p>
+                {(openDebate.rounds ?? []).map((r: any) => (
+                  <div key={r.round} className="mb-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-['JetBrains_Mono'] text-[11px] font-bold text-white/70 tracking-widest uppercase">Round {r.round}</span>
+                      <span className="font-['JetBrains_Mono'] text-[11px] text-white/50">
+                        PRO {r.pro_scores?.total} · CON {r.con_scores?.total} → {String(r.round_winner).toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{asText(r.reasoning)}</p>
+                  </div>
+                ))}
+                {openDebate.final_verdict?.verdict && (
+                  <div className="bg-indigo-500/[0.06] border border-indigo-500/25 rounded-2xl p-5">
+                    <span className="font-['JetBrains_Mono'] text-[11px] font-bold text-indigo-400 tracking-widest uppercase">Final Verdict</span>
+                    <p className="font-['DM_Sans'] text-sm text-white/80 leading-relaxed mt-2">{asText(openDebate.final_verdict.verdict)}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="max-w-3xl mx-auto">
+                <h2 className="font-['Orbitron'] text-lg tracking-[0.15em] text-white/70 uppercase mb-6">Debate History</h2>
+                {history === null && <p className="font-['JetBrains_Mono'] text-xs text-white/30 tracking-widest uppercase">Loading…</p>}
+                {history?.length === 0 && (
+                  <p className="font-['DM_Sans'] text-sm text-white/35">No debates recorded yet. Run one and it will appear here.</p>
+                )}
+                {history?.map((d) => (
+                  <button key={d.id} onClick={async () => {
+                    try {
+                      const res = await fetch(`http://localhost:8000/debates/${d.id}`);
+                      setOpenDebate(await res.json());
+                    } catch { /* leave the list up rather than blanking the view */ }
+                  }} className="w-full text-left mb-3 bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] rounded-2xl p-4 transition-colors">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="font-['DM_Sans'] text-sm text-white/85 truncate">{asText(d.topic)}</p>
+                        <p className="font-['JetBrains_Mono'] text-[10px] text-white/35 tracking-widest uppercase mt-1">
+                          {new Date(d.created_at).toLocaleString()} · {d.rounds} rounds · {asText(d.scorer)}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        {d.error ? (
+                          <span className="font-['JetBrains_Mono'] text-[10px] text-red-400 tracking-widest uppercase">Aborted</span>
+                        ) : (
+                          <>
+                            <span className={cn("font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest uppercase",
+                              d.is_tie ? "text-white/50" : d.winner === 'pro' ? "text-emerald-400" : "text-rose-400")}>
+                              {d.is_tie ? 'TIE' : String(d.winner ?? '').toUpperCase()}
+                            </span>
+                            <p className="font-['JetBrains_Mono'] text-[10px] text-white/35 mt-0.5">{d.pro_total} · {d.con_total}</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : view === 'logs' ? (
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-3xl mx-auto">
+              <h2 className="font-['Orbitron'] text-lg tracking-[0.15em] text-white/70 uppercase mb-2">Judge Logs</h2>
+              <p className="font-['DM_Sans'] text-xs text-white/35 mb-6">
+                Per-round audit: which scorer ran, what the corpus could verify, and how far the two blind passes disagreed.
+              </p>
+              {logs === null && <p className="font-['JetBrains_Mono'] text-xs text-white/30 tracking-widest uppercase">Loading…</p>}
+              {logs?.length === 0 && (
+                <p className="font-['DM_Sans'] text-sm text-white/35">No judged rounds yet. Run a debate and its audit trail will appear here.</p>
+              )}
+              {logs?.map((l, i) => (
+                <div key={`${l.debate_id}-${l.round}-${i}`} className="mb-3 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <p className="font-['DM_Sans'] text-sm text-white/80 truncate">{asText(l.topic)}</p>
+                    <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 tracking-widest uppercase shrink-0">R{l.round}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 font-['JetBrains_Mono'] text-[10px] text-white/45 mb-2">
+                    <span>PRO {l.pro_total} · CON {l.con_total} → {String(l.winner ?? '').toUpperCase()}</span>
+                    <span>scorer: {asText(l.scorer)}</span>
+                    {l.verification_backend && <span>nli: {asText(l.verification_backend)}</span>}
+                    {l.blind_passes != null && <span>passes: {l.blind_passes}</span>}
+                    {l.label_disagreement != null && <span>bias δ: {l.label_disagreement}</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 font-['JetBrains_Mono'] text-[10px] text-white/40 mb-2">
+                    {l.pro_coverage != null && <span>pro coverage: {l.pro_coverage}</span>}
+                    {l.con_coverage != null && <span>con coverage: {l.con_coverage}</span>}
+                    {!!l.pro_repetition_penalty && <span className="text-amber-400/70">pro rep −{l.pro_repetition_penalty}</span>}
+                    {!!l.con_repetition_penalty && <span className="text-amber-400/70">con rep −{l.con_repetition_penalty}</span>}
+                    {l.fallacy && <span className="text-rose-400/70">{asText(l.fallacy)}</span>}
+                  </div>
+                  {(l.pro_evidence_cited?.length > 0 || l.con_evidence_cited?.length > 0) && (
+                    <div className="grid sm:grid-cols-2 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
+                      <div>
+                        <p className="font-['JetBrains_Mono'] text-[9px] text-emerald-400/70 tracking-widest uppercase mb-1">PRO cited</p>
+                        {(l.pro_evidence_cited ?? []).slice(0, 3).map((e: any, k: number) => (
+                          <p key={k} className="font-['DM_Sans'] text-[11px] text-white/45 leading-snug mb-0.5">· {asText(e)}</p>
+                        ))}
+                        {(l.pro_evidence_cited ?? []).length === 0 && <p className="font-['DM_Sans'] text-[11px] text-white/25">nothing verifiable</p>}
+                      </div>
+                      <div>
+                        <p className="font-['JetBrains_Mono'] text-[9px] text-rose-400/70 tracking-widest uppercase mb-1">CON cited</p>
+                        {(l.con_evidence_cited ?? []).slice(0, 3).map((e: any, k: number) => (
+                          <p key={k} className="font-['DM_Sans'] text-[11px] text-white/45 leading-snug mb-0.5">· {asText(e)}</p>
+                        ))}
+                        {(l.con_evidence_cited ?? []).length === 0 && <p className="font-['DM_Sans'] text-[11px] text-white/25">nothing verifiable</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : !hasStarted ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 mt-10">
             <div className="flex flex-col items-center max-w-[400px] text-center">
               <div className="w-32 h-32 rounded-full border border-dashed border-white/10 flex items-center justify-center mb-10 relative">

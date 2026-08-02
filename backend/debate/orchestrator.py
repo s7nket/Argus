@@ -5,6 +5,7 @@ from agents.pro_agent import generate_pro_argument
 from agents.con_agent import generate_con_argument
 from agents.rebuttal_agent import generate_pro_rebuttal, generate_con_rebuttal
 from agents.judge_agent import judge_round, judge_final_verdict
+from debate.history import new_debate_id, save_debate
 from debate.topic import parse_topic
 
 
@@ -64,10 +65,32 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
     sides = await parse_topic(topic)
     pro_side, con_side = sides["pro_side"], sides["con_side"]
 
+    # The record is built as the debate runs, not at the end, so a debate that
+    # dies partway is still archived with everything it produced — an aborted
+    # run is often the more interesting one to inspect afterwards.
+    debate_id = new_debate_id()
+    record: dict = {
+        "id": debate_id,
+        "topic": topic,
+        "resolution": sides.get("resolution", topic),
+        "topic_type": sides.get("type", "proposition"),
+        "pro_side": pro_side,
+        "con_side": con_side,
+        "requested_rounds": rounds,
+        "rounds": [],
+    }
+
+    async def fail(message: str) -> None:
+        """Archive what the debate produced before reporting that it stopped."""
+        record["error"] = message
+        save_debate(record)
+        await websocket.send_json({"type": "error", "message": message})
+
     await websocket.send_json({
         "type": "debate_start",
         "topic": topic,
         "rounds": rounds,
+        "debate_id": debate_id,
         "resolution": sides.get("resolution", topic),
         "topic_type": sides.get("type", "proposition"),
         "pro_side": pro_side,
@@ -112,7 +135,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 con_side=con_side,
             )
         except Exception as e:
-            await websocket.send_json({"type": "error", "message": f"PRO agent failed (R{round_num}S1): {e}"})
+            await fail(f"PRO agent failed (R{round_num}S1): {e}")
             return
 
         pro_open = clean_text(pro_open)
@@ -145,7 +168,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 con_side=con_side,
             )
         except Exception as e:
-            await websocket.send_json({"type": "error", "message": f"CON agent failed (R{round_num}S1): {e}"})
+            await fail(f"CON agent failed (R{round_num}S1): {e}")
             return
 
         con_open = clean_text(con_open)
@@ -187,7 +210,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 con_side=con_side,
             )
         except Exception as e:
-            await websocket.send_json({"type": "error", "message": f"PRO rebuttal failed (R{round_num}S2): {e}"})
+            await fail(f"PRO rebuttal failed (R{round_num}S2): {e}")
             return
 
         pro_counter = clean_text(pro_counter)
@@ -221,7 +244,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 con_side=con_side,
             )
         except Exception as e:
-            await websocket.send_json({"type": "error", "message": f"CON rebuttal failed (R{round_num}S2): {e}"})
+            await fail(f"CON rebuttal failed (R{round_num}S2): {e}")
             return
 
         con_counter = clean_text(con_counter)
@@ -263,7 +286,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 con_side=con_side,
             )
         except Exception as e:
-            await websocket.send_json({"type": "error", "message": f"PRO rebuttal failed (R{round_num}S3): {e}"})
+            await fail(f"PRO rebuttal failed (R{round_num}S3): {e}")
             return
 
         pro_justify = clean_text(pro_justify)
@@ -297,7 +320,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 con_side=con_side,
             )
         except Exception as e:
-            await websocket.send_json({"type": "error", "message": f"CON rebuttal failed (R{round_num}S3): {e}"})
+            await fail(f"CON rebuttal failed (R{round_num}S3): {e}")
             return
 
         con_justify = clean_text(con_justify)
@@ -331,10 +354,14 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
                 prior_con_texts=list(con_all_texts),
             )
         except Exception as e:
-            await websocket.send_json({"type": "error", "message": f"Judge failed (R{round_num}): {e}"})
+            await fail(f"Judge failed (R{round_num}): {e}")
             return
 
         all_round_verdicts.append(verdict)
+
+        # Archived with the exchange attached, so JUDGE LOGS can show the scores
+        # beside the text that produced them rather than numbers alone.
+        record["rounds"].append({"round": round_num, "exchange": list(exchange), **verdict})
 
         await websocket.send_json({
             "type": "round_verdict",
@@ -370,8 +397,11 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             con_arguments=con_history,
         )
     except Exception as e:
-        await websocket.send_json({"type": "error", "message": f"Final verdict failed: {e}"})
+        await fail(f"Final verdict failed: {e}")
         return
+
+    record["final_verdict"] = final
+    save_debate(record)
 
     await websocket.send_json({
         "type": "final_verdict",

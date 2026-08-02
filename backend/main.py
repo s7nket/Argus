@@ -9,6 +9,7 @@ load_dotenv()
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from debate.orchestrator import run_debate
 
 from debate.vector_store import get_vector_store
@@ -67,6 +68,39 @@ async def vector_db_query(q: str, top_k: int = 3):
         "evidence": evidence,
         "history_matches": rebuttals
     }
+
+
+# ── Debate history and judge logs ────────────────────────────────────────────
+# Backing for the DEBATE HISTORY and JUDGE LOGS views. Debates used to exist only
+# in the WebSocket stream that produced them, so closing the tab destroyed the
+# result, every round audit, and the grounding evidence behind each score.
+
+@app.get("/debates")
+async def debates_list(limit: int = 50, offset: int = 0):
+    from debate.history import list_debates
+    return list_debates(limit=limit, offset=offset)
+
+
+@app.get("/debates/{debate_id}")
+async def debate_detail(debate_id: str):
+    from debate.history import get_debate
+    record = get_debate(debate_id)
+    if record is None:
+        return JSONResponse(status_code=404, content={"error": "no such debate"})
+    return record
+
+
+@app.delete("/debates/{debate_id}")
+async def debate_delete(debate_id: str):
+    from debate.history import delete_debate
+    return {"deleted": delete_debate(debate_id)}
+
+
+@app.get("/judge/logs")
+async def judge_log_feed(limit: int = 100):
+    """Per-round audit trail across all debates, newest first."""
+    from debate.history import judge_logs
+    return {"logs": judge_logs(limit=limit)}
 
 
 NGROK_HEADERS = {"ngrok-skip-browser-warning": "true"}
