@@ -1,2 +1,27 @@
 node_modules
 .env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ChromaDB persistent store — regenerated on startup from
+# backend/debate/seed_evidence.py, and a binary SQLite file that conflicts on
+# every merge. The corpus SOURCE is versioned; the index is not.
+backend/chroma_db/
+
+# Build output
+dist/
+.vite/
+
+# Cached eval data — regenerable via `python -m eval.datasets`, and the scored
+# set is a measurement artifact that should be rebuilt rather than merged.
+backend/data/ibm_rank_*.json
+
+# Saved debates are runtime output — they accumulate with use and would conflict
+# on every merge. The evaluation records (pairs.json, scored_pairs.json) are
+# versioned deliberately; these are not.
+backend/data/debates/

@@ -1,0 +1,2288 @@
+[
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "i wasn't a christian and was made to take part in assembly where wee would have to sing and prayer .  why should i? schools should be secular",
+  "con_argument": "allowing children to pray and take some quiet time in school can be beneficial for their mental health.",
+  "human_pro": 0.3163,
+  "human_con": 0.9415,
+  "human_margin": -0.6253,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "having a system where public defenders are mandatory would make it fairer because all defendants would have the same level of defense",
+  "con_argument": "a person should be free to choose whatever lawyer they want & not be obligated to choose a public defender",
+  "human_pro": 1.0,
+  "human_con": 0.8097,
+  "human_margin": 0.1903,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis can have pain relieving effects and some doctors recommend it.",
+  "con_argument": "cannabis leads on to much harder drugs and addiction",
+  "human_pro": 1.0,
+  "human_con": 0.715,
+  "human_margin": 0.285,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism gives everyone a clean slate of non belief",
+  "con_argument": "atheism should not be adopted because it promotes ideas of uncaring and thoughtlessness. if there is no afterlife or point to life, why should i bother trying hard?",
+  "human_pro": 0.7249,
+  "human_con": 1.0,
+  "human_margin": -0.2751,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "fields of war are not places for women",
+  "con_argument": "further progress must be made in ensuring and promoting the rights of women in all social fields, so it is a right to participate where women feel comfortable",
+  "human_pro": 0.51,
+  "human_con": 0.6772,
+  "human_margin": -0.1672,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "Algorithmic trading can be manipulated to artificially alter the price by a competitor, harming anyone who uses algorithmic trading.",
+  "con_argument": "if algorithmic trading were banned, you would have to talk to an actual person to trade and it would make things much slower and less efficient.",
+  "human_pro": 0.9129,
+  "human_con": 0.9155,
+  "human_margin": -0.0026,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming causes inhumane treatment of animals and lots of environmental pollution.",
+  "con_argument": "factory farming is the easiest way to mass produce the meat needed for human consumption.",
+  "human_pro": 0.9413,
+  "human_con": 0.7899,
+  "human_margin": 0.1514,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is an inhumane way of raising animals for food.  the conditions are horrible.",
+  "con_argument": "factory farming helps to produce meat at a lower cost thus enabling those on a lower income to be able to purchase meats.",
+  "human_pro": 1.0,
+  "human_con": 0.937,
+  "human_margin": 0.063,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "criminals should always have be defended in court by public defenders",
+  "con_argument": "how a person defends themself is their own decision.",
+  "human_pro": 0.4448,
+  "human_con": 0.8536,
+  "human_margin": -0.4088,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "enforced prayer sessions in schools indoctrinate children into regressive belief systems and limit their ability to think independently for themselves and so should be removed from all schooling",
+  "con_argument": "a non-denominational school prayer is about as bad as reciting the pledge of allegiance in school, and should be allowed.",
+  "human_pro": 1.0,
+  "human_con": 0.5918,
+  "human_margin": 0.4082,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "an enemy can not attack to see that the opponent is a woman, an ally could act recklessly if the partner to save is a woman, as you see it is an abuse to the figure of the woman.",
+  "con_argument": "allowing women in combat gives us the numbers we need to be ready with trained soldiers for anything that might come up",
+  "human_pro": 0.6639,
+  "human_con": 0.8029,
+  "human_margin": -0.1389,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism allows for an even playing field, removes the fighting over which religion is superior over another.",
+  "con_argument": "belief systems are vital for human well-being, and underpin the meaning of life for billions - the withdrawal from this extinguishes much from existence, rejects hope and embraces negativity.",
+  "human_pro": 0.8599,
+  "human_con": 0.7736,
+  "human_margin": 0.0863,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "Holocaust denial trivializes mass genocide.  This is unconscionable and must be punished.",
+  "con_argument": "freedom of speech is an important part of democracy",
+  "human_pro": 0.8724,
+  "human_con": 0.7338,
+  "human_margin": 0.1385,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "having mandatory public defenders means that everyone is able to access the same level of defence which would lead to less discrimination against the poorest in society in the judicial  system.",
+  "con_argument": "everyone should have the right to choose who represents them in a court",
+  "human_pro": 1.0,
+  "human_con": 0.5338,
+  "human_margin": 0.4662,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "all citizens have the right to have an impartial defense and a fair trial.",
+  "con_argument": "even if it is not a smart choice it is their right not to be represented",
+  "human_pro": 0.5156,
+  "human_con": 0.8167,
+  "human_margin": -0.3011,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Social media brings more harm than good",
+  "pro_argument": "bullying is rampant on social media because people can hide behind false names and personas and remain anonymous. users can make threats against other people and no one knows who they are.",
+  "con_argument": "a presence on social media allows small businesses to reach a larger audience and thrive, whereas in the past they may have failed because not enough people knew they existed.",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism allows for the decrease in religious discrimination and would maintain equal practices to insure that peole are treated equally with the shared lack of religious faith.",
+  "con_argument": "Atheism does not prove to be beneficial to anyone.",
+  "human_pro": 0.9146,
+  "human_con": 0.673,
+  "human_margin": 0.2416,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading gives people an unfair advantage.",
+  "con_argument": "algorithmic trading produces better and more predictable results than conventional trading",
+  "human_pro": 0.6238,
+  "human_con": 1.0,
+  "human_margin": -0.3762,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis is less harmful than tobacco.  it is time we allow people to make their own decisions about cannabis.",
+  "con_argument": "cannabis has never been scientifically proven to help any conditions.",
+  "human_pro": 1.0,
+  "human_con": 0.6545,
+  "human_margin": 0.3455,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "any person knowingly supporting an act of hatred should be punished as an accompliss.",
+  "con_argument": "Criminalizing holocaust denial gives alt-right organizations a way to play the victim of the state and boost popularity and recruitment.",
+  "human_pro": 0.53,
+  "human_con": 1.0,
+  "human_margin": -0.47,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the Olympic Games",
+  "pro_argument": "competition between countries prevents working towards peace",
+  "con_argument": "i think that we shouldn't abolish the olympic games because is importat to the world peace",
+  "human_pro": 0.7512,
+  "human_con": 0.3749,
+  "human_margin": 0.3762,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming often treats animals as purely product in the most unethical and cruel manner and the unclean conditions that result can lead to diseased product that gets into the marketplace quickly.",
+  "con_argument": "factory farming is the only way to sustain the amount of meat needed for the population and to keep prices down",
+  "human_pro": 1.0,
+  "human_con": 0.9145,
+  "human_margin": 0.0855,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "an overhaul is due.  this is an unfair system and has outlived it's usefullness.",
+  "con_argument": "i think it works. after 2 offences the fear of prison will stop another one",
+  "human_pro": 0.6104,
+  "human_con": 0.6356,
+  "human_margin": -0.0251,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading provides unfair advantages to some traders.",
+  "con_argument": "algorithmic trading works quicker than people are able to do it",
+  "human_pro": 0.8673,
+  "human_con": 0.3863,
+  "human_margin": 0.481,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "Atheism should be adopted because many people do not believe in God or a higher power,",
+  "con_argument": "i think that we shouldn't  adopt atheism for law's god",
+  "human_pro": 0.6694,
+  "human_con": 0.5402,
+  "human_margin": 0.1292,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "if a person commits three low level crimes such as shop lifting it is unfair that they will then be subject to a long prison sentence due to the three-strikes law.",
+  "con_argument": "a criminal will think twice about committing a crime knowing that the next crime he commits might mean life imprisonment.",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis is no more dangerous than alcohol which is legal.",
+  "con_argument": "big companies could try to get in on the market and overcharge and create unnecessary regulations for legalized cannabis.",
+  "human_pro": 0.8754,
+  "human_con": 0.4307,
+  "human_margin": 0.4447,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "holocaust denial should be a criminal offense because a lot of people died during that time and making light of the issue or flat out denying facts can muddy history.",
+  "con_argument": "holocaust denial is not a serious issue, everybody has a right to state views, even if others do not happen to agree with them",
+  "human_pro": 0.9827,
+  "human_con": 0.4997,
+  "human_margin": 0.483,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "abolishing the three strikes will prevent minor crimes from being punished the same as worse ones",
+  "con_argument": "if a person is given two chances to stop committing crimes and they don't then they never will. by the third time they had enough chances and it's time to lock them away for good for the sake of society.",
+  "human_pro": 0.779,
+  "human_con": 0.8709,
+  "human_margin": -0.092,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "a libertarian government with provide the lower classes with much needed resources.",
+  "con_argument": "citizens would start doing whatever they wanted if this practice is adopted",
+  "human_pro": 1.0,
+  "human_con": 0.5155,
+  "human_margin": 0.4845,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "everyone should have a freedom of choice with less government intervention.",
+  "con_argument": "adopting libertarianism  would mean that many of the benefits that people receive would be unavailable to them.  it would also increase the level of crime and violence.",
+  "human_pro": 1.0,
+  "human_con": 0.9101,
+  "human_margin": 0.0899,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban private military companies",
+  "pro_argument": "all what they care is money and probably they kill innocent too because they do not care about anything but the money.",
+  "con_argument": "a privatized military company can assist with a mission without following the rules of war or the geneva convention",
+  "human_pro": 0.5498,
+  "human_con": 0.8263,
+  "human_margin": -0.2765,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "children shouldn't be forced to pray if they don't want to",
+  "con_argument": "freedom of religion should be considered first and foremost even for minors.",
+  "human_pro": 0.8213,
+  "human_con": 0.6756,
+  "human_margin": 0.1458,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is morally questionable as it relies on keeping animals together in spaces which could be detrimental to their health.",
+  "con_argument": "factory farming is necessary to feed a growing population",
+  "human_pro": 1.0,
+  "human_con": 0.9349,
+  "human_margin": 0.0651,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "i think that we should legalize cannabis beacause is hleathy",
+  "con_argument": "cannabis is a gateway to harder drugs so should not be legalized",
+  "human_pro": 0.4847,
+  "human_con": 1.0,
+  "human_margin": -0.5153,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis has many valuable medical uses.",
+  "con_argument": "dependence on marijuana will increase with legalization because of its  addictive nature",
+  "human_pro": 1.0,
+  "human_con": 0.7047,
+  "human_margin": 0.2953,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "All religions have a dark history of violence they try to hide.",
+  "con_argument": "atheism does not teach any of the values or structures that are taught in the various religions",
+  "human_pro": 0.0882,
+  "human_con": 0.7542,
+  "human_margin": -0.6659,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "As people age they tend to commit less crimes, keeping individuals in jail for life only because of three-strikes laws is a waste of money and doesn't protect society.",
+  "con_argument": "i don't  think that we should abolish the three-strikes laws for our integrity",
+  "human_pro": 1.0,
+  "human_con": 0.3692,
+  "human_margin": 0.6308,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "government should allow people do what they want to as long as no one is hurt by their actions",
+  "con_argument": "i think that we shouldn't adopt libertarianism because is anarquic",
+  "human_pro": 0.5587,
+  "human_con": 0.2103,
+  "human_margin": 0.3484,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "all sane people already know that atheism is the truth",
+  "con_argument": "adopting one religion or another is a free choice of each human being, each person adapts the belief they want and knows",
+  "human_pro": 0.3909,
+  "human_con": 0.6026,
+  "human_margin": -0.2117,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is a cruel, inhumane practice that is tainting our food sources.",
+  "con_argument": "Factory farming allows for food to be produced at a lower cost than would be possible using other methods.",
+  "human_pro": 0.9794,
+  "human_con": 0.8847,
+  "human_margin": 0.0948,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban private military companies",
+  "pro_argument": "i think that we should ban private military companies in some countries",
+  "con_argument": "if a private military company sends it's employees to dangerous places then it saves the lives of soldiers who won't be sent there",
+  "human_pro": 0.3407,
+  "human_con": 0.5254,
+  "human_margin": -0.1847,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "every effort should be made to arrest and put on trial a suspect rather than assassinate. as this fits the western concept of rule of law",
+  "con_argument": "certain places in the world are lawless and the only way to stop dangerous individuals in these circumstances is by targeted killing.",
+  "human_pro": 0.8454,
+  "human_con": 1.0,
+  "human_margin": -0.1546,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "habitual offenders of serious offenses should not get three chances.",
+  "con_argument": "if a person has been convicted three times, they clearly cannot learn their lesson and should be separated from the rest of society to keep us safe.",
+  "human_pro": 0.4665,
+  "human_con": 1.0,
+  "human_margin": -0.5335,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "citizens who can not afford a defense must have the right to receive one from our government",
+  "con_argument": "if a person can afford someone other that a public defend, then that should be their choice.  why should taxpayers pay for an attorney when a person can pay for one themselves.",
+  "human_pro": 0.9242,
+  "human_con": 0.8902,
+  "human_margin": 0.034,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis is no worse than alcohol, which has been legal for years, it's a waste of money to enforce a pointless law.",
+  "con_argument": "cannabis is a mind-altering drug and needs to be regulated as such",
+  "human_pro": 1.0,
+  "human_con": 0.653,
+  "human_margin": 0.347,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "as long as they are not harming other people, individual's should be able to do what they want with their own lives",
+  "con_argument": "government is needed. it provides the institutions that can better serve the public. this can be done through good taxation policy and good programs.",
+  "human_pro": 0.4908,
+  "human_con": 0.5289,
+  "human_margin": -0.0381,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "i think this would be cheaper than hiring your own lawyer.",
+  "con_argument": "being able to choose your own attorney to help determine your fate is vitally important if you have the means to do so.",
+  "human_pro": 0.8193,
+  "human_con": 0.9756,
+  "human_margin": -0.1563,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis has many medicinal benefits and therefore it should be legalized.",
+  "con_argument": "cannabis shouldn't be legalized because the second hand smoke could become a problem for others",
+  "human_pro": 1.0,
+  "human_con": 0.5392,
+  "human_margin": 0.4608,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "i think the us would be in better shape and the party bickering would stop.",
+  "con_argument": "a country would fall apart under libertarianism as there is not any good oversight of the people.",
+  "human_pro": 0.4146,
+  "human_con": 0.7909,
+  "human_margin": -0.3762,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism fosters intellectual and human development and we must adopt it",
+  "con_argument": "atheism will destroy the world by unleashing godless people running the government with no morals or ethics and should not be adopted.",
+  "human_pro": 1.0,
+  "human_con": 0.5815,
+  "human_margin": 0.4185,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "holocaust denial is especially pernicious, as it propagates the idea that its very victims perpetrated a global hoax.  this is dangerous anti-semitism.",
+  "con_argument": "Criminalizing Holocaust denial will lead to more Holocausts because it deprives people of independent thought.",
+  "human_pro": 0.8096,
+  "human_con": 0.5306,
+  "human_margin": 0.279,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "a formal school prayer can not properly be considered as the free exercise of religion, the prohibition of school prayer is wholly compatible with the free exercise of religion",
+  "con_argument": "a silent prayer hurts no one and you can't ban religion in the us",
+  "human_pro": 0.7489,
+  "human_con": 0.7326,
+  "human_margin": 0.0163,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "Animals have feelings, emotions and can feel pain too. Keeping them locked up in such vile conditions, living out their entire lives without any freedom until they die or are killed is totally inhumane.",
+  "con_argument": "factory farming allows for cheaper meat production costs thus enabling those on low incomes to be able to afford meat.",
+  "human_pro": 0.9385,
+  "human_con": 0.9034,
+  "human_margin": 0.0351,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism would be good for our country, less conflicts",
+  "con_argument": "believing in god andheaven gives people hope. it let's them believe there is a reward for their goodness on earth. if you adopt atheism and take this from them and the world will be a worse place.",
+  "human_pro": 0.9239,
+  "human_con": 0.2447,
+  "human_margin": 0.6792,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "combat is too brutal and harsh and women should be prohibited from it",
+  "con_argument": "a woman decides to go to combat we can not prohibit her, it is her right and duty as a citizen",
+  "human_pro": 0.9036,
+  "human_con": 0.8175,
+  "human_margin": 0.0861,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "having combat units comprised of mixed genders would be dangerous due to the divergence of physical abilities - they would cease to funtion smoothly, and decisions would be swayed by male protective instincts.",
+  "con_argument": "elimating women from combat situations flies in the face of gender equality - it is outdated to limit the participation of somebody purely based on sex, irrespective of how dangerous it may be.",
+  "human_pro": 0.7957,
+  "human_con": 0.9566,
+  "human_margin": -0.1609,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is unhealthy and inhuman.",
+  "con_argument": "Factory farming is the most efficient way to grow crops in the modern era.",
+  "human_pro": 0.662,
+  "human_con": 0.9235,
+  "human_margin": -0.2615,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "everyone deserves an equal chance at representation in a court of law.",
+  "con_argument": "each person has the right to have their lawyer according to their possibilities",
+  "human_pro": 0.9346,
+  "human_con": 0.4887,
+  "human_margin": 0.4459,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "everyone has a right to representation if they are unable to afford it themselves",
+  "con_argument": "because the state pays for public defenders they have a smaller budget, meaning that valuable resources are not available which could compromise cases",
+  "human_pro": 0.8303,
+  "human_con": 0.7028,
+  "human_margin": 0.1276,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "due to their physical makeup women do not naturally have the strength that men do and they would be at an unfair disadvantage in combat",
+  "con_argument": "if a woman can pass all the fitness tests she is as capable as a man",
+  "human_pro": 0.9385,
+  "human_con": 0.4866,
+  "human_margin": 0.4519,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "big time money hungry lawyers would have a tough time making a killing.",
+  "con_argument": "defendants should not be forced to use a public defender if they choose not to because it is undemocratic to remove individual choice.",
+  "human_pro": 0.4219,
+  "human_con": 0.7093,
+  "human_margin": -0.2873,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "could play other roles such as nursing and planning techniques",
+  "con_argument": "all citizens should be given equal opportunity. if a woman wants to support her country on the battlefield, she should be able to do so.",
+  "human_pro": 0.3725,
+  "human_con": 0.9357,
+  "human_margin": -0.5632,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis legalization is a lucrative revenue source",
+  "con_argument": "cannabis is only a gateway to much more dangerous drugs.",
+  "human_pro": 0.7919,
+  "human_con": 0.8701,
+  "human_margin": -0.0782,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheists have much lower stress levels because they do not constantly feel guilty about not living up to religious standards",
+  "con_argument": "atheism is simply an easy way out for those who do not want the responsibility of answering to a higher power. it should not be adopted at all in any public institutions.",
+  "human_pro": 0.9018,
+  "human_con": 0.7617,
+  "human_margin": 0.1401,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism allows for a blank slate for beliefs",
+  "con_argument": "freedom of religion is a founding principle of america and vital to a free society.",
+  "human_pro": 0.2274,
+  "human_con": 0.3818,
+  "human_margin": -0.1544,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "holocaust denial causes more racial tensions, which can only be a bad thing.",
+  "con_argument": "everyone should be allowed to use evidence available to decide what they think happened with the holocaust.",
+  "human_pro": 0.863,
+  "human_con": 0.5161,
+  "human_margin": 0.3469,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "everybody believes in something different so it\u2019s best to avoid religion in school to avoid offending others",
+  "con_argument": "every religious person has the right to pray",
+  "human_pro": 0.8606,
+  "human_con": 0.5823,
+  "human_margin": 0.2782,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis should be legalized as it has been proven to provide beneficial effects for various illnesses.",
+  "con_argument": "cannabis can cause mental health issues",
+  "human_pro": 0.9111,
+  "human_con": 0.9508,
+  "human_margin": -0.0397,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism is a good option for those who don't want the angst that comes with organized religion",
+  "con_argument": "atheists are ridiculous there is clearly a god that everybody should worship",
+  "human_pro": 0.7554,
+  "human_con": 0.461,
+  "human_margin": 0.2944,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "by targeting killing there is always innocent civilians victims as well and that should be abandoned and banned.",
+  "con_argument": "i think that we shouldn't  ban targeted killing for our security",
+  "human_pro": 1.0,
+  "human_con": 0.092,
+  "human_margin": 0.908,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "denial that the holocaust happened is blatant racism and should be illegal.",
+  "con_argument": "holocaust denial may be abhorrent but it is free thought which can not be punishable without action.",
+  "human_pro": 0.9269,
+  "human_con": 0.9056,
+  "human_margin": 0.0213,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "i think that we should ban targeted killing because is safaty and secure",
+  "con_argument": "elective killings should not be banned because they are part of political strategies to end a confrontation and even avoid wars.",
+  "human_pro": 0.0942,
+  "human_con": 0.7585,
+  "human_margin": -0.6643,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "even the government should not have the power to kill anyone they wish.",
+  "con_argument": "Dangerous terrorists who are really hard to catch cause lot of destruction and deaths. Only targeted killing can save us from more deaths caused by them",
+  "human_pro": 0.3732,
+  "human_con": 1.0,
+  "human_margin": -0.6268,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "adopting libertarianism will make citizens to feel more free and more relaxed and happy.",
+  "con_argument": "allowing unfettered libertarianism will result in more crime and more income disparity",
+  "human_pro": 0.8513,
+  "human_con": 0.9419,
+  "human_margin": -0.0905,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism is peaceful and no prejudice towards religion",
+  "con_argument": "atheism goes against christianity which is the majority religion",
+  "human_pro": 0.8673,
+  "human_con": 0.5959,
+  "human_margin": 0.2714,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "as child bearers women are vital for society, in an all out war the loss of women would have major consequences for society.",
+  "con_argument": "combat is never an individual against another individual and women are capable of using the same weapons as men as long as they are trained properly",
+  "human_pro": 0.6604,
+  "human_con": 1.0,
+  "human_margin": -0.3396,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "criminals should be given a chance to reform, even if they committed the same crime multiple times.",
+  "con_argument": "criminals will always be criminals so why abolish the three strikes rule",
+  "human_pro": 0.6726,
+  "human_con": 0.7911,
+  "human_margin": -0.1185,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "Holocaust denial should be a criminal offence when they ended up killing or incited violence against the Jews or even against who are pro Jews",
+  "con_argument": "a person has their right to their own opinion and making denial of the holocaust a criminal offense takes away the rights of that person.",
+  "human_pro": 0.7926,
+  "human_con": 0.8451,
+  "human_margin": -0.0525,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "even if an algorithm can react quicker than a person, it can't predict markets accurately",
+  "con_argument": "as technology continues to play a larger part in our lives, algorithmic trading can be just another tool to use",
+  "human_pro": 0.7546,
+  "human_con": 0.7702,
+  "human_margin": -0.0157,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading displaces responsibility.",
+  "con_argument": "algorithmic trading allows computers to make predictions based on far more data than a human could handle. this means that more money is likely to be made for share holders.",
+  "human_pro": 0.3782,
+  "human_con": 0.9189,
+  "human_margin": -0.5407,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "by making the use of public defenders mandatory you are giving everyone the same amount of fairness rather than the rich being able to afford better lawyers than the poor.",
+  "con_argument": "everyone has the right to the best legal representation they can afford to ensure their rights",
+  "human_pro": 0.7921,
+  "human_con": 0.8085,
+  "human_margin": -0.0164,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "abolishing the three strikes law would save money",
+  "con_argument": "if a person has been arrested for three crimes they have not learned from their mistakes but see being a criminal as a lifestyle.   let's put those people behind bars and prevent more crimes.",
+  "human_pro": 0.7472,
+  "human_con": 0.5753,
+  "human_margin": 0.1719,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "alogorithmic trading adds too much volatility to the markets which should be based more on real valuations.",
+  "con_argument": "algorithmic trading has increased trading which is good for the economy",
+  "human_pro": 0.9041,
+  "human_con": 0.9787,
+  "human_margin": -0.0745,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis is considered by many to be less harmful than alcohol or tobacco and can be used for medicinal purposes.  legalizing it would also bring in extra tax revenue",
+  "con_argument": "cannabis use has been linked to mental problems in youth and shouldn't be legalized.",
+  "human_pro": 0.8497,
+  "human_con": 1.0,
+  "human_margin": -0.1503,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "Factory farming is cruel to the animals.",
+  "con_argument": "factory farming allows us to provide mass amounts of food faster and easier which allows us to feed more people than ever.",
+  "human_pro": 1.0,
+  "human_con": 0.9807,
+  "human_margin": 0.0193,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "as long as what someone else is doing does not effect anyone else in any way then why should it be illegal. do unto others!",
+  "con_argument": "adoption of libertarianism only divides people more and results in more differences among people.",
+  "human_pro": 0.3963,
+  "human_con": 0.7169,
+  "human_margin": -0.3206,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism is simply the end result of rational thinking, refusing to blindly believe in things that are unproven - this is healthier attitude, since religious adherence leads to all mannor of intolerance.",
+  "con_argument": "freedom of religion is a fundamental right",
+  "human_pro": 0.9577,
+  "human_con": 0.8423,
+  "human_margin": 0.1154,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "everyone using public defenders would equalize the criminal justice system.",
+  "con_argument": "if a person can pay for a better lawyer they should have the right to do so.",
+  "human_pro": 0.7665,
+  "human_con": 1.0,
+  "human_margin": -0.2335,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "giving people the freedom to almost do as they wish with no fear of an authoratiarian state will be liberating.",
+  "con_argument": "can lead to the right to do wrong.  there are many pragmatic concerns",
+  "human_pro": 0.7991,
+  "human_con": 0.3183,
+  "human_margin": 0.4808,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "freedom and liberty should be promoted for all to prevent tyranny and oppression. libertarianism is the most effective way of achieving this",
+  "con_argument": "Government intervention is necessary in order to protect the rights of individuals.",
+  "human_pro": 1.0,
+  "human_con": 0.7883,
+  "human_margin": 0.2117,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "all human beings, no matter how cruel our actions are here on earth, we have the right to life",
+  "con_argument": "governments should do whatever they need to do to defend their security",
+  "human_pro": 0.6704,
+  "human_con": 0.6121,
+  "human_margin": 0.0583,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "i believe the three-strikes law is too harsh.   these people may have been wrongly convicted of a felony or just hang out with the wrong people.   they should be given a chance to be a better citizen.",
+  "con_argument": "everybody deserves a change to change and make up for their mistakes.",
+  "human_pro": 0.8241,
+  "human_con": 0.5521,
+  "human_margin": 0.2719,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "by allowing school prayer, you are forcing a religion on everyone and not giving them the freedom to choose.",
+  "con_argument": "i think that we should n'tprohibit school prayer because is necesary of god",
+  "human_pro": 0.8497,
+  "human_con": 0.1926,
+  "human_margin": 0.657,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the Olympic Games",
+  "pro_argument": "his type of activity has causes many crimes and  discord between contestants and countries.",
+  "con_argument": "helps bring the world together in the spirit of sportsmanship",
+  "human_pro": 0.5207,
+  "human_con": 0.3973,
+  "human_margin": 0.1234,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is harmful to the society, produces lower quality food and is an inhumane way in which to keep and kill livestock.",
+  "con_argument": "factory farming is efficient and lowers food production costs.",
+  "human_pro": 1.0,
+  "human_con": 0.9269,
+  "human_margin": 0.0731,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading or computer controlled trading does not allow for last minute trade that take into consideration small rising stocks.",
+  "con_argument": "algorithmic trading prevents massive influence on the market by dividing trades into smaller bunches.",
+  "human_pro": 0.7667,
+  "human_con": 0.6308,
+  "human_margin": 0.1358,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis has not been shown to be addictive and has many medicinal uses",
+  "con_argument": "cannabis can impair drivers and cause accidents.",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "governments in this way seek to prioritize their needs and whims at the time of reaching power",
+  "con_argument": "i think that we shouldn\u00b4t ban targeted killing because is dangerous",
+  "human_pro": 0.6182,
+  "human_con": 0.6437,
+  "human_margin": -0.0255,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming should be banned because there is not enough government regulation and has allowed for many widespread illnesses because of no regulation.",
+  "con_argument": "factory farming produces meat and dairy products at a cost which would be achievable by different methods. this allows meat and dairy to be more accessible to people with lower incomes.",
+  "human_pro": 0.9792,
+  "human_con": 0.6845,
+  "human_margin": 0.2947,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading gives people an unfair advantage because they can trade so much more quickly and therefore it should be banned.",
+  "con_argument": "algorithmic trading allows for instantaneous response to the financial environment of the moment, without need for human thought or indecision.",
+  "human_pro": 0.8999,
+  "human_con": 0.6858,
+  "human_margin": 0.2141,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "animal welfare should not be compromised so we should ban factory farming and raise the standards for animal care.",
+  "con_argument": "Factory farming not only keeps costs low for the consumer but it also guarantees more meat and other animal products as opposed to regular farms.   The population is huge and needs to be fed.",
+  "human_pro": 0.9777,
+  "human_con": 1.0,
+  "human_margin": -0.0223,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "defending one's self in court and not using a public defender is just stupid.   they know and understand the law better than someone not trained/taught in such.",
+  "con_argument": "if a criminal chooses to not have a legal counsel then those are his rights.",
+  "human_pro": 0.8945,
+  "human_con": 0.5119,
+  "human_margin": 0.3827,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "denying the holocaust is hateful and is often used as inflammatory rhetoric to harm jewish people and therefore should be banned.",
+  "con_argument": "holocaust denial is an opinion and cannot be proven to uphold in court",
+  "human_pro": 0.9057,
+  "human_con": 0.8091,
+  "human_margin": 0.0966,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "denying something proven to be true is ridiculous.",
+  "con_argument": "How can Holocaust denial be illegal while the Israeli government itself denies the Armenian Holocaust.",
+  "human_pro": 0.321,
+  "human_con": 0.2357,
+  "human_margin": 0.0853,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading is slow to respond to what is going on in the real world",
+  "con_argument": "algorithmic trading enables trades to be made without spikes of emotion or rage on the part of the trader, therefore it can only be seen as positive.",
+  "human_pro": 0.6797,
+  "human_con": 0.9261,
+  "human_margin": -0.2465,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "all people should have equal access to a lawyer.  being a rich and able to afford a better lawyer gives some people a better chance at winning.  if all have the same pool of lawyers it is equal.",
+  "con_argument": "Allowing people who can afford their own lawyers to use them instead of public defenders opens up public defenders to those who actually need them.",
+  "human_pro": 0.5636,
+  "human_con": 0.8008,
+  "human_margin": -0.2372,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "changes might occur while the trading is being done and it won't be able to adjust for it",
+  "con_argument": "algorithmic trading makes getting orders out faster",
+  "human_pro": 0.6758,
+  "human_con": 0.7719,
+  "human_margin": -0.0961,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "free speech is a protected right, but it does not give people the right to cause undo harm to others in the form of hate speech.  denying the holocaust is crossing that line of hate speech.",
+  "con_argument": "freedom of speech is a crucial right we cannot censor just because we dislike what is said. the ability to have discourse on a subject is the only way we can encourage deniers to be educated.",
+  "human_pro": 0.9036,
+  "human_con": 0.943,
+  "human_margin": -0.0394,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "adopting libertarianism would be good for people to protect their rights and property",
+  "con_argument": "a libertarian government is just an excuse to take from the rich and give to the poor.",
+  "human_pro": 1.0,
+  "human_con": 0.6148,
+  "human_margin": 0.3852,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban missionary work",
+  "pro_argument": "attempting to spread a belief through missionary disrespects another culture. it is wrong to teach others that  their religious beliefs are not true and another is while there is no proof either is true.",
+  "con_argument": "Before you ban missionary work ban public schooling because it's the same thing, only it occurs on a much larger scale.",
+  "human_pro": 1.0,
+  "human_con": 0.2336,
+  "human_margin": 0.7664,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "if anything should go wrong with the computers being used for algorithmic training, it could go unnoticed since a person isn't personally making the trade and people could lose a lot of money.",
+  "con_argument": "algorithmic trading makes up seventy percent of all trades worldwide and will be further refined as time goes on leading to a stronger stock market.",
+  "human_pro": 0.8796,
+  "human_con": 1.0,
+  "human_margin": -0.1204,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "Adopting atheism will prevent non-religious people from being offended.",
+  "con_argument": "atheism would be against our right to religious freedom.",
+  "human_pro": 0.3026,
+  "human_con": 0.7649,
+  "human_margin": -0.4623,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "adoption of atheism will remove religious discrimination and hatred and make the world amore peaceful place",
+  "con_argument": "Adopting atheism takes away the freedom of worship that people are promised in this country.",
+  "human_pro": 0.729,
+  "human_con": 0.834,
+  "human_margin": -0.105,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Social media brings more harm than good",
+  "pro_argument": "can plan terrorism and radicalise people more easily",
+  "con_argument": "i believe social media doesn't bring more harm good because people can find others that have same interests as them and it's easier for some people to talk on line than it is in life",
+  "human_pro": 0.5755,
+  "human_con": 0.7188,
+  "human_margin": -0.1433,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "Animals should not have to suffer to save a few dollars.   Businesses need to have better morals and treating animals with care should be a top priority regardless of the cost.   It also hurts small farmers.",
+  "con_argument": "factory farming should not be banned because it is an important source of cheap food",
+  "human_pro": 1.0,
+  "human_con": 0.9507,
+  "human_margin": 0.0493,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "adopting libertarianism would increase our freedoms, ending governmental tyranny",
+  "con_argument": "if an individual has the full right to own and control themselves, this means that they have the full right to transfer that ownership to others. this risks voluntary enslavement, which is wrong.",
+  "human_pro": 1.0,
+  "human_con": 0.4383,
+  "human_margin": 0.5617,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "by adopting libertarianism individuals will have the most freedom to put themselves above others.",
+  "con_argument": "certain areas need regulations. without them, the powerful take advantage of the weak",
+  "human_pro": 0.6442,
+  "human_con": 0.6233,
+  "human_margin": 0.0209,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "I has been scientifically proven that cannabis is useful in treating pain in MS sufferers. It has also shown great promise in the reduction of seizures in those with sever epilepsy.",
+  "con_argument": "cannabis is a hallucinogenic product that can harm a persons memory, lower their inhibitions and cause a person to make dangerous choices and is addictive. all of these behaviors can be destructive.",
+  "human_pro": 0.8471,
+  "human_con": 0.7165,
+  "human_margin": 0.1306,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "everyone deserves representation in a court of law since we are innocent until proven guilty",
+  "con_argument": "a person accused of a crime should have the right to pick their own defense, whether that is to pick the defender they think will be most capable or that they find makes them more comfortable.",
+  "human_pro": 0.9053,
+  "human_con": 0.6535,
+  "human_margin": 0.2518,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism would alleviate religious intolerance and conflict in society.",
+  "con_argument": "atheism is counter to the teachings of the bible and should be banned",
+  "human_pro": 1.0,
+  "human_con": 0.2555,
+  "human_margin": 0.7445,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "democracy and libertarianism is close enough and adopting it can`t be wrong and should be considered.",
+  "con_argument": "adoption of libertarianism would cause widespread suffering for the poor since they would no longer have the government to help support them.",
+  "human_pro": 0.7332,
+  "human_con": 1.0,
+  "human_margin": -0.2668,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "every citizen has the right to some form of legal defense, and the use of public defenders is a guarantee of this fundamental, democratic position.",
+  "con_argument": "a lawyer would provide better representation for his client than a public defender who gets paid a lot less",
+  "human_pro": 0.7264,
+  "human_con": 0.7947,
+  "human_margin": -0.0684,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "everyone should have right to the same defense.",
+  "con_argument": "defendents should have the right to the best defence they can get, not be limited in their choice of defender that affects their future",
+  "human_pro": 0.8737,
+  "human_con": 0.609,
+  "human_margin": 0.2647,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is cruel to the animals by not allowing them to get any exercise",
+  "con_argument": "factory farming makes food costs lower.",
+  "human_pro": 0.8908,
+  "human_con": 0.9568,
+  "human_margin": -0.066,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "banning targeted killing would even the playing field for the target because entire governments against an individual isn\u2019t a fair fight.",
+  "con_argument": "certain species are reproducing out of control and need to have their numbers reduced",
+  "human_pro": 0.6051,
+  "human_con": 0.224,
+  "human_margin": 0.3812,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming does not produce the best quality meat nor the healthiest animals in natural surrounds so for the benefits of the the consumer and the animal, should be banned.",
+  "con_argument": "factory farming is heavily regulated to ensure proper standards are adhered to - it is simply a way of efficiently mass producing food, benefiting consumers through lower costs.",
+  "human_pro": 0.9168,
+  "human_con": 0.7638,
+  "human_margin": 0.1529,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "adults should be free to make their own decisions",
+  "con_argument": "adopting libertarianism would create an every man for themselves style society, where people work not for the common good, but work toward only their own best interests.",
+  "human_pro": 0.6893,
+  "human_con": 0.8759,
+  "human_margin": -0.1866,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "i cannot support such a thing it is wrong",
+  "con_argument": "female soldiers are as qualified for combat as the men who went through the same training",
+  "human_pro": 0.1633,
+  "human_con": 0.8049,
+  "human_margin": -0.6415,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis does not harm the body.  alcohol does, yet it is legal.",
+  "con_argument": "cannabis as a mind-altering substance should remain illegal as it's full effects are not yet known.",
+  "human_pro": 0.8796,
+  "human_con": 0.8774,
+  "human_margin": 0.0022,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "Criminalizing holocaust denial makes it so that even people who are deniers are deterred from spreading their views to others for fear of punishment.",
+  "con_argument": "everyone should have their right to their own opinion, even if it's wrong.",
+  "human_pro": 0.5417,
+  "human_con": 0.6639,
+  "human_margin": -0.1222,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is cruel to the animals that are forced into a much smaller space than they would have in nature. therefore it should be banned.",
+  "con_argument": "factory farming provides food at a lower costs to people on lower incomes",
+  "human_pro": 1.0,
+  "human_con": 0.8612,
+  "human_margin": 0.1388,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban missionary work",
+  "pro_argument": "banning missionary work would keep people out of countries which can carry a danger upon entry",
+  "con_argument": "freedom of speech and freedom of religion are important and should not be infringed upon",
+  "human_pro": 0.7217,
+  "human_con": 0.8165,
+  "human_margin": -0.0948,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis should be legalized just for the tax revenue alone.  it is widely used and safer than alcohol or tobacco.  let's make money and make it legal now.",
+  "con_argument": "availability of legalized marijuana would have a trickle-down impact and the drug would find its way to underage persons",
+  "human_pro": 0.797,
+  "human_con": 0.7397,
+  "human_margin": 0.0572,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "denying the holocaust really happened should be a criminal offense. this is nothing but racist hate speech and it downplays the horrors that actually happened.",
+  "con_argument": "holocaust denial is disgusting but it\u2019s still free speech",
+  "human_pro": 0.8685,
+  "human_con": 0.8542,
+  "human_margin": 0.0143,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban private military companies",
+  "pro_argument": "banning private military is essential to gaining peace worldwide. we can not have alt left companies in this.",
+  "con_argument": "having these forces, give a tactical advantage over any potential attack, your staff is constantly active and not making common life in the reserve.",
+  "human_pro": 0.7457,
+  "human_con": 0.7662,
+  "human_margin": -0.0206,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading gives people an unfair speed advantage over the rest of the field.",
+  "con_argument": "algorithmic trading allows for more efficient, higher volume trading patterns, encouraging lower-cost funds and investment vehicles, benefiting the retail investor.",
+  "human_pro": 0.6685,
+  "human_con": 0.9441,
+  "human_margin": -0.2755,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming reinforces the idea that profit is more important than the welfare of people and animals",
+  "con_argument": "factory farms are needed to produce the amounts of food that we need at reasonable prices",
+  "human_pro": 0.771,
+  "human_con": 1.0,
+  "human_margin": -0.229,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "fighting in war is a man's job.  they could also be assaulted or worse.",
+  "con_argument": "a ban would only bring problems in gender equality",
+  "human_pro": 0.4548,
+  "human_con": 0.7217,
+  "human_margin": -0.267,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis is already legal in many states, it should be legal everywhere.",
+  "con_argument": "cannabis is a gateway drug to more serious drugs such as heroin or meth.",
+  "human_pro": 0.8839,
+  "human_con": 0.7802,
+  "human_margin": 0.1037,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "all crimes are not equal with thee strikes laws murder is the same as jay walking. each crime should include a number of factors and not just an arbitrary number.",
+  "con_argument": "how many times should we allow someone to flout the laws that protect us and not say enough is enough? 3 chances is enough.",
+  "human_pro": 0.8717,
+  "human_con": 0.8369,
+  "human_margin": 0.0348,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "if a person is appointed a public defender, then yes, they should be required to make use of them as it is really in their best interest.",
+  "con_argument": "if a person wants to defend themselves without the use of a public defender, then they should have that right.",
+  "human_pro": 0.4397,
+  "human_con": 0.9817,
+  "human_margin": -0.542,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "any killing is wrong even if done under the premise of a political killing done for the benefit of the people.  we should not be involved in such a practice.",
+  "con_argument": "i do not support that decision is that without them there would be many terrorists is a measure that helps a lot to this society",
+  "human_pro": 0.6371,
+  "human_con": 0.5985,
+  "human_margin": 0.0386,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "a public defender should be mandatory for anyone.  representation is vital for someone accused of a crime.",
+  "con_argument": "if a person is able to afford better, more experienced attorneys to give them a better chance in court, then they should be able to.  public defenders are for those who can not afford the more expensive ones.",
+  "human_pro": 0.742,
+  "human_con": 1.0,
+  "human_margin": -0.258,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "denying the holocaust is deeply offensive to survivors and their family and should not be allowed.",
+  "con_argument": "freedom of speech dictates that even offensive speech should be free",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism is the way to go away from religion conflicts",
+  "con_argument": "a person should be able to pray to whatever form of god they want.  adopting atheism would just out religion underground not stop it.",
+  "human_pro": 0.743,
+  "human_con": 0.4309,
+  "human_margin": 0.3121,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "denial of the holocaust will allow further holocausts and killings.",
+  "con_argument": "holocaust denial is protected under the right to free speech.",
+  "human_pro": 0.7576,
+  "human_con": 0.8797,
+  "human_margin": -0.1222,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "if a person has served time for a  previous offense it should not be taken in account with new sentencing.",
+  "con_argument": "at each recidivism we must increase the punishment, so we will avoid so many violent crimes",
+  "human_pro": 0.7282,
+  "human_con": 0.4635,
+  "human_margin": 0.2647,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "by making it mandatory, the system would, effectively, be saying that everyone is equal and that representation quality is not based on ability to pay",
+  "con_argument": "a public defender shouldn't be mandatory because we don't have enough money to provide lawyers for everyone. some crimes are simply cut and dry and there is no need for the criminal to be defended",
+  "human_pro": 0.8723,
+  "human_con": 1.0,
+  "human_margin": -0.1277,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis provides pain relief for many ailments.",
+  "con_argument": "cannabis has been shown to cause mental and emotional problems with long term use",
+  "human_pro": 1.0,
+  "human_con": 0.6675,
+  "human_margin": 0.3325,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading makes it easier for corporations to cheat their clients, by programming the system to manipulate the market",
+  "con_argument": "algorithmic trading is a good option to obtain faster profits for small businesses",
+  "human_pro": 1.0,
+  "human_con": 0.6484,
+  "human_margin": 0.3516,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "I believe everyone has the right to a fair trial before any sentence should be carried out.",
+  "con_argument": "banning targeting killing could lead to dangerous individuals getting away.",
+  "human_pro": 0.4877,
+  "human_con": 0.8327,
+  "human_margin": -0.345,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "children should not be indoctrinated in false beliefs",
+  "con_argument": "i think that everyone is free to be of the religion they want, which prohibit school prayer would be shortening certain freedoms to some students",
+  "human_pro": 1.0,
+  "human_con": 0.6512,
+  "human_margin": 0.3488,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "crimials shouldn't need three strikes before they pay for their crimes",
+  "con_argument": "criminals need to realize their crime will not be tolerated and they will have to pay the price.",
+  "human_pro": 0.1284,
+  "human_con": 0.9029,
+  "human_margin": -0.7745,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "by allowing women in combat we are putting them at a higher risk than men because they are not as strong or fast in reacting therefore they are putting themselves and everyone around them in danger.",
+  "con_argument": "as long as women are fully trained there are many roles that they can do equally as well as men. the main criteria for combat should be fitness not gender.",
+  "human_pro": 0.8497,
+  "human_con": 0.8756,
+  "human_margin": -0.0259,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "i think that we should abolish the three-strikes laws for humanity",
+  "con_argument": "if a person commits even one felony that is a serious thing.   for someone to  commit a second and a third it shows they are not safe in our communities.   the three-strikes law should not be abolished.",
+  "human_pro": 0.3854,
+  "human_con": 0.8626,
+  "human_margin": -0.4771,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "a three-strikes system does not allow for people to be treated fairly as individuals and instead is used as a \"one-size-fits-all\" control method for minority populations.",
+  "con_argument": "criminals may be deterred from committing further crime if they know that they will be put in prison for life if they commit further criminal acts.",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading should be banned because it is a way of gambling and manipulating the purchase and sale of shares for big profit which offers no real benefits other than to enrich the wealthy.",
+  "con_argument": "algorithmic trading has helped the trading industry due to the high level of accuracy that it provides, there is no human error",
+  "human_pro": 0.8093,
+  "human_con": 0.8419,
+  "human_margin": -0.0326,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "Erroneous coding or a systems failure could cause crashes on exchanges around the world.",
+  "con_argument": "algorithmic trading enables more business to be carried out and improves the economy",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "Social media brings more harm than good",
+  "pro_argument": "children on social media are more likely to be bullied",
+  "con_argument": "For a company, social media platforms are a great way to keep in touch with their customer base and showcase new products.",
+  "human_pro": 0.8734,
+  "human_con": 0.9212,
+  "human_margin": -0.0478,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "anyone being charged with a crime should have an independent person helping him or her. sometimes it helps having a second opinion.",
+  "con_argument": "having public defenders for all would be too expensive for the state.",
+  "human_pro": 0.5227,
+  "human_con": 1.0,
+  "human_margin": -0.4773,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading can be rigged to benefit those who have the most money to gain",
+  "con_argument": "algorithmic trading merely applies logic to the otherwise irrational gambling that is stock trading, hence it should be supported and not banned",
+  "human_pro": 1.0,
+  "human_con": 0.8629,
+  "human_margin": 0.1371,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming involves animals cruelty as they are not allowed to move freely and are injected with antibiotics for quicker growth.",
+  "con_argument": "factory farming brings meat down to a price affordable to the poorest in our community on a regular basis",
+  "human_pro": 0.8585,
+  "human_con": 1.0,
+  "human_margin": -0.1415,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "everyone should be able to have the exact same representation in court as it allows for a fairer trial. therefore making public defenders mandatory starts each side out on a even playing field.",
+  "con_argument": "being paid government rather than private wage, they might not be committed enough to the case",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "a school has students of all types of religions and beliefs.  these beliefs encompass different entities to pray to.\nbanning school prayer allows all students to worship as they choose.",
+  "con_argument": "i think that we shouldn't prohibit school prayer because is important",
+  "human_pro": 0.9471,
+  "human_con": 0.2027,
+  "human_margin": 0.7444,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism is good if you arent a religious person.",
+  "con_argument": "i think that we shouldn't adopt atheism because is free religion",
+  "human_pro": 0.5616,
+  "human_con": 0.6822,
+  "human_margin": -0.1207,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "denial of such a savage act should be punishable!",
+  "con_argument": "holocaust denial being a criminal offense goes against the right of freedom of speech",
+  "human_pro": 0.3802,
+  "human_con": 1.0,
+  "human_margin": -0.6198,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading should be banned as the software can be hacked by criminals.",
+  "con_argument": "i don't see the need to ban something that helps people make money automatically.",
+  "human_pro": 1.0,
+  "human_con": 0.4428,
+  "human_margin": 0.5572,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism is a legitimate belief system that allows a person to think for himself and figure life out in his own way. it should be adopted the same as other belief systems are adopted.",
+  "con_argument": "everyone has a right to follow the religion they truly believe, therefore we cannot impose atheism",
+  "human_pro": 0.7103,
+  "human_con": 0.8964,
+  "human_margin": -0.1861,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "everyone is entitled to a defense. knowing that a public defender is mandatory can be a relief for those who are overwhelmed by their circumstances.",
+  "con_argument": "having the ability to choose your lawyer is not a right but it's a privilege if you can afford one",
+  "human_pro": 0.8578,
+  "human_con": 0.7172,
+  "human_margin": 0.1405,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading should be banned as it does not allow for human intervention when unexpected events occur.",
+  "con_argument": "algorithmic trading makes investing safer because it eliminates the problems that human error can cause",
+  "human_pro": 0.9186,
+  "human_con": 1.0,
+  "human_margin": -0.0814,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis has been proven to alleviate pain, hep with insomnia and decrease stress in a natural method.",
+  "con_argument": "cannabis has been known to lead to further drugs being used such as heroin, opiates and other substances and is unregulated in many regions and should not be legalized.",
+  "human_pro": 0.8188,
+  "human_con": 1.0,
+  "human_margin": -0.1812,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "give the children chance to learn about how ridiculous religion is",
+  "con_argument": "freedom of religion means children should be able to pray where they want to.",
+  "human_pro": 0.2653,
+  "human_con": 0.9477,
+  "human_margin": -0.6824,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis has medical benefits that could be used to give relief to people with chronic illnesses.",
+  "con_argument": "allowing people to use a gateway drug like cannabis is steering them towards a life of addiction.",
+  "human_pro": 1.0,
+  "human_con": 0.784,
+  "human_margin": 0.216,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading doesn't provide the necessary thought processes of someone paying attention to the trades",
+  "con_argument": "algorithmic trading offers a more stable way of trading without letting other factors get in the way.",
+  "human_pro": 0.7497,
+  "human_con": 0.8572,
+  "human_margin": -0.1075,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "by not being tethered to a belief in god it really leads to someone to examine why they believe what they believe and not just someone's interpretation",
+  "con_argument": "i think that we shouldn't adopt atheism because is religion right",
+  "human_pro": 0.422,
+  "human_con": 0.2788,
+  "human_margin": 0.1433,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "a shift from drinking alcohol to cannabis use will decrease crimes because the amount of crime and violence caused by alcohol use is ten times higher than by marijuana",
+  "con_argument": "cannabis increases drug trafficking and violence in the streets",
+  "human_pro": 0.723,
+  "human_con": 0.8847,
+  "human_margin": -0.1617,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "criminals should have a chance to go straight, even if they've committed the same crime multiple times.",
+  "con_argument": "after the third time, it can be assumed that the person will not change and continue in the same behavior.",
+  "human_pro": 1.0,
+  "human_con": 0.9104,
+  "human_margin": 0.0896,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban private military companies",
+  "pro_argument": "allowing private companies to make equipment and support the military gives outsiders too much knowledge of the inner workings of the military and puts them at risk.",
+  "con_argument": "if an individual wants employment as a soldier why should we stop it.  if there is a demand for this type of job a company has a right to exist to fill this need.",
+  "human_pro": 1.0,
+  "human_con": 0.4454,
+  "human_margin": 0.5546,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "by adopting atheism we can do away with religious argument on who is right or wrong.",
+  "con_argument": "Atheisim should be banned because the majority  of people believe in religion,",
+  "human_pro": 0.5682,
+  "human_con": 0.1006,
+  "human_margin": 0.4676,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "appointing a defendant a public defender will ensure that he gets a fair trial",
+  "con_argument": "Given that the state has near infinite resources to construct a case, defendants should not be constrained in their counsel, especially in a criminal case that could put a defendant in prison.",
+  "human_pro": 0.7145,
+  "human_con": 1.0,
+  "human_margin": -0.2855,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "by denying the holocaust a person is trivializing genocide.  it encourages further discrimination and hate crimes.  such actions should be criminal.",
+  "con_argument": "everyone should be entitled to freedom of speech as long as it isnt inciting hatred and denying that the holocaust happened",
+  "human_pro": 1.0,
+  "human_con": 0.5928,
+  "human_margin": 0.4072,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "i think the costs of long term incarcerations  would be very costly.",
+  "con_argument": "by keeping the three-stikes laws we can stop much of the repeat offending.",
+  "human_pro": 0.7757,
+  "human_con": 1.0,
+  "human_margin": -0.2243,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban missionary work",
+  "pro_argument": "historically, missionaries werethe first step to invasion or mass genocide. in the present it plays a similar role in brainwashing the population of developing countries for financial/political gain.",
+  "con_argument": "banning missionary work would leave millions without aid.",
+  "human_pro": 0.7425,
+  "human_con": 0.9085,
+  "human_margin": -0.166,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "i think this would end the war between the republicans and democrats and that would be nice.",
+  "con_argument": "every person needs rules to go by so that everything is fair",
+  "human_pro": 0.4548,
+  "human_con": 0.3563,
+  "human_margin": 0.0985,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "although many are capable, they should carry out other war roles such as planning techniques or nursing",
+  "con_argument": "Equal rights for women makes it obvious that they also have the equal right to be part of our combat forces.",
+  "human_pro": 0.3229,
+  "human_con": 0.8562,
+  "human_margin": -0.5333,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "Countries that target another country's leader to kill should be banned.  Target killing is just another term for murder and murder is illegal,",
+  "con_argument": "how else would we take down specific individuals who pose enormous threats to our nation, as bin laden.",
+  "human_pro": 0.9127,
+  "human_con": 0.2529,
+  "human_margin": 0.6599,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "A women's place in the military is not in combat but behind a desk or in a military hospital where it is a little safer.",
+  "con_argument": "i think that we shouldn't prohibit women in combat because is prepared",
+  "human_pro": 0.4413,
+  "human_con": 0.5275,
+  "human_margin": -0.0861,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism would prevent religious wars from occurring.",
+  "con_argument": "Atheism is an excuse not to believe anything.  We should not adopt it.",
+  "human_pro": 0.6971,
+  "human_con": 0.508,
+  "human_margin": 0.1891,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "government rules and regulations are getting too restrictive on an individual's rights, as set out by the constitution so there needs to be a relaxation so people can take responsibility for their own lives",
+  "con_argument": "by choosing libertarianism we do away with the protections we receive from our government.  there are also people that receive benefits to make their lives livable which they would lose under libertarianism.",
+  "human_pro": 0.2026,
+  "human_con": 1.0,
+  "human_margin": -0.7974,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming leads to sick and diseased animals and poor living conditions for the live stock",
+  "con_argument": "factory farming ensure that animals have a life that they would not otherwise have at all",
+  "human_pro": 1.0,
+  "human_con": 0.6869,
+  "human_margin": 0.3131,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading leaves the average person behind the curve, giving an unfair advantage to big wall street firms.",
+  "con_argument": "if algorithmic trading can be employed to maximise profits and minimise losses, it must be a good thing.",
+  "human_pro": 1.0,
+  "human_con": 0.7498,
+  "human_margin": 0.2502,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading stops people having control over their spending and therefore increases debt",
+  "con_argument": "algorithmic trading is quick, efficient, and accurate.",
+  "human_pro": 0.8174,
+  "human_con": 0.9014,
+  "human_margin": -0.0841,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "adopting libertarianism would allow the economy to grow since all the rules and regulations holding back businesses and entrepreneurs would be removed",
+  "con_argument": "adopting libertarianism would eliminate many social programs, reducing access t food and health care to those in need",
+  "human_pro": 1.0,
+  "human_con": 0.7195,
+  "human_margin": 0.2805,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "Atheism should be adopted nationally because no other existence can be proven.",
+  "con_argument": "atheism fosters the negative values \u200b\u200bof human beings",
+  "human_pro": 0.7661,
+  "human_con": 0.5748,
+  "human_margin": 0.1913,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban private military companies",
+  "pro_argument": "having professionals specialized in killing outside the armed forces of the nation represent a great danger to national security.",
+  "con_argument": "a private military company can provide a much more streamlined and money-saving operation versus government-owned entities, which are historically wasteful and inefficient.",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is not only cruel to the animals but the conditions for the workers are hazardous as well.",
+  "con_argument": "factory farming is a way of producing cheap meat. without it poorer people may not be able to afford it and may become malnourished.",
+  "human_pro": 0.9762,
+  "human_con": 0.9563,
+  "human_margin": 0.0199,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "holocaust denial is mainly psychological and  for many jews is still very traumatic and they suppress the memories because it is there way of coping with this trauma.",
+  "con_argument": "freedom of expression is a basic right and the more restrictions that are placed on this, the more it will be chipped away at in future.",
+  "human_pro": 0.6992,
+  "human_con": 1.0,
+  "human_margin": -0.3008,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "huge mandatory sentences for three minor offenses make neither economic or judicial sense. the huge  cost of incarceration is unjustified. judicially the sentence should fit the crime and not be draconian.",
+  "con_argument": "criminals should be given only so many chances. multiple offenses prove they will not change and should be punished accordingly.",
+  "human_pro": 1.0,
+  "human_con": 0.6869,
+  "human_margin": 0.3131,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "differences in religion may cause some people to feel left out or offended",
+  "con_argument": "if a child wants to pray, for example before lunch why should he not be able to?",
+  "human_pro": 0.6598,
+  "human_con": 0.3128,
+  "human_margin": 0.347,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "Cannabis has proven to be a better alternative to opioids in the management of pain. It is a natural plant and should be legal.",
+  "con_argument": "cannabis legalization could lead to an increase in dui\u2019s",
+  "human_pro": 1.0,
+  "human_con": 0.6567,
+  "human_margin": 0.3433,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "as a whole, women are more emotional and may not be able to handle combat emotionally",
+  "con_argument": "anyone who is physically qualified should be able to be in combat",
+  "human_pro": 0.671,
+  "human_con": 1.0,
+  "human_margin": -0.329,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "i think that we should legalize cannabis for health",
+  "con_argument": "Despite the propaganda, marijuana is actually more addictive than alcohol, the latter of which can be occasionally.",
+  "human_pro": 0.2634,
+  "human_con": 0.7674,
+  "human_margin": -0.504,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "if everyone had a public defender the overall fairness of the legal system would be great.",
+  "con_argument": "if a person can't afford otherwise, sure, give them a public defender but to require them is insanity.  the cost is just too great.",
+  "human_pro": 0.7907,
+  "human_con": 0.5776,
+  "human_margin": 0.2131,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "Holocaust denial should be a criminal offence since it hurts the feelings of holocaust survivors, a fact that should not be taken lightly",
+  "con_argument": "holocaust denial is protected under free speech so long as the people are merely denying it and not being violent about it, who are we to say they can't",
+  "human_pro": 0.607,
+  "human_con": 0.939,
+  "human_margin": -0.332,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "holocaust denial allows for hate to continue and encourages people to act upon such hatred.",
+  "con_argument": "even horrible and hateful speech must still count as free speech, or else we create a slippery slope.",
+  "human_pro": 1.0,
+  "human_con": 0.9069,
+  "human_margin": 0.0931,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming should be banned because it is unethical to treat animals that way. they are essentially being tortured.",
+  "con_argument": "factory farming allows for a much  larger production of food for society",
+  "human_pro": 1.0,
+  "human_con": 0.9613,
+  "human_margin": 0.0387,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farms keep animals in tight spaces.  they are forced to live in cages and not allowed to roam as they were meant to.",
+  "con_argument": "Factory farming for many farmers with livestock is a way of making ends meet and should not be banned.",
+  "human_pro": 0.7923,
+  "human_con": 0.831,
+  "human_margin": -0.0387,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithms can be hacked and therefore the data isn\u2019t safe, and should therefore be banned.",
+  "con_argument": "i think that we shouldn't ban algorithmic trading becuase is important in technogies advances",
+  "human_pro": 1.0,
+  "human_con": 0.4326,
+  "human_margin": 0.5674,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "holocaust denial is racist propaganda and is used to incite people to violence against jews.",
+  "con_argument": "holocaust denial, generally, does not deny that the event happened, just that the official facts and figures, specifically related to jewish deaths is incorrect.",
+  "human_pro": 1.0,
+  "human_con": 0.5334,
+  "human_margin": 0.4666,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "Holocaust denial propagates negative Jewish stereotypes and encourages Anti-Semitism. It must be stopped.",
+  "con_argument": "freedom of speech is important even to extremely sensitive issues like holocaust denial",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "apparently men think they can't resist the urge to rape and sexually harass women if they are sent into combat with them.",
+  "con_argument": "a woman fighting in nature is a last resort, a do or die moment, so a woman in combat is formidable and should be valued and to prohibit women in combat would be to deny a wonderful resource.",
+  "human_pro": 0.3046,
+  "human_con": 0.6867,
+  "human_margin": -0.3821,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "due to most hate crimes being spur of the moment, the three strikes laws won\u2019t deter crime like they were intended to.",
+  "con_argument": "a criminal that offends two times is likely to keep committing crimes so the three strikes law would keep them out of the public earlier for the better",
+  "human_pro": 0.8724,
+  "human_con": 0.7173,
+  "human_margin": 0.1551,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "each offence should be taken on merit, it is unfair to use past offences to determine the punishment for a current offence, the current punishment should only reflect the current crime",
+  "con_argument": "anyone who can't obey the law should be removed from society",
+  "human_pro": 1.0,
+  "human_con": 0.6515,
+  "human_margin": 0.3485,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading is unfair and manipulative for the financial markets",
+  "con_argument": "algorithmic trading merely enables better decisions in investments utilising technology and intelligence",
+  "human_pro": 1.0,
+  "human_con": 0.9484,
+  "human_margin": 0.0516,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "any argument that denies proven facts is classed as hate speech, not only is this toxic but it is also a verbal & mental attack, nobody seems to have this issue with the german's, so why is this any different?",
+  "con_argument": "Criminalizing Holocaust denial limits academic research and makes it difficult to publish new facts still being discovered.",
+  "human_pro": 0.6043,
+  "human_con": 0.7438,
+  "human_margin": -0.1395,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading can be processed by computers much quicker than trades by humans, this gives some rich firms an unfair advantage.",
+  "con_argument": "algorithmic trading is the way of the future. everything else is moving to this kind of technology, it makes no sense to not utilize it. it decreases human error and makes it fair for everyone.",
+  "human_pro": 0.8767,
+  "human_con": 0.7641,
+  "human_margin": 0.1127,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban missionary work",
+  "pro_argument": "historically missionaries have interfered in an unhealthy way with other cultures and continue to do so.",
+  "con_argument": "every religion should be respected and practised",
+  "human_pro": 1.0,
+  "human_con": 0.5065,
+  "human_margin": 0.4935,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is not humane for the animals and should be banned.",
+  "con_argument": "factory farming is a way of mass producing cost effective food - this benefits the consumer, and a ban would result in much suffering for the poorer sections of society.",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis should be legalized because their's so much medical cannabis that's available right now",
+  "con_argument": "cannabis is simply a gateway to other drugs.",
+  "human_pro": 0.6362,
+  "human_con": 0.7618,
+  "human_margin": -0.1256,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "everybody believes in something different so prayer has no business in schools",
+  "con_argument": "a person's beliefs are bigger than what they are forced to do during their school day.  taking a brief time to allow students to engage in their religion should be encouraged.",
+  "human_pro": 0.7226,
+  "human_con": 0.8564,
+  "human_margin": -0.1338,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should prohibit women in combat",
+  "pro_argument": "Having women in combat causes men to act differently than their training calls for endangering units.",
+  "con_argument": "gender should not matter when it comes to combat. as long as proper physical and mental tests are in place that iss all that should matter for selection.",
+  "human_pro": 0.7474,
+  "human_con": 0.5668,
+  "human_margin": 0.1806,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should prohibit school prayer",
+  "pro_argument": "a school is not the place for prayer because schools are diverse and many students do not pray or believe in a god or prayer.",
+  "con_argument": "a non-denominational prayer can be construed as having school spirit and school pride, and should be ok.",
+  "human_pro": 0.7454,
+  "human_con": 0.6626,
+  "human_margin": 0.0828,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban private military companies",
+  "pro_argument": "any military component should be government run. putting military operations in the hands of a private company will lead  to dangerous situations that go beyond the rules set by our country.",
+  "con_argument": "having private military companies keeps ideas flowing and more exploration into new technology and weapons so it should not be banned.",
+  "human_pro": 0.9788,
+  "human_con": 1.0,
+  "human_margin": -0.0212,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming provides unsanitary and inhumane conditions to its livestock and should be banned.",
+  "con_argument": "factory farming allows for greater food production to feed a growing population.",
+  "human_pro": 1.0,
+  "human_con": 1.0,
+  "human_margin": 0.0,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "criminals shouldn't get extra chances when committing crimes anyway, so the three-strikes law is not necessary.",
+  "con_argument": "criminals are bound to repeat themselves, and with increasing risk. the three strikes law would punish those criminals accordingly.",
+  "human_pro": 0.5704,
+  "human_con": 0.9762,
+  "human_margin": -0.4058,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "an approval of selective killings can trigger a war between the community, that's why i do not support selective assassinations",
+  "con_argument": "a well-executed targeted killing is an important tool to prevent war and attacks and there's no reason to ban them.",
+  "human_pro": 0.6526,
+  "human_con": 0.9808,
+  "human_margin": -0.3282,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "Holocaust denial should be a criminal offence so that it is possible for liberal democratic societies to crack down on fascism early, rather than let it grow like a weed.",
+  "con_argument": "Holocaust denial should not be a criminal offense since it's an uncommon phenomenon.",
+  "human_pro": 0.9635,
+  "human_con": 0.3782,
+  "human_margin": 0.5853,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban private military companies",
+  "pro_argument": "A private company's main interest is to profit and this can lead to bad practices or even corruption. They most definitely should not be trusted to run a military where life and death decisions need to be made.",
+  "con_argument": "banning any kind of military takes away firepower from us .",
+  "human_pro": 0.7732,
+  "human_con": 0.7655,
+  "human_margin": 0.0077,
+  "true_winner": "tie"
+ },
+ {
+  "topic": "We should abolish the Olympic Games",
+  "pro_argument": "hosting the olympics can cost lots of money, and this money will not be given but the investors, it will be paid with the taxes",
+  "con_argument": "if countries are willing to pay then let them do it",
+  "human_pro": 0.7637,
+  "human_con": 0.3045,
+  "human_margin": 0.4591,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis should be legalized because it's just a plant and making a plant illegal is just weird.",
+  "con_argument": "cannabis should not be legalized as it harms the brain and long term studies show that it causes irreparable changes to cognitive behaviors and  even to the physical layout of the brain.",
+  "human_pro": 0.503,
+  "human_con": 0.8274,
+  "human_margin": -0.3244,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "i think that we should adopt libertarianism for our people and ecomics",
+  "con_argument": "all other parties express false beliefs, and libertarianism is an adoption of all other parties mixed in one.",
+  "human_pro": 0.6539,
+  "human_con": 0.4563,
+  "human_margin": 0.1975,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis can offer solace for those people who suffer from great pain due to illness or disability. it is often better than medication that is currently available.",
+  "con_argument": "cannabis should not be legalised because its long term use is associated with an increased risk of the development of psychotic illnesses such as schizophrenia",
+  "human_pro": 1.0,
+  "human_con": 0.9168,
+  "human_margin": 0.0832,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis use diminishes some symptoms associated with brain disorders such as multiple sclerosis, Alzheimer's disease, Parkinson's disease, bipolar disorder, and schizophrenia",
+  "con_argument": "cannabis is a gateway drug that leads to abuse of and addiction to stronger drugs that will never be legalized as the better high is sought",
+  "human_pro": 1.0,
+  "human_con": 0.9462,
+  "human_margin": 0.0538,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should legalize cannabis",
+  "pro_argument": "cannabis is the last hope for many people with chronic pain, and it is way safer than many prescription drugs.",
+  "con_argument": "cannabis is bad for developing minds",
+  "human_pro": 1.0,
+  "human_con": 0.6543,
+  "human_margin": 0.3457,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the Olympic Games",
+  "pro_argument": "countries spend foolish money in support of the olympic games and should be abolished; the money could be spent on education of all children.",
+  "con_argument": "everyone looks forward to sports you only get to see once every 4 years",
+  "human_pro": 1.0,
+  "human_con": 0.3855,
+  "human_margin": 0.6145,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "freedom is something everyone fights for and therefore adopting it makes sense.",
+  "con_argument": "adopting libertarianism may lead to less rules and laws, and the onset of anarchy.",
+  "human_pro": 0.624,
+  "human_con": 0.7129,
+  "human_margin": -0.0889,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "government today has way too much influence in our daily lives; libertarianism seeks to reduce said interference, while possibly also reducing the amount of money the government spends.",
+  "con_argument": "i think that we shouldn't adopt libertarianism for our value and principes of democarcy",
+  "human_pro": 0.9086,
+  "human_con": 0.4945,
+  "human_margin": 0.414,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt libertarianism",
+  "pro_argument": "everyone has the right to freedom of choice.",
+  "con_argument": "governments provide for the common good of all citizens.  if a person is free to make all personal choices it stops others from their right of choice.   there is a need for compromise for a common good.",
+  "human_pro": 0.2798,
+  "human_con": 0.9228,
+  "human_margin": -0.643,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading is another way for the finance industry to make even greater profits that are not passed on to society",
+  "con_argument": "algorithmic trading is just another tool we can use.",
+  "human_pro": 1.0,
+  "human_con": 0.516,
+  "human_margin": 0.484,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "everyone should have the best defense available to them",
+  "con_argument": "everyone has the right to the best legal representation they can get and not be hampered by the legal system",
+  "human_pro": 0.3659,
+  "human_con": 0.9047,
+  "human_margin": -0.5388,
+  "true_winner": "con"
+ },
+ {
+  "topic": "The use of public defenders should be mandatory",
+  "pro_argument": "Having separate public and private defenders contributes to economic inequality by making it so  poor people have to pay more long term cost (a convicted felon never getting hired again vs. paying a lawyer one time).",
+  "con_argument": "a defendant has a right to defend himself",
+  "human_pro": 0.7554,
+  "human_con": 0.6832,
+  "human_margin": 0.0722,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism does not single people out because of religious and tends to be more inclusive.",
+  "con_argument": "atheism is a barren and fruitless approach to life.",
+  "human_pro": 0.6694,
+  "human_con": 0.886,
+  "human_margin": -0.2166,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "holocaust denial should be a criminal offence because it is well proven that it happened and to claim that it did not is a blatant attack on those that lived though it and more to those who perished.",
+  "con_argument": "freedom of speech can never be a criminal offence",
+  "human_pro": 0.8565,
+  "human_con": 0.7274,
+  "human_margin": 0.1291,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should abolish the three-strikes laws",
+  "pro_argument": "abolishing the three-strikes laws is mandatory because is not supporting evidence and not following the evidences in such a cases is abstract and not part of our western society.",
+  "con_argument": "if a person commits the same offence three times then they must be subject to the three-strikes law as they are obviously not being rehabilitated and therefore should face a long jail term.",
+  "human_pro": 0.745,
+  "human_con": 0.8145,
+  "human_margin": -0.0696,
+  "true_winner": "con"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "Holocaust denial should be a criminal offence because its main goal is to make Jewish people feel in danger, making it a hate crime.",
+  "con_argument": "Holocaust denial should not be a criminal offence because it is better to let bad ideas be outcompeted by good ideas than to let them fester and grow out of sight like a cancer.",
+  "human_pro": 0.5814,
+  "human_con": 1.0,
+  "human_margin": -0.4186,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farming is harmful to the environment and the health of farm animals",
+  "con_argument": "factory farming is one way to ensure we have enough food for our citizen and it should not be banned.",
+  "human_pro": 0.9154,
+  "human_con": 0.7845,
+  "human_margin": 0.1309,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "Holocaust denial should be a criminal offence",
+  "pro_argument": "history is what has been recalled and written of passed events. events could be manipulated and distorted. it's compulsory to believe everything especially those which didn't occurred in my presence",
+  "con_argument": "free thinking for all should never be a crime.",
+  "human_pro": 0.2925,
+  "human_con": 0.9047,
+  "human_margin": -0.6122,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "factory farms don't treat the animals well, for example chickens who have no space to move.",
+  "con_argument": "factory farming gives the most output for the least input therefore it's a more profitable way of farming.  more money is a good thing for farmers.",
+  "human_pro": 0.7601,
+  "human_con": 1.0,
+  "human_margin": -0.2399,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "definitely serial murders must be prohibited from the legal and legal point of view by the simple reason to respect the life of the other and the right to life",
+  "con_argument": "assassinations are an essential tool of national defense and espionage and allow countries to avoid armed conflict.",
+  "human_pro": 0.4302,
+  "human_con": 1.0,
+  "human_margin": -0.5698,
+  "true_winner": "con"
+ },
+ {
+  "topic": "We should ban factory farming",
+  "pro_argument": "Factory farming is not sustainable and does not support guidelines that ensure that the animals (cows, sheep, pigs) are well taken care of.",
+  "con_argument": "factory farming helps us keep up with the ever growing food demand.",
+  "human_pro": 0.9218,
+  "human_con": 0.7698,
+  "human_margin": 0.1519,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism for everyone would eliminate religious biases and conflicts",
+  "con_argument": "atheism teaches there are no consequences to the actions people take.",
+  "human_pro": 0.8622,
+  "human_con": 0.2753,
+  "human_margin": 0.587,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should adopt atheism",
+  "pro_argument": "atheism should be adopted as it will put an end to organized religions which have caused wars and deaths over the centuries.",
+  "con_argument": "everyone has a right to believe in anything and follow the religion they think it's most suited for them, so we cannot impose atheism",
+  "human_pro": 1.0,
+  "human_con": 0.715,
+  "human_margin": 0.285,
+  "true_winner": "pro"
+ },
+ {
+  "topic": "We should ban algorithmic trading",
+  "pro_argument": "algorithmic trading puts certain investors at an unfair advantage.",
+  "con_argument": "Algorithmic trading increases the speed and volume of order entry.",
+  "human_pro": 1.0,
+  "human_con": 0.7623,
+  "human_margin": 0.2377,
+  "true_winner": "pro"
+ }
+]

@@ -9,7 +9,10 @@ load_dotenv()
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from debate.orchestrator import run_debate
+
+from debate.vector_store import get_vector_store
 
 app = FastAPI()
 
@@ -20,15 +23,85 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+async def startup_event():
+    vs = get_vector_store()
+    if vs.is_available:
+        seeded = vs.seed_default_knowledge()
+        print(f"[VectorDB] ChromaDB ready. Seeded {seeded} evidence documents.")
+
+
 @app.get("/")
 async def root():
+    vs = get_vector_store()
     return {
         "name": "Argus AI Debate Backend",
         "status": "online",
         "health_check": "/judge/health",
         "websocket": "/ws/debate",
+        "vector_db": vs.get_stats(),
         "frontend_url": "http://localhost:5174/"
     }
+
+
+@app.get("/vector-db/stats")
+async def vector_db_stats():
+    vs = get_vector_store()
+    return vs.get_stats()
+
+
+@app.get("/vector-db/seed")
+async def vector_db_seed():
+    vs = get_vector_store()
+    count = vs.seed_default_knowledge()
+    return {"seeded": count, "stats": vs.get_stats()}
+
+
+@app.get("/vector-db/query")
+async def vector_db_query(q: str, top_k: int = 3):
+    vs = get_vector_store()
+    evidence = vs.query_evidence(query=q, top_k=top_k)
+    rebuttals = vs.query_similar_rebuttals(claim=q, top_k=top_k)
+    return {
+        "query": q,
+        "evidence": evidence,
+        "history_matches": rebuttals
+    }
+
+
+# ── Debate history and judge logs ────────────────────────────────────────────
+# Backing for the DEBATE HISTORY and JUDGE LOGS views. Debates used to exist only
+# in the WebSocket stream that produced them, so closing the tab destroyed the
+# result, every round audit, and the grounding evidence behind each score.
+
+@app.get("/debates")
+async def debates_list(limit: int = 50, offset: int = 0):
+    from debate.history import list_debates
+    return list_debates(limit=limit, offset=offset)
+
+
+@app.get("/debates/{debate_id}")
+async def debate_detail(debate_id: str):
+    from debate.history import get_debate
+    record = get_debate(debate_id)
+    if record is None:
+        return JSONResponse(status_code=404, content={"error": "no such debate"})
+    return record
+
+
+@app.delete("/debates/{debate_id}")
+async def debate_delete(debate_id: str):
+    from debate.history import delete_debate
+    return {"deleted": delete_debate(debate_id)}
+
+
+@app.get("/judge/logs")
+async def judge_log_feed(limit: int = 100):
+    """Per-round audit trail across all debates, newest first."""
+    from debate.history import judge_logs
+    return {"logs": judge_logs(limit=limit)}
+
 
 NGROK_HEADERS = {"ngrok-skip-browser-warning": "true"}
 
@@ -44,7 +117,11 @@ def _probe_url_sync(url: str, headers: dict) -> bool:
         with urllib.request.urlopen(req, timeout=2.5) as response:
             return response.status == 200
     except urllib.error.HTTPError as e:
-        if e.code in (200, 404, 405, 422):
+        # 405/422 prove a real handler is behind the URL and only rejected the
+        # method or payload. 404 does NOT: an offline ngrok tunnel serves its own
+        # 404 page, so accepting it reported the Kaggle scorer as online while
+        # every scoring call was silently falling back to Groq.
+        if e.code in (200, 405, 422):
             return True
         return False
     except Exception:
