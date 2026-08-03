@@ -591,13 +591,10 @@ export function DebateDashboard() {
                 }[winner];
 
                 const d = msg.data;
-                const accuracy = d.accuracy ?? { pro: 0, con: 0 };
                 const winnerAnalysis = d.winner ?? {};
                 const loserAnalysis = d.loser ?? {};
                 const fallacies: string[] = (d.fallacies ?? []).map(asText);
                 const verdictText: string = asText(d.verdict ?? d.final_reasoning);
-                // support both old field name (strengths) and new (points)
-                const winnerPoints: string[] = (winnerAnalysis.points ?? winnerAnalysis.strengths ?? []).map(asText);
                 // support both old field name (missed_opportunities) and new (missed_points)
                 const loserMissed: string[] = (loserAnalysis.missed_points ?? loserAnalysis.missed_opportunities ?? []).map(asText);
                 const rounds: any[] = d.rounds ?? messages
@@ -619,345 +616,206 @@ export function DebateDashboard() {
                   >
                     <div className={`bg-[#111114] border border-white/10 rounded-3xl p-8 max-w-2xl w-full ${winnerConfig.glow}`}>
 
-                      {/* Header */}
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                          <Gavel className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <span className="font-['Orbitron'] text-lg font-bold text-white block tracking-widest">FINAL VERDICT</span>
-                          <span className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest uppercase">JUDGE-0 OMNI · FT SCORER + GROQ VERDICT</span>
-                        </div>
-                      </div>
-                      <div className="h-[1px] bg-white/[0.05] mb-6" />
+                      {/* One type scale for the whole card. Section labels
+                          were a mix of Orbitron, JetBrains Mono and DM Sans at
+                          several weights, and body copy sat at white/35-white/45
+                          — present, but not readably so. Labels are uniform now
+                          and body copy is white/65 or brighter. Hairlines divide
+                          sections instead of nesting each one in its own
+                          bordered card.
 
-                      {/* Winner Announcement */}
-                      <div className={`${winnerConfig.bg} border ${winnerConfig.border} rounded-2xl p-5 text-center mb-6`}>
-                        <span className={`font-['Orbitron'] text-2xl font-black tracking-widest ${winnerConfig.color}`}>
-                          {winnerConfig.label}
-                        </span>
+                          Removed: scorer name, verifier backend and position-bias
+                          figure. Those describe how the system was built, not why
+                          this side won, and they belong in JUDGE LOGS. */}
+
+                      <div className="flex items-center gap-3 mb-7">
+                        <div className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center text-white/70">
+                          <Gavel className="w-4 h-4" />
+                        </div>
+                        <span className="font-['DM_Sans'] text-[15px] font-semibold text-white tracking-tight">Final Verdict</span>
+                      </div>
+
+                      <div className="text-center pb-7">
+                        <div className={cn("font-['DM_Sans'] text-[32px] leading-none font-semibold tracking-tight mb-3", winnerConfig.color)}>
+                          {winner === 'tie' ? 'Draw' : winner === 'pro' ? 'Agent 01 wins' : 'Agent 02 wins'}
+                        </div>
+                        <div className="font-['JetBrains_Mono'] text-sm text-white/45">
+                          {proTotal} <span className="text-white/20">—</span> {conTotal}
+                        </div>
                         {winnerAnalysis.decisive_argument && (
-                          <p className="font-['DM_Sans'] text-sm text-white/70 mt-3 leading-relaxed">
-                            "{asText(winnerAnalysis.decisive_argument)}"
+                          <p className="font-['DM_Sans'] text-[15px] text-white/70 leading-relaxed mt-5 max-w-lg mx-auto">
+                            {asText(winnerAnalysis.decisive_argument)}
                           </p>
                         )}
                       </div>
 
-                      {/* Score Breakdown with Accuracy */}
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        {/* PRO */}
-                        <div className="bg-emerald-500/[0.04] border border-emerald-500/10 rounded-2xl p-4">
-                          <div className="font-['DM_Sans'] text-xs text-emerald-400/70 font-semibold uppercase mb-2">Agent 01 — PRO side</div>
-                          <div className="font-['DM_Sans'] text-3xl font-semibold text-white mb-1">
-                            {proTotal}<span className="text-sm text-white/30">/30</span>
-                          </div>
-                          <div className="font-['DM_Sans'] text-xs text-emerald-400/70 mb-3">{accuracy.pro.toFixed(1)}% of possible points</div>
-                          <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-emerald-400 rounded-full transition-all duration-1000"
-                              style={{ width: `${(proTotal / 30) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                        {/* CON */}
-                        <div className="bg-rose-500/[0.04] border border-rose-500/10 rounded-2xl p-4">
-                          <div className="font-['DM_Sans'] text-xs text-rose-400/70 font-semibold uppercase mb-2">Agent 02 — CON side</div>
-                          <div className="font-['DM_Sans'] text-3xl font-semibold text-white mb-1">
-                            {conTotal}<span className="text-sm text-white/30">/30</span>
-                          </div>
-                          <div className="font-['DM_Sans'] text-xs text-rose-400/70 mb-3">{accuracy.con.toFixed(1)}% of possible points</div>
-                          <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-rose-400 rounded-full transition-all duration-1000"
-                              style={{ width: `${(conTotal / 30) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <div className="h-px bg-white/[0.07]" />
 
-                      {/* Score Explanations */}
-                      {(d.score_explanation?.pro || d.score_explanation?.con) && (
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                          {d.score_explanation?.pro && (
-                            <div className="bg-white/[0.02] rounded-xl px-3 py-2.5">
-                              <div className="font-['DM_Sans'] text-[10px] text-white/30 font-semibold uppercase mb-1">Why PRO got this score</div>
-                              <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{asText(d.score_explanation.pro)}</p>
-                            </div>
-                          )}
-                          {d.score_explanation?.con && (
-                            <div className="bg-white/[0.02] rounded-xl px-3 py-2.5">
-                              <div className="font-['DM_Sans'] text-[10px] text-white/30 font-semibold uppercase mb-1">Why CON got this score</div>
-                              <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{asText(d.score_explanation.con)}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Winner / Loser Deep-Dive — specific points */}
-                      {(winnerPoints.length > 0 || loserAnalysis.fatal_weakness || loserMissed.length > 0) && (
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                          <div className="bg-emerald-500/[0.03] border border-emerald-500/10 rounded-2xl p-4 flex flex-col gap-2">
-                            <div className="font-['DM_Sans'] text-xs font-bold text-emerald-400/80 uppercase mb-1">
-                              Winning points
-                            </div>
-                            {winnerPoints.map((s: string, i: number) => (
-                              <div key={i} className="flex items-start gap-2">
-                                <span className="text-emerald-400 text-sm shrink-0">▲</span>
-                                <span className="font-['DM_Sans'] text-sm text-white/75 leading-snug">{s}</span>
-                              </div>
-                            ))}
-                            {winnerAnalysis.strongest_round && (
-                              <div className="mt-2 font-['DM_Sans'] text-xs text-white/30">
-                                Best round: Round {winnerAnalysis.strongest_round}
-                              </div>
-                            )}
-                          </div>
-                          <div className="bg-rose-500/[0.03] border border-rose-500/10 rounded-2xl p-4 flex flex-col gap-2">
-                            <div className="font-['DM_Sans'] text-xs font-bold text-rose-400/80 uppercase mb-1">
-                              Why they lost
-                            </div>
-                            {loserAnalysis.fatal_weakness && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-rose-400 text-sm shrink-0">✗</span>
-                                <span className="font-['DM_Sans'] text-sm text-white/75 leading-snug">{asText(loserAnalysis.fatal_weakness)}</span>
-                              </div>
-                            )}
-                            {loserMissed.map((m: string, i: number) => (
-                              <div key={i} className="flex items-start gap-2">
-                                <span className="text-amber-400/80 text-sm shrink-0">–</span>
-                                <span className="font-['DM_Sans'] text-sm text-white/60 leading-snug">{m}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Round-by-Round Breakdown */}
-                      {rounds.length > 0 && (
-                        <div className="mb-6">
-                          <div className="font-['DM_Sans'] text-xs font-bold text-white/40 uppercase mb-2">Round by Round</div>
-                          <div className="border border-white/[0.05] rounded-xl overflow-hidden">
-                            <div className="grid grid-cols-4 bg-white/[0.03] px-4 py-2">
-                              {['Round', 'Winner', 'Gap', 'Key Argument'].map(h => (
-                                <span key={h} className="font-['DM_Sans'] text-[10px] font-semibold text-white/30 uppercase">{h}</span>
-                              ))}
-                            </div>
-                            {rounds.map((rv: any, i: number) => (
-                              <div key={i} className={`grid grid-cols-4 px-4 py-3 items-start ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
-                                <span className="font-['DM_Sans'] text-xs text-white/50">Round {rv.r}</span>
-                                <span className={cn(
-                                  "font-['DM_Sans'] text-xs font-bold",
-                                  rv.winner === 'pro' && 'text-emerald-400',
-                                  rv.winner === 'con' && 'text-rose-400',
-                                  rv.winner === 'tie' && 'text-yellow-400',
-                                )}>
-                                  {rv.winner === 'pro' ? 'PRO ▲' : rv.winner === 'con' ? 'CON ▲' : 'TIE'}
-                                </span>
-                                <span className="font-['DM_Sans'] text-xs text-white/40">
-                                  {typeof rv.margin === 'number' ? `+${rv.margin.toFixed(1)}` : `+${rv.margin}`} pts
-                                </span>
-                                <span className="font-['DM_Sans'] text-xs text-white/55 leading-snug pr-1">{asText(rv.swing)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Flagged Fallacies */}
-                      {fallacies.length > 0 && (
-                        <div className="border border-amber-500/10 bg-amber-500/[0.03] rounded-xl px-4 py-3 mb-6 flex flex-col gap-1.5">
-                          <div className="font-['DM_Sans'] text-xs font-bold text-amber-400/80 uppercase mb-1">⚠ Logical Mistakes Spotted</div>
-                          {fallacies.map((f: string, i: number) => (
-                            <span key={i} className="font-['DM_Sans'] text-xs text-amber-300/70">{f}</span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* 3-Sentence Plain Verdict */}
                       {verdictText && (
-                        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Gavel className="w-3.5 h-3.5 text-indigo-400" />
-                            <span className="font-['DM_Sans'] text-xs font-bold text-indigo-400 uppercase tracking-wide">Judge's Final Call</span>
+                        <>
+                          <div className="py-7">
+                            <p className="font-['DM_Sans'] text-[15px] text-white/80 leading-[1.7]">{verdictText}</p>
                           </div>
-                          <p className="font-['DM_Sans'] text-sm text-white/80 leading-relaxed">{verdictText}</p>
-                        </div>
+                          <div className="h-px bg-white/[0.07]" />
+                        </>
                       )}
 
-                      {/* Conformal verdict set. The point verdict above is a
-                          single answer; this says how much the scores actually
-                          separated, with a coverage guarantee that does not
-                          depend on the judge being well calibrated. */}
+                      {/* Confidence, said in words. The coverage guarantee is
+                          the point; alpha and calibration size are not. */}
                       {d.confidence?.available && (
-                        <div className={cn(
-                          "rounded-2xl p-5 border",
-                          d.confidence.abstain
-                            ? "bg-amber-500/[0.06] border-amber-500/25"
-                            : "bg-emerald-500/[0.06] border-emerald-500/25"
-                        )}>
-                          <div className="flex items-center gap-2 mb-3">
-                            <Brain className={cn("w-3.5 h-3.5", d.confidence.abstain ? "text-amber-400" : "text-emerald-400")} />
-                            <span className={cn(
-                              "font-['DM_Sans'] text-xs font-bold uppercase tracking-wide",
-                              d.confidence.abstain ? "text-amber-400" : "text-emerald-400"
-                            )}>
-                              {d.confidence.abstain ? 'Too Close To Call' : 'Statistically Decisive'}
-                            </span>
+                        <>
+                          <div className="py-7 flex items-start gap-3">
+                            <span className={cn("mt-[7px] w-1.5 h-1.5 rounded-full shrink-0",
+                              d.confidence.abstain ? "bg-amber-400" : "bg-emerald-400")} />
+                            <div>
+                              <div className="font-['DM_Sans'] text-sm font-semibold text-white/85 mb-1">
+                                {d.confidence.abstain ? 'Too close to call with confidence' : 'A clear result'}
+                              </div>
+                              <p className="font-['DM_Sans'] text-[13px] text-white/55 leading-relaxed">
+                                {d.confidence.abstain
+                                  ? 'The scores are close enough that this outcome is not reliable on its own.'
+                                  : `Measured against ${d.confidence.n_calibration} debates judged by people, a result this decisive holds at least ${Math.round((1 - d.confidence.alpha) * 100)}% of the time.`}
+                              </p>
+                            </div>
                           </div>
-
-                          <div className="flex flex-wrap items-center gap-2 mb-3">
-                            {(d.confidence.verdict_set ?? []).map((o: string) => (
-                              <span key={o} className="px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 font-['DM_Sans'] text-xs font-bold text-white/85 uppercase tracking-wide">
-                                {o}
-                              </span>
-                            ))}
-                            {(d.confidence.verdict_set ?? []).length === 0 && (
-                              <span className="font-['DM_Sans'] text-xs text-white/50">no outcome fits the calibration data</span>
-                            )}
-                          </div>
-
-                          <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">
-                            {d.confidence.abstain
-                              ? `The scores do not separate these outcomes reliably, so the system declines to commit. ${asText(d.confidence.guarantee)}`
-                              : asText(d.confidence.guarantee)}
-                          </p>
-                          <p className="font-['DM_Sans'] text-[11px] text-white/35 mt-2">
-                            calibrated on {d.confidence.n_calibration} human-labelled rounds · α={d.confidence.alpha}
-                          </p>
-                        </div>
+                          <div className="h-px bg-white/[0.07]" />
+                        </>
                       )}
 
-                      {/* The arithmetic behind the outcome. Everything here was
-                          already computed per round and previously discarded, so
-                          the verdict could only be taken on trust. */}
                       {d.receipts?.criteria && (() => {
                         const R = d.receipts;
-                        const win = d.overall_winner;
-                        const bar = (v: number, side: 'pro' | 'con') => (
-                          <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                            <div
-                              className={cn("h-full rounded-full", side === 'pro' ? "bg-emerald-400/70" : "bg-rose-400/70")}
-                              style={{ width: `${Math.max(0, Math.min(100, (v / 10) * 100))}%` }}
-                            />
-                          </div>
-                        );
+                        const NAMES: Record<string, string> = {
+                          evidence: 'Evidence cited',
+                          logic: 'Reasoning',
+                          relevance: 'Stayed on topic',
+                        };
                         return (
-                          <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
-                            <div className="flex items-center gap-2 mb-4">
-                              <Scale className="w-3.5 h-3.5 text-white/50" />
-                              <span className="font-['DM_Sans'] text-xs font-bold text-white/60 uppercase tracking-wide">Why this verdict</span>
+                          <div className="py-7">
+                            <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-white/40 mb-5">
+                              Why this verdict
                             </div>
 
-                            {/* Which criterion actually opened the gap */}
-                            <div className="mb-5">
+                            <div className="mb-7">
                               {(['evidence', 'logic', 'relevance'] as const).map((c) => {
-                                const gap = R.criterion_gaps?.[c] ?? 0;
+                                const pro = R.criteria.pro[c];
+                                const con = R.criteria.con[c];
                                 const decisive = R.decisive_criterion === c;
                                 return (
-                                  <div key={c} className="mb-2.5">
-                                    <div className="flex items-center justify-between mb-1">
-                                      <span className={cn("font-['JetBrains_Mono'] text-[10px] tracking-widest uppercase",
-                                        decisive ? "text-white/80 font-bold" : "text-white/40")}>
-                                        {c}{decisive && ' · decisive'}
+                                  <div key={c} className="mb-4 last:mb-0">
+                                    <div className="flex items-baseline justify-between mb-2">
+                                      <span className="font-['DM_Sans'] text-[13px] text-white/70">
+                                        {NAMES[c]}
+                                        {decisive && <span className="text-white/35 ml-2">decided it</span>}
                                       </span>
-                                      <span className="font-['JetBrains_Mono'] text-[10px] text-white/40">
-                                        {R.criteria.pro[c]} vs {R.criteria.con[c]}
-                                        <span className={cn("ml-2", gap > 0 ? "text-emerald-400/80" : gap < 0 ? "text-rose-400/80" : "text-white/30")}>
-                                          {gap > 0 ? '+' : ''}{gap}
-                                        </span>
+                                      <span className="font-['JetBrains_Mono'] text-[12px] text-white/50">
+                                        {pro} <span className="text-white/20">vs</span> {con}
                                       </span>
                                     </div>
-                                    <div className="flex items-center gap-1.5">
-                                      {bar(R.criteria.pro[c], 'pro')}
-                                      {bar(R.criteria.con[c], 'con')}
+                                    <div className="flex gap-1">
+                                      <div className="flex-1 h-1 rounded-full bg-white/[0.07] overflow-hidden">
+                                        <div className="h-full bg-emerald-400/80 rounded-full" style={{ width: `${Math.min(100, pro * 10)}%` }} />
+                                      </div>
+                                      <div className="flex-1 h-1 rounded-full bg-white/[0.07] overflow-hidden">
+                                        <div className="h-full bg-rose-400/80 rounded-full" style={{ width: `${Math.min(100, con * 10)}%` }} />
+                                      </div>
                                     </div>
                                   </div>
                                 );
                               })}
                             </div>
 
-                            {/* Where the margin was earned */}
-                            {R.per_round?.length > 0 && (
-                              <div className="mb-5">
-                                <p className="font-['JetBrains_Mono'] text-[9px] text-white/35 tracking-widest uppercase mb-2">Round contributions</p>
-                                {R.per_round.map((r: any) => (
-                                  <div key={r.r} className="flex items-center justify-between py-1 border-b border-white/[0.04] last:border-0">
-                                    <span className="font-['JetBrains_Mono'] text-[10px] text-white/40">R{r.r}</span>
-                                    <span className="font-['JetBrains_Mono'] text-[10px] text-white/55">
-                                      {r.pro} · {r.con}
-                                      <span className={cn("ml-3 font-bold", r.delta > 0 ? "text-emerald-400/80" : r.delta < 0 ? "text-rose-400/80" : "text-white/35")}>
-                                        {r.delta > 0 ? '+' : ''}{r.delta}
-                                      </span>
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* What the corpus could actually confirm */}
                             {R.verification && (
-                              <div className="grid sm:grid-cols-2 gap-4 mb-5">
+                              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-6">
                                 {(['pro', 'con'] as const).map((side) => {
                                   const v = R.verification[side];
                                   const cited = R.cited?.[side] ?? [];
                                   return (
                                     <div key={side}>
-                                      <p className={cn("font-['JetBrains_Mono'] text-[9px] tracking-widest uppercase mb-1.5",
-                                        side === 'pro' ? "text-emerald-400/70" : "text-rose-400/70")}>
-                                        {side} evidence {win === side && '· winner'}
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className={cn("w-1.5 h-1.5 rounded-full", side === 'pro' ? "bg-emerald-400" : "bg-rose-400")} />
+                                        <span className="font-['DM_Sans'] text-[13px] font-semibold text-white/75">
+                                          {side === 'pro' ? 'Agent 01' : 'Agent 02'}
+                                        </span>
+                                      </div>
+                                      <p className="font-['DM_Sans'] text-[12px] text-white/45 mb-3">
+                                        {v.supported} of {v.claims_checked} claims confirmed against sources
+                                        {v.refuted > 0 && <span className="text-amber-400/80"> · {v.refuted} contradicted</span>}
                                       </p>
-                                      <p className="font-['JetBrains_Mono'] text-[10px] text-white/45 mb-2">
-                                        {v.supported} verified · {v.refuted} refuted · {v.nei} unverifiable
-                                        {v.precision != null && <span className="text-white/30"> · precision {v.precision}</span>}
-                                      </p>
-                                      {cited.slice(0, 4).map((e: any, k: number) => (
-                                        <p key={k} className="font-['DM_Sans'] text-[11px] text-white/45 leading-snug mb-1">· {asText(e)}</p>
+                                      {cited.slice(0, 3).map((e: any, k: number) => (
+                                        <p key={k} className="font-['DM_Sans'] text-[13px] text-white/65 leading-relaxed mb-2">
+                                          {asText(e)}
+                                        </p>
                                       ))}
                                       {cited.length === 0 && (
-                                        <p className="font-['DM_Sans'] text-[11px] text-white/25 italic">cited nothing checkable</p>
+                                        <p className="font-['DM_Sans'] text-[13px] text-white/35">Cited nothing that could be checked.</p>
                                       )}
-                                      {cited.length > 4 && (
-                                        <p className="font-['JetBrains_Mono'] text-[9px] text-white/25 mt-1">+{cited.length - 4} more</p>
+                                      {cited.length > 3 && (
+                                        <p className="font-['DM_Sans'] text-[12px] text-white/30">and {cited.length - 3} more</p>
                                       )}
                                     </div>
                                   );
                                 })}
                               </div>
                             )}
-
-                            {/* Deductions, shown only when something was actually deducted */}
-                            {(['pro', 'con'] as const).some((s) => {
-                              const p = R.penalties?.[s]; return p && (p.repetition || p.fabrication || p.rounds_evidence_capped);
-                            }) && (
-                              <div className="mb-4 pt-3 border-t border-white/[0.06]">
-                                <p className="font-['JetBrains_Mono'] text-[9px] text-white/35 tracking-widest uppercase mb-2">Deductions applied</p>
-                                {(['pro', 'con'] as const).map((side) => {
-                                  const p = R.penalties?.[side];
-                                  if (!p || (!p.repetition && !p.fabrication && !p.rounds_evidence_capped)) return null;
-                                  return (
-                                    <div key={side} className="font-['JetBrains_Mono'] text-[10px] text-amber-400/70 mb-1">
-                                      {side.toUpperCase()}:
-                                      {!!p.repetition && <span className="ml-2">−{p.repetition} repetition</span>}
-                                      {!!p.fabrication && <span className="ml-2">−{p.fabrication} unsupported claims</span>}
-                                      {!!p.rounds_evidence_capped && <span className="ml-2">{p.rounds_evidence_capped} round(s) evidence-capped</span>}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 pt-3 border-t border-white/[0.06] font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-wide">
-                              <span>scorer: {asText(R.scorer)}</span>
-                              {R.verification_backend && <span>verifier: {asText(R.verification_backend)}</span>}
-                              {R.position_bias != null && (
-                                <span title="Mean score difference between the two label-swapped passes. Near zero means the outcome did not depend on which side wore which label.">
-                                  position bias: {R.position_bias}
-                                </span>
-                              )}
-                            </div>
                           </div>
                         );
                       })()}
+
+                      {(loserAnalysis.fatal_weakness || loserMissed.length > 0) && (
+                        <>
+                          <div className="h-px bg-white/[0.07]" />
+                          <div className="py-7">
+                            <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-white/40 mb-4">
+                              What the losing side missed
+                            </div>
+                            {loserAnalysis.fatal_weakness && (
+                              <p className="font-['DM_Sans'] text-[14px] text-white/75 leading-relaxed mb-3">
+                                {asText(loserAnalysis.fatal_weakness)}
+                              </p>
+                            )}
+                            {loserMissed.map((m: string, i: number) => (
+                              <p key={i} className="font-['DM_Sans'] text-[13px] text-white/55 leading-relaxed mb-1.5">{m}</p>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {rounds.length > 0 && (
+                        <>
+                          <div className="h-px bg-white/[0.07]" />
+                          <div className="py-7">
+                            <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-white/40 mb-4">
+                              Round by round
+                            </div>
+                            {rounds.map((rv: any, i: number) => (
+                              <div key={i} className="flex items-baseline gap-4 py-2.5 border-b border-white/[0.05] last:border-0">
+                                <span className="font-['JetBrains_Mono'] text-[12px] text-white/35 w-7 shrink-0">R{rv.r}</span>
+                                <span className={cn("font-['DM_Sans'] text-[13px] font-semibold w-[70px] shrink-0",
+                                  rv.winner === 'pro' && 'text-emerald-400/90',
+                                  rv.winner === 'con' && 'text-rose-400/90',
+                                  rv.winner === 'tie' && 'text-white/50')}>
+                                  {rv.winner === 'tie' ? 'Draw' : rv.winner === 'pro' ? 'Agent 01' : 'Agent 02'}
+                                </span>
+                                <span className="font-['DM_Sans'] text-[13px] text-white/60 leading-snug">{asText(rv.swing)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {fallacies.length > 0 && (
+                        <>
+                          <div className="h-px bg-white/[0.07]" />
+                          <div className="py-7">
+                            <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-amber-400/70 mb-3">
+                              Reasoning errors flagged
+                            </div>
+                            {fallacies.map((f: string, i: number) => (
+                              <p key={i} className="font-['DM_Sans'] text-[13px] text-white/65 leading-relaxed mb-1.5">{f}</p>
+                            ))}
+                          </div>
+                        </>
+                      )}
 
                     </div>
                   </motion.div>
