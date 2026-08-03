@@ -17,10 +17,11 @@ services:
     branch: Sanket-Features
     dockerfilePath: ./Dockerfile
 
-    # Free instances sleep after ~15 minutes idle and take ~50s to wake. This
-    # path is cheap and touches no model, so Render's own checks do not spin up
-    # the embedder.
-    healthCheckPath: /status
+    # Must touch nothing. /status calls into ChromaDB for its document count,
+    # and during a debate that exceeded the 5-second budget — Render killed the
+    # container mid-debate with "health check failed (timed out after 5 seconds)
+    # while running your code". /healthz returns a constant.
+    healthCheckPath: /healthz
 
     envVars:
       # Set in the dashboard, never committed.

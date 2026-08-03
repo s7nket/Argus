@@ -33,6 +33,21 @@ async def startup_event():
         print(f"[VectorDB] ChromaDB ready. Seeded {seeded} evidence documents.")
 
 
+@app.get("/healthz", include_in_schema=False)
+async def healthz():
+    """
+    Liveness only. Touches nothing.
+
+    This exists because /status was being used as the host's health check, and
+    /status calls into ChromaDB for its document count. During a debate the
+    retrieval work saturated the instance, /status exceeded the 5-second health
+    check budget, and the host killed the container — ending the debate it was
+    in the middle of running. A health check must never contend with the work it
+    is checking on.
+    """
+    return {"ok": True}
+
+
 # Deployed, "/" serves the built single-page app, so the backend status moved to
 # its own path. "/" still answers with this payload when no frontend build is
 # present, which is the local backend-only workflow.

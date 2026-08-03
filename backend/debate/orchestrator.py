@@ -414,7 +414,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
         return
 
     record["final_verdict"] = final
-    await save_debate(record)
+    await save_debate(record, index_turns=True)
 
     await websocket.send_json({
         "type": "final_verdict",

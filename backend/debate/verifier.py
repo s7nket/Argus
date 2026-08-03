@@ -353,7 +353,17 @@ async def verify_claims(claims: list[str]) -> list[ClaimVerdict]:
     if not cleaned:
         return []
 
-    items = [(c, retrieve_for_claim(c)) for c in cleaned]
+    # Retrieval is synchronous and CPU-bound — it embeds the query, then scans
+    # every vector in the corpus. Called directly it blocks the event loop for
+    # the whole round, which starves the WebSocket feeding the UI and, on a
+    # small instance, the host's own health check: Render killed a container
+    # mid-debate with "health check failed (timed out after 5 seconds) while
+    # running your code", taking the debate down with it.
+    #
+    # to_thread hands each lookup to the default executor, so the loop keeps
+    # serving while the search runs.
+    passages = await asyncio.gather(*(asyncio.to_thread(retrieve_for_claim, c) for c in cleaned))
+    items = list(zip(cleaned, passages))
     backend = _BACKENDS.get(config.NLI_BACKEND, _entail_groq)
 
     try:

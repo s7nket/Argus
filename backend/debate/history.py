@@ -245,19 +245,28 @@ def store_name() -> str:
 
 # ── Public API ───────────────────────────────────────────────────────────────
 
-async def save_debate(record: dict) -> str | None:
+async def save_debate(record: dict, index_turns: bool = False) -> str | None:
     """
     Persist one debate. Never raises.
 
     A failure here must not take down a debate that already succeeded — the user
     has their result on screen either way, and losing the archive is strictly
     better than losing the run.
+
+    index_turns is off by default because _index_turns walks EVERY round and
+    embeds every turn again. Once the archive started saving after each round
+    that became quadratic — a three-round debate embedded 54 turns instead of 18
+    — and the embedding work is CPU-bound, so it showed up as health-check
+    latency climbing with each round (0.71s, 1.67s, 2.26s locally). Turn
+    indexing feeds cross-debate retrieval, which nothing queries yet, so it runs
+    once at the end rather than on every snapshot.
     """
     try:
         record.setdefault("id", new_debate_id())
         record.setdefault("created_at", datetime.now(timezone.utc).isoformat())
         await _store.save(record)
-        await _index_turns(record)
+        if index_turns:
+            await _index_turns(record)
         return record["id"]
     except Exception as e:
         logger.warning(f"failed to save debate: {type(e).__name__}: {e}")
