@@ -616,262 +616,387 @@ export function DebateDashboard() {
                     transition={{ duration: 0.6, ease: 'easeOut' }}
                     className="flex justify-center will-change-[transform,opacity] transform-gpu"
                   >
-                    <div className={`bg-[#111114] border border-white/10 rounded-3xl p-8 max-w-2xl w-full ${winnerConfig.glow}`}>
+                    <div className={`bg-[#111114] border border-white/10 rounded-3xl px-8 py-9 sm:px-9 max-w-2xl w-full ${winnerConfig.glow}`}>
 
-                      {/* One type scale across the whole card. Section labels
-                          previously mixed Orbitron, JetBrains Mono and DM Sans
-                          at several weights; body copy sat at white/35-white/45,
-                          drawn but not readable. Labels share one rule now and
-                          body copy is white/65 or brighter.
+                      {/* Presentation notes:
 
-                          Every field is kept. Structure carries the hierarchy:
-                          hairlines between sections rather than a bordered box
-                          around each one. */}
+                          Sections animate in on a stagger rather than appearing
+                          at once. A verdict arrives after minutes of waiting, so
+                          revealing it in reading order gives the result a beat
+                          instead of dumping a wall of text.
 
-                      <div className="flex items-center gap-3 mb-7">
-                        <div className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center text-white/70">
-                          <Gavel className="w-4 h-4" />
-                        </div>
-                        <span className="font-['DM_Sans'] text-[15px] font-semibold text-white tracking-tight">Final Verdict</span>
-                      </div>
+                          Scores share one proportional bar rather than two
+                          independent ones. Two bars ask the reader to compare
+                          lengths across a gap; one split bar makes the margin
+                          the thing you see first.
 
-                      {/* Outcome */}
-                      <div className="text-center pb-7">
-                        <div className={cn("font-['DM_Sans'] text-[30px] leading-none font-semibold tracking-tight mb-4", winnerConfig.color)}>
-                          {winner === 'tie' ? 'Draw' : winner === 'pro' ? 'Agent 01 wins' : 'Agent 02 wins'}
-                        </div>
-                        {winnerAnalysis.decisive_argument && (
-                          <p className="font-['DM_Sans'] text-[15px] text-white/70 leading-relaxed max-w-lg mx-auto">
-                            {asText(winnerAnalysis.decisive_argument)}
-                          </p>
-                        )}
-                      </div>
+                          Colour is carried by the two agents only — emerald and
+                          rose — and used nowhere else, so it always means
+                          "which side" and never decoration. */}
 
-                      <div className="h-px bg-white/[0.07]" />
-
-                      {/* Scores, with the share of available points each side took */}
-                      <div className="py-7 grid grid-cols-2 gap-8">
-                        {([
-                          { side: 'pro' as const, label: 'Agent 01 · Pro', total: proTotal, pct: accuracy.pro, dot: 'bg-emerald-400', bar: 'bg-emerald-400/80', why: d.score_explanation?.pro },
-                          { side: 'con' as const, label: 'Agent 02 · Con', total: conTotal, pct: accuracy.con, dot: 'bg-rose-400', bar: 'bg-rose-400/80' , why: d.score_explanation?.con },
-                        ]).map((c) => (
-                          <div key={c.side}>
-                            <div className="flex items-center gap-2 mb-3">
-                              <span className={cn("w-1.5 h-1.5 rounded-full", c.dot)} />
-                              <span className="font-['DM_Sans'] text-[13px] font-semibold text-white/75">{c.label}</span>
-                            </div>
-                            <div className="font-['DM_Sans'] text-[28px] leading-none font-semibold text-white mb-1">
-                              {c.total}<span className="text-[15px] text-white/25 font-normal"> / 30</span>
-                            </div>
-                            <div className="font-['DM_Sans'] text-[12px] text-white/40 mb-3">{c.pct.toFixed(1)}% of available points</div>
-                            <div className="h-1 rounded-full bg-white/[0.07] overflow-hidden mb-4">
-                              <div className={cn("h-full rounded-full transition-all duration-1000", c.bar)} style={{ width: `${(c.total / 30) * 100}%` }} />
-                            </div>
-                            {c.why && (
-                              <p className="font-['DM_Sans'] text-[13px] text-white/60 leading-relaxed">{asText(c.why)}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="h-px bg-white/[0.07]" />
-
-                      {/* The judge's plain-language call */}
-                      {verdictText && (
-                        <>
-                          <div className="py-7">
-                            <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-white/40 mb-3">
-                              The judge's call
-                            </div>
-                            <p className="font-['DM_Sans'] text-[15px] text-white/80 leading-[1.7]">{verdictText}</p>
-                          </div>
-                          <div className="h-px bg-white/[0.07]" />
-                        </>
-                      )}
-
-                      {/* Confidence, stated without the statistics vocabulary */}
-                      {d.confidence?.available && (
-                        <>
-                          <div className="py-7 flex items-start gap-3">
-                            <span className={cn("mt-[7px] w-1.5 h-1.5 rounded-full shrink-0",
-                              d.confidence.abstain ? "bg-amber-400" : "bg-emerald-400")} />
-                            <div>
-                              <div className="font-['DM_Sans'] text-sm font-semibold text-white/85 mb-1">
-                                {d.confidence.abstain ? 'Too close to call with confidence' : 'A clear result'}
-                              </div>
-                              <p className="font-['DM_Sans'] text-[13px] text-white/55 leading-relaxed">
-                                {d.confidence.abstain
-                                  ? 'The scores are close enough that this outcome is not reliable on its own.'
-                                  : `Measured against ${d.confidence.n_calibration} debates judged by people, a result this decisive holds at least ${Math.round((1 - d.confidence.alpha) * 100)}% of the time.`}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="h-px bg-white/[0.07]" />
-                        </>
-                      )}
-
-                      {/* Why — criteria, round contributions, and the evidence */}
-                      {d.receipts?.criteria && (() => {
+                      {(() => {
                         const R = d.receipts;
                         const NAMES: Record<string, string> = {
                           evidence: 'Evidence cited',
                           logic: 'Reasoning',
                           relevance: 'Stayed on topic',
                         };
+                        let step = 0;
+                        const rise = () => ({
+                          initial: { opacity: 0, y: 12 },
+                          animate: { opacity: 1, y: 0 },
+                          transition: { duration: 0.45, delay: 0.08 * step++, ease: [0.16, 1, 0.3, 1] as const },
+                        });
+                        const Rule = () => <div className="h-px bg-white/[0.06]" />;
+                        const Label = ({ children, tone }: { children: React.ReactNode; tone?: string }) => (
+                          <div className={cn(
+                            "font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase mb-5",
+                            tone ?? "text-white/40")}>{children}</div>
+                        );
+                        const total = Math.max(1, proTotal + conTotal);
+                        const proShare = (proTotal / total) * 100;
+
                         return (
                           <>
-                            <div className="py-7">
-                              <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-white/40 mb-5">
-                                Why this verdict
+                            {/* The hero carries the result. Everything sat
+                                within a narrow type range before — a 15px
+                                header, a 34px name, 26px scores — so nothing
+                                led. The winner is now the largest thing on the
+                                screen by a wide margin, the kicker is small and
+                                letterspaced so it reads as a caption rather
+                                than a competing heading, and a soft radial wash
+                                in the winning side's colour gives the block
+                                depth without adding a border. */}
+                            <div className="relative">
+                              <div
+                                aria-hidden
+                                className="pointer-events-none absolute inset-x-0 -top-10 h-64 opacity-[0.22]"
+                                style={{
+                                  background: `radial-gradient(ellipse 60% 55% at 50% 0%, ${
+                                    winner === 'pro' ? 'rgb(52,211,153)' : winner === 'con' ? 'rgb(251,113,133)' : 'rgb(148,163,184)'
+                                  }, transparent 70%)`,
+                                }}
+                              />
+
+                              <motion.div {...rise()} className="relative text-center pt-2">
+                                <div className="font-['JetBrains_Mono'] text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
+                                  Final Verdict
+                                </div>
+
+                                <div className={cn(
+                                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full mb-5",
+                                  winner === 'tie' ? "bg-white/[0.07]"
+                                    : winner === 'pro' ? "bg-emerald-400/15" : "bg-rose-400/15")}>
+                                  <span className={cn("w-1 h-1 rounded-full",
+                                    winner === 'tie' ? "bg-white/50" : winner === 'pro' ? "bg-emerald-400" : "bg-rose-400")} />
+                                  <span className={cn("font-['DM_Sans'] text-[10px] font-bold tracking-[0.14em] uppercase",
+                                    winner === 'tie' ? "text-white/55" : winner === 'pro' ? "text-emerald-300" : "text-rose-300")}>
+                                    {winner === 'tie' ? 'Draw' : 'Winner'}
+                                  </span>
+                                </div>
+
+                                <div className={cn(
+                                  "font-['Orbitron'] font-black tracking-[0.02em] leading-[1.05] mb-6 uppercase",
+                                  winner === 'tie' ? "text-[24px] text-white/85" : "text-[34px]",
+                                  winner === 'pro' && "text-emerald-400",
+                                  winner === 'con' && "text-rose-400")}>
+                                  {winner === 'tie' ? 'Too close to separate' : winner === 'pro' ? 'Agent 01' : 'Agent 02'}
+                                </div>
+
+                                {winnerAnalysis.decisive_argument && (
+                                  <p className="font-['DM_Sans'] text-[14px] text-white/55 leading-[1.6] max-w-[28rem] mx-auto">
+                                    {asText(winnerAnalysis.decisive_argument)}
+                                  </p>
+                                )}
+                              </motion.div>
+                            </div>
+
+                            {/* Scores. The numbers are the anchor, so labels and
+                                percentages sit well below them in the hierarchy
+                                rather than competing at a similar size. */}
+                            <motion.div {...rise()} className="pt-9 pb-8">
+                              <div className="flex items-end justify-between mb-4">
+                                <div>
+                                  <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.14em] uppercase text-emerald-400/60 mb-2">
+                                    Agent 01
+                                  </div>
+                                  <div className="font-['Orbitron'] text-[27px] leading-[0.95] font-bold text-white tracking-[0.01em]">
+                                    {proTotal}
+                                  </div>
+                                </div>
+
+                                <div className="pb-1.5 text-center">
+                                  <div className="font-['JetBrains_Mono'] text-[10px] tracking-[0.2em] uppercase text-white/20">
+                                    out of 30
+                                  </div>
+                                </div>
+
+                                <div className="text-right">
+                                  <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.14em] uppercase text-rose-400/60 mb-2">
+                                    Agent 02
+                                  </div>
+                                  <div className="font-['Orbitron'] text-[27px] leading-[0.95] font-bold text-white tracking-[0.01em]">
+                                    {conTotal}
+                                  </div>
+                                </div>
                               </div>
 
-                              <div className="mb-7">
-                                {(['evidence', 'logic', 'relevance'] as const).map((c) => {
-                                  const pro = R.criteria.pro[c];
-                                  const con = R.criteria.con[c];
-                                  const decisive = R.decisive_criterion === c;
-                                  return (
-                                    <div key={c} className="mb-4 last:mb-0">
-                                      <div className="flex items-baseline justify-between mb-2">
-                                        <span className="font-['DM_Sans'] text-[13px] text-white/70">
-                                          {NAMES[c]}
-                                          {decisive && <span className="text-white/35 ml-2">decided it</span>}
-                                        </span>
-                                        <span className="font-['JetBrains_Mono'] text-[12px] text-white/50">
-                                          {pro} <span className="text-white/20">vs</span> {con}
-                                        </span>
-                                      </div>
-                                      <div className="flex gap-1">
-                                        <div className="flex-1 h-1 rounded-full bg-white/[0.07] overflow-hidden">
-                                          <div className="h-full bg-emerald-400/80 rounded-full" style={{ width: `${Math.min(100, pro * 10)}%` }} />
-                                        </div>
-                                        <div className="flex-1 h-1 rounded-full bg-white/[0.07] overflow-hidden">
-                                          <div className="h-full bg-rose-400/80 rounded-full" style={{ width: `${Math.min(100, con * 10)}%` }} />
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                              <div className="flex h-[5px] rounded-full overflow-hidden bg-white/[0.05] gap-[2px]">
+                                <motion.div
+                                  className="bg-emerald-400 rounded-full"
+                                  initial={{ width: '50%' }}
+                                  animate={{ width: `${proShare}%` }}
+                                  transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                                />
+                                <div className="flex-1 bg-rose-400 rounded-full" />
                               </div>
 
-                              {R.verification && (
-                                <div className="grid sm:grid-cols-2 gap-x-8 gap-y-6">
-                                  {(['pro', 'con'] as const).map((side) => {
-                                    const v = R.verification[side];
-                                    const cited = R.cited?.[side] ?? [];
-                                    return (
-                                      <div key={side}>
+                              <div className="flex justify-between mt-3">
+                                <span className="font-['DM_Sans'] text-[11px] text-white/30 tracking-wide">
+                                  {accuracy.pro.toFixed(0)}% of available
+                                </span>
+                                <span className="font-['DM_Sans'] text-[11px] text-white/30 tracking-wide">
+                                  {accuracy.con.toFixed(0)}% of available
+                                </span>
+                              </div>
+                            </motion.div>
+
+                            {/* Why each side scored what it did */}
+                            {(d.score_explanation?.pro || d.score_explanation?.con) && (
+                              <>
+                                <Rule />
+                                <motion.div {...rise()} className="py-8 grid sm:grid-cols-2 gap-5">
+                                  {([['pro', d.score_explanation?.pro], ['con', d.score_explanation?.con]] as const).map(([side, why]) =>
+                                    why ? (
+                                      <div key={side} className="rounded-2xl bg-white/[0.025] p-5">
                                         <div className="flex items-center gap-2 mb-2">
                                           <span className={cn("w-1.5 h-1.5 rounded-full", side === 'pro' ? "bg-emerald-400" : "bg-rose-400")} />
-                                          <span className="font-['DM_Sans'] text-[13px] font-semibold text-white/75">
-                                            {side === 'pro' ? 'Agent 01' : 'Agent 02'} evidence
+                                          <span className="font-['DM_Sans'] text-[12px] font-semibold text-white/75">
+                                            {side === 'pro' ? 'Agent 01' : 'Agent 02'}
                                           </span>
                                         </div>
-                                        <p className="font-['DM_Sans'] text-[12px] text-white/45 mb-3">
-                                          {v.supported} of {v.claims_checked} claims confirmed against sources
-                                          {v.refuted > 0 && <span className="text-amber-400/80"> · {v.refuted} contradicted</span>}
-                                        </p>
-                                        {cited.slice(0, 3).map((e: any, k: number) => (
-                                          <p key={k} className="font-['DM_Sans'] text-[13px] text-white/65 leading-relaxed mb-2">
-                                            {asText(e)}
-                                          </p>
+                                        <p className="font-['DM_Sans'] text-[12.5px] text-white/60 leading-relaxed">{asText(why)}</p>
+                                      </div>
+                                    ) : null)}
+                                </motion.div>
+                              </>
+                            )}
+
+                            {/* The judge's call */}
+                            {verdictText && (
+                              <>
+                                <Rule />
+                                <motion.div {...rise()} className="py-8">
+                                  <Label>The judge's call</Label>
+                                  <div className="rounded-2xl bg-white/[0.025] p-5">
+                                    <p className="font-['DM_Sans'] text-[14px] text-white/75 leading-[1.75]">{verdictText}</p>
+                                  </div>
+                                </motion.div>
+                              </>
+                            )}
+
+                            {/* Confidence */}
+                            {d.confidence?.available && (
+                              <>
+                                <Rule />
+                                <motion.div {...rise()} className={cn(
+                                  "my-7 rounded-2xl px-5 py-4 flex items-start gap-3 border",
+                                  d.confidence.abstain ? "border-amber-400/20 bg-amber-400/[0.04]" : "border-emerald-400/20 bg-emerald-400/[0.04]")}>
+                                  <span className={cn("mt-[7px] w-1.5 h-1.5 rounded-full shrink-0",
+                                    d.confidence.abstain ? "bg-amber-400" : "bg-emerald-400")} />
+                                  <div>
+                                    <div className="font-['DM_Sans'] text-[13px] font-semibold text-white/85 mb-1">
+                                      {d.confidence.abstain ? 'Too close to call with confidence' : 'A clear result'}
+                                    </div>
+                                    <p className="font-['DM_Sans'] text-[12px] text-white/55 leading-relaxed">
+                                      {d.confidence.abstain
+                                        ? 'The scores are close enough that this outcome is not reliable on its own.'
+                                        : `Measured against ${d.confidence.n_calibration} debates judged by people, a result this decisive holds at least ${Math.round((1 - d.confidence.alpha) * 100)}% of the time.`}
+                                    </p>
+                                  </div>
+                                </motion.div>
+                              </>
+                            )}
+
+                            {/* Why this verdict */}
+                            {R?.criteria && (
+                              <>
+                                <Rule />
+                                <motion.div {...rise()} className="py-8">
+                                  <Label>Why this verdict</Label>
+
+                                  <div className="mb-8">
+                                    {(['evidence', 'logic', 'relevance'] as const).map((c, i) => {
+                                      const pro = R.criteria.pro[c];
+                                      const con = R.criteria.con[c];
+                                      const sum = Math.max(0.001, pro + con);
+                                      const decisive = R.decisive_criterion === c;
+                                      return (
+                                        <div key={c} className="mb-5 last:mb-0">
+                                          <div className="flex items-baseline justify-between mb-2">
+                                            <span className="font-['DM_Sans'] text-[13px] text-white/75">
+                                              {NAMES[c]}
+                                              {decisive && (
+                                                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide uppercase bg-white/[0.07] text-white/50">
+                                                  decisive
+                                                </span>
+                                              )}
+                                            </span>
+                                            <span className="font-['JetBrains_Mono'] text-[12px]">
+                                              <span className="text-emerald-400/80">{pro}</span>
+                                              <span className="text-white/20 mx-1.5">·</span>
+                                              <span className="text-rose-400/80">{con}</span>
+                                            </span>
+                                          </div>
+                                          <div className="flex h-1 rounded-full overflow-hidden bg-white/[0.06]">
+                                            <motion.div
+                                              className="bg-emerald-400/70"
+                                              initial={{ width: '50%' }}
+                                              animate={{ width: `${(pro / sum) * 100}%` }}
+                                              transition={{ duration: 0.7, delay: 0.4 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                                            />
+                                            <div className="flex-1 bg-rose-400/70" />
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {R.verification && (
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                      {(['pro', 'con'] as const).map((side) => {
+                                        const v = R.verification[side];
+                                        const cited = R.cited?.[side] ?? [];
+                                        return (
+                                          <div key={side} className="rounded-2xl bg-white/[0.025] p-5">
+                                            <div className="flex items-center justify-between mb-3">
+                                              <div className="flex items-center gap-2">
+                                                <span className={cn("w-1.5 h-1.5 rounded-full", side === 'pro' ? "bg-emerald-400" : "bg-rose-400")} />
+                                                <span className="font-['DM_Sans'] text-[12px] font-semibold text-white/75">
+                                                  {side === 'pro' ? 'Agent 01' : 'Agent 02'}
+                                                </span>
+                                              </div>
+                                              <span className="font-['JetBrains_Mono'] text-[11px] text-white/40">
+                                                {v.supported}/{v.claims_checked} verified
+                                              </span>
+                                            </div>
+                                            {v.refuted > 0 && (
+                                              <div className="font-['DM_Sans'] text-[11px] text-amber-400/80 mb-2">
+                                                {v.refuted} claim{v.refuted > 1 ? 's' : ''} contradicted by sources
+                                              </div>
+                                            )}
+                                            {cited.slice(0, 3).map((e: any, k: number) => (
+                                              <p key={k} className="font-['DM_Sans'] text-[12.5px] text-white/60 leading-relaxed mb-2 last:mb-0">
+                                                {asText(e)}
+                                              </p>
+                                            ))}
+                                            {cited.length === 0 && (
+                                              <p className="font-['DM_Sans'] text-[12.5px] text-white/30 italic">Nothing checkable was cited.</p>
+                                            )}
+                                            {cited.length > 3 && (
+                                              <p className="font-['DM_Sans'] text-[11px] text-white/30 mt-2">and {cited.length - 3} more</p>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </motion.div>
+                              </>
+                            )}
+
+                            {/* What won it / what lost it */}
+                            {(winnerPoints.length > 0 || loserAnalysis.fatal_weakness || loserMissed.length > 0) && (
+                              <>
+                                <Rule />
+                                <motion.div {...rise()} className="py-7 grid sm:grid-cols-2 gap-x-8 gap-y-6">
+                                  {winnerPoints.length > 0 && (
+                                    <div>
+                                      <Label tone="text-emerald-400/70">What won it</Label>
+                                      <div className="rounded-2xl bg-white/[0.025] p-5">
+                                        {winnerPoints.map((sPt: string, i: number) => (
+                                          <div key={i} className="flex gap-2.5 mb-2 last:mb-0">
+                                            <span className="bg-emerald-400/50 mt-[7px] w-1 h-1 rounded-full shrink-0" />
+                                            <p className="font-['DM_Sans'] text-[12.5px] text-white/65 leading-relaxed">{sPt}</p>
+                                          </div>
                                         ))}
-                                        {cited.length === 0 && (
-                                          <p className="font-['DM_Sans'] text-[13px] text-white/35">Cited nothing that could be checked.</p>
-                                        )}
-                                        {cited.length > 3 && (
-                                          <p className="font-['DM_Sans'] text-[12px] text-white/30">and {cited.length - 3} more</p>
+                                        {winnerAnalysis.strongest_round && (
+                                          <p className="font-['DM_Sans'] text-[11px] text-white/30 mt-3 pt-3 border-t border-white/[0.05]">
+                                            Strongest in round {winnerAnalysis.strongest_round}
+                                          </p>
                                         )}
                                       </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                            <div className="h-px bg-white/[0.07]" />
+                                    </div>
+                                  )}
+                                  {(loserAnalysis.fatal_weakness || loserMissed.length > 0) && (
+                                    <div>
+                                      <Label tone="text-rose-400/70">What lost it</Label>
+                                      <div className="rounded-2xl bg-white/[0.025] p-5">
+                                        {loserAnalysis.fatal_weakness && (
+                                          <div className="flex gap-2.5 mb-2 last:mb-0">
+                                            <span className="bg-rose-400/50 mt-[7px] w-1 h-1 rounded-full shrink-0" />
+                                            <p className="font-['DM_Sans'] text-[12.5px] text-white/65 leading-relaxed">{asText(loserAnalysis.fatal_weakness)}</p>
+                                          </div>
+                                        )}
+                                        {loserMissed.map((m: string, i: number) => (
+                                          <div key={i} className="flex gap-2.5 mb-2 last:mb-0">
+                                            <span className="bg-white/20 mt-[7px] w-1 h-1 rounded-full shrink-0" />
+                                            <p className="font-['DM_Sans'] text-[12.5px] text-white/50 leading-relaxed">{m}</p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </motion.div>
+                              </>
+                            )}
+
+                            {/* Round by round */}
+                            {rounds.length > 0 && (
+                              <>
+                                <Rule />
+                                <motion.div {...rise()} className="py-8">
+                                  <Label>Round by round</Label>
+                                  <div className="rounded-2xl bg-white/[0.025] px-5 py-1">
+                                  {rounds.map((rv: any, i: number) => (
+                                    <div key={i} className="flex items-baseline gap-3.5 py-3 border-b border-white/[0.05] last:border-0">
+                                      <span className="font-['JetBrains_Mono'] text-[11px] text-white/30 w-6 shrink-0">R{rv.r}</span>
+                                      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 translate-y-[-1px]",
+                                        rv.winner === 'pro' ? "bg-emerald-400" : rv.winner === 'con' ? "bg-rose-400" : "bg-white/30")} />
+                                      <span className={cn("font-['DM_Sans'] text-[13px] font-semibold w-[62px] shrink-0",
+                                        rv.winner === 'pro' && 'text-emerald-400/90',
+                                        rv.winner === 'con' && 'text-rose-400/90',
+                                        rv.winner === 'tie' && 'text-white/50')}>
+                                        {rv.winner === 'tie' ? 'Draw' : rv.winner === 'pro' ? 'Agent 01' : 'Agent 02'}
+                                      </span>
+                                      <span className="font-['JetBrains_Mono'] text-[11px] text-white/30 w-10 shrink-0">
+                                        +{typeof rv.margin === 'number' ? rv.margin.toFixed(1) : rv.margin}
+                                      </span>
+                                      <span className="font-['DM_Sans'] text-[12.5px] text-white/60 leading-snug">{asText(rv.swing)}</span>
+                                    </div>
+                                  ))}
+                                  </div>
+                                </motion.div>
+                              </>
+                            )}
+
+                            {/* Reasoning errors */}
+                            {fallacies.length > 0 && (
+                              <>
+                                <Rule />
+                                <motion.div {...rise()} className="py-8">
+                                  <Label tone="text-amber-400/70">Reasoning errors flagged</Label>
+                                  <div className="rounded-2xl bg-amber-400/[0.04] border border-amber-400/15 p-5">
+                                    {fallacies.map((f: string, i: number) => (
+                                      <p key={i} className="font-['DM_Sans'] text-[12.5px] text-white/65 leading-relaxed mb-1.5 last:mb-0">{f}</p>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              </>
+                            )}
                           </>
                         );
                       })()}
-
-                      {/* What each side did and did not do */}
-                      {(winnerPoints.length > 0 || loserAnalysis.fatal_weakness || loserMissed.length > 0) && (
-                        <>
-                          <div className="py-7 grid sm:grid-cols-2 gap-x-8 gap-y-6">
-                            {winnerPoints.length > 0 && (
-                              <div>
-                                <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-emerald-400/70 mb-3">
-                                  What won it
-                                </div>
-                                {winnerPoints.map((s: string, i: number) => (
-                                  <p key={i} className="font-['DM_Sans'] text-[13px] text-white/70 leading-relaxed mb-2">{s}</p>
-                                ))}
-                                {winnerAnalysis.strongest_round && (
-                                  <p className="font-['DM_Sans'] text-[12px] text-white/35 mt-3">
-                                    Strongest in round {winnerAnalysis.strongest_round}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                            {(loserAnalysis.fatal_weakness || loserMissed.length > 0) && (
-                              <div>
-                                <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-rose-400/70 mb-3">
-                                  What lost it
-                                </div>
-                                {loserAnalysis.fatal_weakness && (
-                                  <p className="font-['DM_Sans'] text-[13px] text-white/70 leading-relaxed mb-2">
-                                    {asText(loserAnalysis.fatal_weakness)}
-                                  </p>
-                                )}
-                                {loserMissed.map((m: string, i: number) => (
-                                  <p key={i} className="font-['DM_Sans'] text-[13px] text-white/55 leading-relaxed mb-1.5">{m}</p>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <div className="h-px bg-white/[0.07]" />
-                        </>
-                      )}
-
-                      {/* Round by round, including the margin */}
-                      {rounds.length > 0 && (
-                        <>
-                          <div className="py-7">
-                            <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-white/40 mb-4">
-                              Round by round
-                            </div>
-                            {rounds.map((rv: any, i: number) => (
-                              <div key={i} className="flex items-baseline gap-4 py-2.5 border-b border-white/[0.05] last:border-0">
-                                <span className="font-['JetBrains_Mono'] text-[12px] text-white/35 w-7 shrink-0">R{rv.r}</span>
-                                <span className={cn("font-['DM_Sans'] text-[13px] font-semibold w-[68px] shrink-0",
-                                  rv.winner === 'pro' && 'text-emerald-400/90',
-                                  rv.winner === 'con' && 'text-rose-400/90',
-                                  rv.winner === 'tie' && 'text-white/50')}>
-                                  {rv.winner === 'tie' ? 'Draw' : rv.winner === 'pro' ? 'Agent 01' : 'Agent 02'}
-                                </span>
-                                <span className="font-['JetBrains_Mono'] text-[12px] text-white/35 w-12 shrink-0">
-                                  +{typeof rv.margin === 'number' ? rv.margin.toFixed(1) : rv.margin}
-                                </span>
-                                <span className="font-['DM_Sans'] text-[13px] text-white/60 leading-snug">{asText(rv.swing)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )}
-
-                      {/* Reasoning errors the judge confirmed */}
-                      {fallacies.length > 0 && (
-                        <>
-                          <div className="h-px bg-white/[0.07]" />
-                          <div className="py-7">
-                            <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase text-amber-400/70 mb-3">
-                              Reasoning errors flagged
-                            </div>
-                            {fallacies.map((f: string, i: number) => (
-                              <p key={i} className="font-['DM_Sans'] text-[13px] text-white/65 leading-relaxed mb-1.5">{f}</p>
-                            ))}
-                          </div>
-                        </>
-                      )}
                     </div>
                   </motion.div>
                 );
