@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 from debate.orchestrator import run_debate
 
 from debate.vector_store import get_vector_store
+from debate.history import store_name as history_store_name
 
 app = FastAPI()
 
@@ -44,6 +45,10 @@ async def status():
         "health_check": "/judge/health",
         "websocket": "/ws/debate",
         "vector_db": vs.get_stats(),
+        # Which archive is live. On a free host the file store is wiped by every
+        # restart, so this is the difference between history that survives and
+        # history that quietly does not.
+        "history_store": history_store_name(),
     }
 
 
