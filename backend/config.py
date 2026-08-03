@@ -5,16 +5,48 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── Debater models ───────────────────────────────────────────────────────────
-# Previously hardcoded as "llama-3.1-8b-instant" in three separate files, which
-# made the landing page's model picker fiction and forced both agents to share
-# one small model (the main reason both sides sounded identical and looped).
-DEFAULT_DEBATER_MODEL = "llama-3.1-8b-instant"
+# Groq meters tokens per minute PER MODEL, so which models are chosen decides
+# throughput as much as how many tokens are spent. Measured limits:
+#
+#   llama-3.3-70b-versatile   12,000 tok/min
+#   openai/gpt-oss-20b         8,000
+#   qwen/qwen3.6-27b           8,000
+#   openai/gpt-oss-120b        8,000
+#   llama-3.1-8b-instant       6,000   <- both debaters used to share this
+#
+# Both agents on the single most restricted model is what produced
+# "CON agent failed (R2S1): 429" partway through a debate. Putting each side on
+# its own model draws from separate buckets, so a round no longer contends with
+# itself.
+#
+# The split also fixes a quality problem noted much earlier: two agents running
+# the same weights argue in the same voice and converge on the same framing.
+#
+# The reasoning models are deliberately NOT used here. gpt-oss and qwen emit a
+# thinking pass before their answer — measured, gpt-oss-20b spent 198 of 200
+# completion tokens reasoning and returned two tokens of prose, and 179 even at
+# reasoning_effort="low". For an agent that must produce 120-200 words of
+# argument that is the opposite of token efficiency. They suit the judge, whose
+# job is deliberation and whose output is short JSON; they do not suit debaters.
+DEFAULT_PRO_MODEL = "llama-3.1-8b-instant"
+DEFAULT_CON_MODEL = "llama-3.3-70b-versatile"
 
 
 def debater_model(side: str) -> str:
-    """Model for a debater. PRO_MODEL / CON_MODEL override DEBATER_MODEL."""
+    """
+    Model for a debater. PRO_MODEL / CON_MODEL override DEBATER_MODEL, which in
+    turn overrides the per-side defaults.
+
+    Setting DEBATER_MODEL puts both sides back on one model and one rate bucket —
+    useful as an ablation control, costly in throughput.
+    """
     override = os.getenv("PRO_MODEL" if side == "pro" else "CON_MODEL")
-    return override or os.getenv("DEBATER_MODEL") or DEFAULT_DEBATER_MODEL
+    if override:
+        return override
+    shared = os.getenv("DEBATER_MODEL")
+    if shared:
+        return shared
+    return DEFAULT_PRO_MODEL if side == "pro" else DEFAULT_CON_MODEL
 
 
 # ── Scoring policy ───────────────────────────────────────────────────────────

@@ -83,7 +83,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
     async def fail(message: str) -> None:
         """Archive what the debate produced before reporting that it stopped."""
         record["error"] = message
-        save_debate(record)
+        await save_debate(record)
         await websocket.send_json({"type": "error", "message": message})
 
     await websocket.send_json({
@@ -401,7 +401,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
         return
 
     record["final_verdict"] = final
-    save_debate(record)
+    await save_debate(record)
 
     await websocket.send_json({
         "type": "final_verdict",

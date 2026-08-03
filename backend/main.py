@@ -80,13 +80,13 @@ async def vector_db_query(q: str, top_k: int = 3):
 @app.get("/debates")
 async def debates_list(limit: int = 50, offset: int = 0):
     from debate.history import list_debates
-    return list_debates(limit=limit, offset=offset)
+    return await list_debates(limit=limit, offset=offset)
 
 
 @app.get("/debates/{debate_id}")
 async def debate_detail(debate_id: str):
     from debate.history import get_debate
-    record = get_debate(debate_id)
+    record = await get_debate(debate_id)
     if record is None:
         return JSONResponse(status_code=404, content={"error": "no such debate"})
     return record
@@ -95,14 +95,14 @@ async def debate_detail(debate_id: str):
 @app.delete("/debates/{debate_id}")
 async def debate_delete(debate_id: str):
     from debate.history import delete_debate
-    return {"deleted": delete_debate(debate_id)}
+    return {"deleted": await delete_debate(debate_id)}
 
 
 @app.get("/judge/logs")
 async def judge_log_feed(limit: int = 100):
     """Per-round audit trail across all debates, newest first."""
     from debate.history import judge_logs
-    return {"logs": judge_logs(limit=limit)}
+    return {"logs": await judge_logs(limit=limit)}
 
 
 NGROK_HEADERS = {"ngrok-skip-browser-warning": "true"}
