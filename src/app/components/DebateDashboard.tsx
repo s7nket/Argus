@@ -11,6 +11,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { api, wsUrl } from '../lib/api';
 import { useNavigate } from 'react-router';
 
 /**
@@ -75,7 +76,7 @@ export function DebateDashboard() {
   useEffect(() => {
     const checkJudge = async () => {
       try {
-        const res = await fetch('http://localhost:8000/judge/health');
+        const res = await fetch(api('/judge/health'));
         const data = await res.json();
         setStack(s => ({ ...s, model: data.model, scorer: data.scorer, ftOnline: data.ft_online }));
         if (data.status === 'online') {
@@ -101,7 +102,7 @@ export function DebateDashboard() {
 
     // Corpus size is fetched once, not polled: it only changes when the corpus
     // is rebuilt, and it has no business on a 5-second timer.
-    fetch('http://localhost:8000/')
+    fetch(api('/status'))
       .then(r => r.json())
       .then(d => setStack(s => ({ ...s, docs: d?.vector_db?.evidence_count })))
       .catch(() => { /* card degrades to the judge line alone */ });
@@ -125,7 +126,7 @@ export function DebateDashboard() {
     errorOccurredRef.current = false;
     setError(null);
 
-    const ws = new WebSocket('ws://localhost:8000/ws/debate');
+    const ws = new WebSocket(wsUrl('/ws/debate'));
     wsRef.current = ws;
     ws.onopen = () => {
       ws.send(JSON.stringify({ topic: prompt, rounds }));
@@ -202,8 +203,8 @@ export function DebateDashboard() {
   useEffect(() => {
     if (view === 'active') return;
     const url = view === 'history'
-      ? 'http://localhost:8000/debates?limit=50'
-      : 'http://localhost:8000/judge/logs?limit=100';
+      ? api('/debates?limit=50')
+      : api('/judge/logs?limit=100');
     let cancelled = false;
     (async () => {
       try {
@@ -363,7 +364,7 @@ export function DebateDashboard() {
                 {history?.map((d) => (
                   <button key={d.id} onClick={async () => {
                     try {
-                      const res = await fetch(`http://localhost:8000/debates/${d.id}`);
+                      const res = await fetch(api(`/debates/${d.id}`));
                       setOpenDebate(await res.json());
                     } catch { /* leave the list up rather than blanking the view */ }
                   }} className="w-full text-left mb-3 bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] rounded-2xl p-4 transition-colors">
@@ -825,6 +826,138 @@ export function DebateDashboard() {
                           </p>
                         </div>
                       )}
+
+                      {/* The arithmetic behind the outcome. Everything here was
+                          already computed per round and previously discarded, so
+                          the verdict could only be taken on trust. */}
+                      {d.receipts?.criteria && (() => {
+                        const R = d.receipts;
+                        const win = d.overall_winner;
+                        const bar = (v: number, side: 'pro' | 'con') => (
+                          <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                            <div
+                              className={cn("h-full rounded-full", side === 'pro' ? "bg-emerald-400/70" : "bg-rose-400/70")}
+                              style={{ width: `${Math.max(0, Math.min(100, (v / 10) * 100))}%` }}
+                            />
+                          </div>
+                        );
+                        return (
+                          <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                              <Scale className="w-3.5 h-3.5 text-white/50" />
+                              <span className="font-['DM_Sans'] text-xs font-bold text-white/60 uppercase tracking-wide">Why this verdict</span>
+                            </div>
+
+                            {/* Which criterion actually opened the gap */}
+                            <div className="mb-5">
+                              {(['evidence', 'logic', 'relevance'] as const).map((c) => {
+                                const gap = R.criterion_gaps?.[c] ?? 0;
+                                const decisive = R.decisive_criterion === c;
+                                return (
+                                  <div key={c} className="mb-2.5">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className={cn("font-['JetBrains_Mono'] text-[10px] tracking-widest uppercase",
+                                        decisive ? "text-white/80 font-bold" : "text-white/40")}>
+                                        {c}{decisive && ' · decisive'}
+                                      </span>
+                                      <span className="font-['JetBrains_Mono'] text-[10px] text-white/40">
+                                        {R.criteria.pro[c]} vs {R.criteria.con[c]}
+                                        <span className={cn("ml-2", gap > 0 ? "text-emerald-400/80" : gap < 0 ? "text-rose-400/80" : "text-white/30")}>
+                                          {gap > 0 ? '+' : ''}{gap}
+                                        </span>
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      {bar(R.criteria.pro[c], 'pro')}
+                                      {bar(R.criteria.con[c], 'con')}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Where the margin was earned */}
+                            {R.per_round?.length > 0 && (
+                              <div className="mb-5">
+                                <p className="font-['JetBrains_Mono'] text-[9px] text-white/35 tracking-widest uppercase mb-2">Round contributions</p>
+                                {R.per_round.map((r: any) => (
+                                  <div key={r.r} className="flex items-center justify-between py-1 border-b border-white/[0.04] last:border-0">
+                                    <span className="font-['JetBrains_Mono'] text-[10px] text-white/40">R{r.r}</span>
+                                    <span className="font-['JetBrains_Mono'] text-[10px] text-white/55">
+                                      {r.pro} · {r.con}
+                                      <span className={cn("ml-3 font-bold", r.delta > 0 ? "text-emerald-400/80" : r.delta < 0 ? "text-rose-400/80" : "text-white/35")}>
+                                        {r.delta > 0 ? '+' : ''}{r.delta}
+                                      </span>
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* What the corpus could actually confirm */}
+                            {R.verification && (
+                              <div className="grid sm:grid-cols-2 gap-4 mb-5">
+                                {(['pro', 'con'] as const).map((side) => {
+                                  const v = R.verification[side];
+                                  const cited = R.cited?.[side] ?? [];
+                                  return (
+                                    <div key={side}>
+                                      <p className={cn("font-['JetBrains_Mono'] text-[9px] tracking-widest uppercase mb-1.5",
+                                        side === 'pro' ? "text-emerald-400/70" : "text-rose-400/70")}>
+                                        {side} evidence {win === side && '· winner'}
+                                      </p>
+                                      <p className="font-['JetBrains_Mono'] text-[10px] text-white/45 mb-2">
+                                        {v.supported} verified · {v.refuted} refuted · {v.nei} unverifiable
+                                        {v.precision != null && <span className="text-white/30"> · precision {v.precision}</span>}
+                                      </p>
+                                      {cited.slice(0, 4).map((e: any, k: number) => (
+                                        <p key={k} className="font-['DM_Sans'] text-[11px] text-white/45 leading-snug mb-1">· {asText(e)}</p>
+                                      ))}
+                                      {cited.length === 0 && (
+                                        <p className="font-['DM_Sans'] text-[11px] text-white/25 italic">cited nothing checkable</p>
+                                      )}
+                                      {cited.length > 4 && (
+                                        <p className="font-['JetBrains_Mono'] text-[9px] text-white/25 mt-1">+{cited.length - 4} more</p>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Deductions, shown only when something was actually deducted */}
+                            {(['pro', 'con'] as const).some((s) => {
+                              const p = R.penalties?.[s]; return p && (p.repetition || p.fabrication || p.rounds_evidence_capped);
+                            }) && (
+                              <div className="mb-4 pt-3 border-t border-white/[0.06]">
+                                <p className="font-['JetBrains_Mono'] text-[9px] text-white/35 tracking-widest uppercase mb-2">Deductions applied</p>
+                                {(['pro', 'con'] as const).map((side) => {
+                                  const p = R.penalties?.[side];
+                                  if (!p || (!p.repetition && !p.fabrication && !p.rounds_evidence_capped)) return null;
+                                  return (
+                                    <div key={side} className="font-['JetBrains_Mono'] text-[10px] text-amber-400/70 mb-1">
+                                      {side.toUpperCase()}:
+                                      {!!p.repetition && <span className="ml-2">−{p.repetition} repetition</span>}
+                                      {!!p.fabrication && <span className="ml-2">−{p.fabrication} unsupported claims</span>}
+                                      {!!p.rounds_evidence_capped && <span className="ml-2">{p.rounds_evidence_capped} round(s) evidence-capped</span>}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 pt-3 border-t border-white/[0.06] font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-wide">
+                              <span>scorer: {asText(R.scorer)}</span>
+                              {R.verification_backend && <span>verifier: {asText(R.verification_backend)}</span>}
+                              {R.position_bias != null && (
+                                <span title="Mean score difference between the two label-swapped passes. Near zero means the outcome did not depend on which side wore which label.">
+                                  position bias: {R.position_bias}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                     </div>
                   </motion.div>

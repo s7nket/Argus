@@ -32,8 +32,11 @@ async def startup_event():
         print(f"[VectorDB] ChromaDB ready. Seeded {seeded} evidence documents.")
 
 
-@app.get("/")
-async def root():
+# Deployed, "/" serves the built single-page app, so the backend status moved to
+# its own path. "/" still answers with this payload when no frontend build is
+# present, which is the local backend-only workflow.
+@app.get("/status")
+async def status():
     vs = get_vector_store()
     return {
         "name": "Argus AI Debate Backend",
@@ -41,7 +44,6 @@ async def root():
         "health_check": "/judge/health",
         "websocket": "/ws/debate",
         "vector_db": vs.get_stats(),
-        "frontend_url": "http://localhost:5174/"
     }
 
 
@@ -207,3 +209,48 @@ async def debate_websocket(websocket: WebSocket):
             await websocket.send_json({"type": "error", "message": str(e)})
         except:
             pass
+
+
+# ── Frontend ─────────────────────────────────────────────────────────────────
+# Deployed, one process serves both halves: same origin, so no CORS to configure
+# and no second URL to keep in sync. Mounted last so every API route above wins.
+#
+# When no build exists — the local `uvicorn` + `npm run dev` workflow — these
+# routes simply do not register and "/" falls back to the status payload.
+
+FRONTEND_DIST = os.getenv(
+    "FRONTEND_DIST",
+    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dist"),
+)
+
+if os.path.isdir(FRONTEND_DIST):
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    _INDEX = os.path.join(FRONTEND_DIST, "index.html")
+    _ASSETS = os.path.join(FRONTEND_DIST, "assets")
+    if os.path.isdir(_ASSETS):
+        app.mount("/assets", StaticFiles(directory=_ASSETS), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa(full_path: str):
+        """
+        Serve the SPA, letting react-router own client-side paths.
+
+        A deep link such as /debate-dashboard has no file behind it, so a plain
+        static mount would 404 on refresh. Real files are served when they exist;
+        everything else returns index.html and the router takes over.
+        """
+        candidate = os.path.normpath(os.path.join(FRONTEND_DIST, full_path))
+        # normpath collapses "..", so confirm the result stayed inside the build.
+        if candidate.startswith(FRONTEND_DIST) and os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(_INDEX)
+
+    print(f"[frontend] serving build from {FRONTEND_DIST}")
+else:
+    @app.get("/", include_in_schema=False)
+    async def root_no_build():
+        return await status()
+
+    print(f"[frontend] no build at {FRONTEND_DIST} — API only")

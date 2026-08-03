@@ -1,0 +1,24 @@
+node_modules
+dist
+.vite
+.git
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+
+# Never ship secrets into an image.
+.env
+backend/.env
+
+# Rebuilt in the container; a host-built index is platform-specific and large.
+backend/chroma_db
+
+# Runtime output and refetchable caches.
+backend/data/debates
+backend/data/ibm_rank_*.json
+
+docs
+notebooks
+*.md

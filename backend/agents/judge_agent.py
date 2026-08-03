@@ -652,6 +652,99 @@ async def judge_round(
     }
 
 
+def _verdict_receipts(all_rounds: list[dict]) -> dict:
+    """
+    Aggregate the per-round audits into the evidence behind the verdict.
+
+    Everything here was already computed and then thrown away: the judge returned
+    prose about who won while the extracted claims, the corpus verification, and
+    the penalties that actually moved the totals stayed buried in each round's
+    audit. A reader was left taking the outcome on trust.
+
+    This exposes the arithmetic instead — which criterion produced the gap, which
+    rounds contributed it, what each side cited and whether the corpus confirmed
+    it, and every penalty applied with its reason.
+    """
+    if not all_rounds:
+        return {}
+
+    n = len(all_rounds)
+
+    def mean(side: str, criterion: str) -> float:
+        return round(sum(r[f"{side}_scores"].get(criterion, 0) for r in all_rounds) / n, 2)
+
+    criteria = {
+        side: {c: mean(side, c) for c in ("evidence", "logic", "relevance")}
+        for side in ("pro", "con")
+    }
+    # The criterion that opened the largest gap is the honest answer to "why".
+    gaps = {c: round(criteria["pro"][c] - criteria["con"][c], 2)
+            for c in ("evidence", "logic", "relevance")}
+    decisive_criterion = max(gaps, key=lambda c: abs(gaps[c]))
+
+    per_round = [{
+        "r": i + 1,
+        "pro": r["pro_scores"]["total"],
+        "con": r["con_scores"]["total"],
+        "delta": round(r["pro_scores"]["total"] - r["con_scores"]["total"], 1),
+        "winner": r["round_winner"],
+    } for i, r in enumerate(all_rounds)]
+
+    def verification(side: str) -> dict:
+        supported = refuted = nei = 0
+        checked = 0
+        for r in all_rounds:
+            g = (r.get("audit") or {}).get(f"{side}_grounding") or {}
+            supported += g.get("supported", 0)
+            refuted += g.get("refuted", 0)
+            nei += g.get("nei", 0)
+            checked += g.get("claims_checked", 0)
+        adjudicable = supported + refuted
+        return {
+            "claims_checked": checked,
+            "supported": supported,
+            "refuted": refuted,
+            "nei": nei,
+            "coverage": round(adjudicable / checked, 2) if checked else None,
+            "precision": round(supported / adjudicable, 2) if adjudicable else None,
+        }
+
+    def cited(side: str) -> list[str]:
+        out: list[str] = []
+        for r in all_rounds:
+            out.extend((r.get("audit") or {}).get(f"{side}_evidence_cited", []) or [])
+        return _dedup_claims(out)
+
+    def penalties(side: str) -> dict:
+        rep = round(sum((r.get("audit") or {}).get(f"{side}_repetition_penalty", 0) or 0
+                        for r in all_rounds), 1)
+        fab = round(sum(((r.get("audit") or {}).get(f"{side}_grounding") or {}).get("fabrication_penalty", 0) or 0
+                        for r in all_rounds), 1)
+        # A capped round is one where the corpus refused to certify the evidence
+        # score the scorer wanted to give.
+        capped = sum(1 for r in all_rounds
+                     if (((r.get("audit") or {}).get(f"{side}_grounding") or {}).get("evidence_cap", 10.0) < 10.0))
+        return {"repetition": rep, "fabrication": fab, "rounds_evidence_capped": capped}
+
+    disagreements = [(r.get("audit") or {}).get("label_disagreement") for r in all_rounds]
+    disagreements = [d for d in disagreements if d is not None]
+
+    return {
+        "criteria": criteria,
+        "criterion_gaps": gaps,
+        "decisive_criterion": decisive_criterion,
+        "per_round": per_round,
+        "verification": {"pro": verification("pro"), "con": verification("con")},
+        "cited": {"pro": cited("pro"), "con": cited("con")},
+        "penalties": {"pro": penalties("pro"), "con": penalties("con")},
+        "scorer": (all_rounds[0].get("audit") or {}).get("scorer"),
+        "verification_backend": (all_rounds[0].get("audit") or {}).get("verification_backend"),
+        # Mean disagreement between the two label-swapped passes. Near zero means
+        # the result did not depend on which side wore which label.
+        "position_bias": round(sum(disagreements) / len(disagreements), 2) if disagreements else None,
+    }
+
+
 def _verdict_confidence(pro_total: float, con_total: float) -> dict:
     """
     Attach a conformal verdict set to the final result.
@@ -818,6 +911,9 @@ async def judge_final_verdict(
     result.setdefault("winner", {})
     result["winner"]["strongest_round"] = strongest_round
     result["confidence"] = _verdict_confidence(pro_total, con_total)
+    # The arithmetic behind the outcome, so the verdict can be checked rather
+    # than believed.
+    result["receipts"] = _verdict_receipts(all_rounds)
 
     # Per-round winners and margins come from the scores, never from the model.
     model_rounds = {r.get("r"): r for r in (result.get("rounds") or []) if isinstance(r, dict)}
