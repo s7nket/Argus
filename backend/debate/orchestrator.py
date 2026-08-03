@@ -363,6 +363,19 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
         # beside the text that produced them rather than numbers alone.
         record["rounds"].append({"round": round_num, "exchange": list(exchange), **verdict})
 
+        # Persist after every round, not only at the final verdict.
+        #
+        # The error paths already archive, but nothing survives the process
+        # simply going away — a redeploy, an out-of-memory kill, a closed tab.
+        # A three-round debate takes minutes and costs real tokens, and losing
+        # all of it because the last round never arrived is the worst possible
+        # trade. Observed exactly that: a host restart mid-debate left two
+        # completed rounds unrecorded.
+        #
+        # The write is an upsert keyed on the debate id, so each round replaces
+        # the previous snapshot rather than accumulating duplicates.
+        await save_debate(record)
+
         await websocket.send_json({
             "type": "round_verdict",
             "round": round_num,
