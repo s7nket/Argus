@@ -19,6 +19,7 @@ to obey what the server said rather than guess.
 """
 
 import asyncio
+import contextvars
 import logging
 import random
 import re
@@ -26,6 +27,32 @@ import re
 import config
 
 logger = logging.getLogger("argus.llm_retry")
+
+# A caller can register an async callback here to be told when a call is waiting
+# out a rate limit. Without it a retry is completely silent, and since a single
+# wait can run to LLM_RATE_LIMIT_MAX_WAIT seconds — several minutes across
+# attempts — the UI showed nothing at all between clicking Start Debate and the
+# eventual failure. That is indistinguishable from a broken button.
+#
+# A ContextVar rather than a global: it propagates into the tasks a debate
+# spawns without being visible to unrelated requests handled concurrently.
+_retry_listener: contextvars.ContextVar = contextvars.ContextVar("argus_retry_listener", default=None)
+
+
+def set_retry_listener(fn) -> None:
+    """Register an async fn(attempt, total, delay, rate_limited) for this context."""
+    _retry_listener.set(fn)
+
+
+async def _notify(attempt: int, total: int, delay: float, rate_limited: bool) -> None:
+    fn = _retry_listener.get()
+    if fn is None:
+        return
+    try:
+        await fn(attempt, total, delay, rate_limited)
+    except Exception:
+        # Telling the user about a delay must never itself break the call.
+        pass
 
 # "Please try again in 9.81s" / "try again in 1m30s"
 _WAIT_RE = re.compile(r"try again in\s+(?:(\d+)m)?([\d.]+)s", re.IGNORECASE)
@@ -81,6 +108,33 @@ def _is_transient(exc: Exception) -> bool:
                ("timeout", "connection", "temporarily unavailable", "service unavailable"))
 
 
+import os
+
+_API_KEYS = []
+_CURRENT_KEY_IDX = 0
+
+def _init_api_keys():
+    global _API_KEYS
+    if not _API_KEYS:
+        keys = []
+        for var in ("GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"):
+            raw = os.getenv(var, "")
+            keys.extend([k.strip() for k in raw.split(",") if k.strip()])
+        _API_KEYS = keys if keys else [""]
+
+def _is_quota_exceeded(exc: Exception) -> bool:
+    status = getattr(exc, "status_code", None)
+    err_text = str(exc).lower()
+    if status == 401:
+        return True
+    if status == 429:
+        if "insufficient_quota" in err_text or "billing" in err_text or "please upgrade" in err_text:
+            return True
+        requested = _server_requested_delay(exc)
+        if requested is None or requested > 300:
+            return True
+    return False
+
 async def groq_call(fn, *args, **kwargs):
     """
     Call a Groq endpoint, waiting out rate limits instead of failing the debate.
@@ -97,7 +151,11 @@ async def groq_call(fn, *args, **kwargs):
     Non-retryable errors (bad key, bad model, malformed request) propagate
     immediately: retrying those just delays a failure the caller must see.
     """
-    attempts = max(1, config.LLM_MAX_ATTEMPTS)
+    _init_api_keys()
+    global _CURRENT_KEY_IDX
+    
+    base_attempts = max(1, config.LLM_MAX_ATTEMPTS)
+    attempts = base_attempts * max(1, len(_API_KEYS))
     last: Exception | None = None
 
     for attempt in range(attempts):
@@ -105,6 +163,20 @@ async def groq_call(fn, *args, **kwargs):
             return await fn(*args, **kwargs)
         except Exception as e:                     # noqa: BLE001 - re-raised below
             last = e
+            
+            quota_exceeded = _is_quota_exceeded(e)
+            if quota_exceeded and len(_API_KEYS) > 1:
+                _CURRENT_KEY_IDX = (_CURRENT_KEY_IDX + 1) % len(_API_KEYS)
+                new_key = _API_KEYS[_CURRENT_KEY_IDX]
+                
+                client = getattr(getattr(fn, "__self__", None), "_client", None)
+                if client and hasattr(client, "api_key"):
+                    client.api_key = new_key
+                    
+                logger.warning(f"Quota/Auth error. Switched to key index {_CURRENT_KEY_IDX}")
+                print(f"[llm] Quota/Auth error — switching API key (now using index {_CURRENT_KEY_IDX})")
+                continue
+                
             rate_limited = _is_rate_limit(e)
             if not (rate_limited or _is_transient(e)) or attempt == attempts - 1:
                 raise
@@ -118,7 +190,7 @@ async def groq_call(fn, *args, **kwargs):
                 delay = min(requested + 0.5, config.LLM_RATE_LIMIT_MAX_WAIT)
             else:
                 # Our own guess, so our own cap applies.
-                delay = min(config.LLM_BACKOFF_BASE * (2 ** attempt), config.LLM_BACKOFF_MAX)
+                delay = min(config.LLM_BACKOFF_BASE * (2 ** (attempt % base_attempts)), config.LLM_BACKOFF_MAX)
 
             delay += random.uniform(0, 0.75)
             logger.warning(
@@ -127,6 +199,7 @@ async def groq_call(fn, *args, **kwargs):
             )
             print(f"[llm] {'429' if rate_limited else type(e).__name__} — "
                   f"retry {attempt + 1}/{attempts - 1} in {delay:.1f}s")
+            await _notify(attempt + 1, attempts - 1, delay, rate_limited)
             await asyncio.sleep(delay)
 
     raise last if last else RuntimeError("groq_call exhausted with no exception")

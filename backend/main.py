@@ -1,19 +1,31 @@
 import asyncio
 import os
+import sys
 import urllib.request
 import urllib.error
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv()
+# ── Path bootstrap ────────────────────────────────────────────────────────────
+# The codebase mixes two import styles:
+#   • main.py / orchestrator.py use  `from backend.debate.X`  (absolute from root)
+#   • internal modules use           `from config import …`    (relative to backend/)
+# Adding both directories satisfies both styles regardless of CWD.
+_backend_dir = os.path.dirname(os.path.abspath(__file__))   # …/Argus/backend
+_project_root = os.path.dirname(_backend_dir)               # …/Argus
+for _p in (_project_root, _backend_dir):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+load_dotenv(os.path.join(_backend_dir, ".env"), override=True)
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from debate.orchestrator import run_debate
+from backend.debate.orchestrator import run_debate
 
-from debate.vector_store import get_vector_store
-from debate.history import store_name as history_store_name
+from backend.debate.vector_store import get_vector_store
+from backend.debate.history import store_name as history_store_name
 
 app = FastAPI()
 
@@ -130,22 +142,19 @@ NGROK_HEADERS = {"ngrok-skip-browser-warning": "true"}
 
 def _ft_judge_probe_urls(ft_url: str) -> list[str]:
     base = ft_url.rstrip("/")
-    return [f"{base}/openapi.json", f"{base}/ft-judge"]
+    # /health requires the FastAPI app inside the Kaggle notebook to be alive.
+    # /openapi.json is served by ngrok itself and would return 200 even when the
+    # Kaggle session has expired, causing a false-positive online report.
+    return [f"{base}/health"]
 
 
 def _probe_url_sync(url: str, headers: dict) -> bool:
     try:
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=2.5) as response:
+            # Only accept 200 — the /health endpoint returns 200 with a JSON body
+            # when the scorer is live. Any other status means it is not ready.
             return response.status == 200
-    except urllib.error.HTTPError as e:
-        # 405/422 prove a real handler is behind the URL and only rejected the
-        # method or payload. 404 does NOT: an offline ngrok tunnel serves its own
-        # 404 page, so accepting it reported the Kaggle scorer as online while
-        # every scoring call was silently falling back to Groq.
-        if e.code in (200, 405, 422):
-            return True
-        return False
     except Exception:
         return False
 

@@ -25,3 +25,16 @@ backend/data/ibm_rank_*.json
 # on every merge. The evaluation records (pairs.json, scored_pairs.json) are
 # versioned deliberately; these are not.
 backend/data/debates/
+
+# Temp / scratch / exports
+dump.txt
+output.txt
+backend/output.txt
+session-export*
+
+# Large datasets
+backend/data/debates.json
+backend/data/ddo_pool.json
+backend/data/train/
+
+

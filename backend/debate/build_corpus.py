@@ -101,6 +101,29 @@ def fetch_extract(client: httpx.Client, title: str) -> str | None:
     return None
 
 
+def search_titles(client: httpx.Client, query: str, limit: int = 3) -> list[str]:
+    """Article titles matching a free-text query.
+
+    The corpus is normally built from titles chosen by hand. A debate resolution
+    is not a title — "We should ban factory farming" matches no article — so an
+    evaluation over real debate topics needs this step to turn each resolution
+    into something fetchable. Returns fewer than `limit` titles, or none, rather
+    than guessing: an empty result means the corpus will not cover that debate,
+    and it is better to know that before scoring than to discover it afterwards
+    in a grounding coverage of zero.
+    """
+    try:
+        r = client.get(API, params={
+            "action": "query", "list": "search", "srsearch": query,
+            "srlimit": limit, "srnamespace": "0", "format": "json",
+        }, timeout=30.0)
+        r.raise_for_status()
+        return [h["title"] for h in r.json().get("query", {}).get("search", [])]
+    except Exception as e:
+        print(f"    search failed for {query[:50]!r}: {type(e).__name__}: {e}")
+        return []
+
+
 def split_passages(text: str, title: str) -> list[dict]:
     """
     Split an extract into passages, dropping reference and navigation sections.
@@ -240,6 +263,14 @@ if __name__ == "__main__":
     ap.add_argument("--stats", action="store_true", help="report corpus composition and exit")
     ap.add_argument("--reset", action="store_true", help="drop indexed Wikipedia passages first")
     ap.add_argument("--delay", type=float, default=0.2, help="seconds between requests")
+    ap.add_argument("--search", action="store_true",
+                    help="treat --topics as free-text queries (e.g. debate resolutions) "
+                         "and index the best-matching articles instead of exact titles")
+    ap.add_argument("--per-query", type=int, default=3,
+                    help="articles to take per query when --search is used")
+    ap.add_argument("--from-file",
+                    help="read one query or title per line from this file "
+                         "(use with `python -m eval.ddo --topics > topics.txt`)")
     args = ap.parse_args()
 
     if args.stats:
@@ -248,6 +279,38 @@ if __name__ == "__main__":
     if args.reset:
         reset_wikipedia()
 
-    result = build(args.topics or DEFAULT_TOPICS, delay=args.delay)
+    requested = list(args.topics or [])
+    if args.from_file:
+        with open(args.from_file, encoding="utf-8") as fh:
+            requested += [ln.strip() for ln in fh if ln.strip()]
+
+    if args.search:
+        if not requested:
+            print("--search needs queries via --topics or --from-file")
+            sys.exit(1)
+        n_queries = len(requested)
+        titles, missed = [], []
+        with httpx.Client(headers=HEADERS, follow_redirects=True) as client:
+            for q in requested:
+                hits = search_titles(client, q, args.per_query)
+                if hits:
+                    titles.extend(hits)
+                else:
+                    missed.append(q)
+                time.sleep(args.delay)
+        # Dedupe while keeping order, so repeated topics do not refetch.
+        seen, requested = set(), []
+        for t in titles:
+            if t not in seen:
+                seen.add(t)
+                requested.append(t)
+        print(f"resolved {len(requested)} unique articles from {n_queries} queries")
+        if missed:
+            print(f"NO MATCH for {len(missed)} quer(ies) — these debates will have no "
+                  f"corpus support:")
+            for q in missed[:10]:
+                print(f"  - {q[:70]}")
+
+    result = build(requested or DEFAULT_TOPICS, delay=args.delay)
     print(f"\n{result}")
     print("\nRe-run `python test_verifier.py` to see coverage against the larger corpus.")
