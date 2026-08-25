@@ -1,0 +1,151 @@
+{
+  "dataset_name": "ARGUS_debate_winner_evaluation",
+  "version": "1.1",
+  "label_definition": {
+    "PRO": "The side arguing FOR the stated motion.",
+    "CON": "The side arguing AGAINST the stated motion."
+  },
+  "evaluation_target": "Predict whether PRO or CON won the real-world debate.",
+  "debates": [
+    {
+      "id": 1,
+      "topic": "The U.N. Should Admit Palestine As A Full Member State",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/the-u-n--should-admit-palestine-as-a-full-member-state--decides-intelligence-squared-u-s--audience%2Cc9206379"
+    },
+    {
+      "id": 2,
+      "topic": "Obesity Is the Government's Business",
+      "winner": "CON",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/obesity-is-not-the-government-s-business--decides-intelligence-squared-us-audience%2Cc9218065"
+    },
+    {
+      "id": 3,
+      "topic": "China Does Capitalism Better than America",
+      "winner": "CON",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/intelligence-squared-u-s--audience-does-not-agree-that--china-does-capitalism-better-than-america-%2Cc9231817"
+    },
+    {
+      "id": 4,
+      "topic": "When It Comes to Politics, the Internet Is Closing Our Minds",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/intelligence-squared-u-s--audience-agrees-that--when-it-comes-to-politics--the-internet-is-closing-o%2Cc9248331"
+    },
+    {
+      "id": 5,
+      "topic": "Ban College Football",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/intelligence-squared-u-s--new-york-audience-decides-to--ban-college-football-%2Cc9258216"
+    },
+    {
+      "id": 6,
+      "topic": "Two Cheers for Super PACs: Money in Politics Is Still Overregulated",
+      "winner": "CON",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/intelligence-squared-u-s--new-york-audience-decides-money-in-politics-is-not-overregulated%2Cc9305023"
+    },
+    {
+      "id": 7,
+      "topic": "Ration End-of-Life Care",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/intelligence-squared-u-s--audience-agrees-to--ration-end-of-life-care-%2Cc9316997"
+    },
+    {
+      "id": 8,
+      "topic": "Better Elected Islamists than Dictators",
+      "winner": "CON",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared?k=John+Donvan"
+    },
+    {
+      "id": 9,
+      "topic": "The Rich Are Taxed Enough",
+      "winner": "CON",
+      "source": "GBH / Intelligence Squared U.S.",
+      "source_url": "https://www.wgbh.org/news/2012-10-30/are-the-rich-taxed-enough"
+    },
+    {
+      "id": 10,
+      "topic": "The World Would Be Better Off Without Religion",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared?k=John+Donvan"
+    },
+    {
+      "id": 11,
+      "topic": "Too Many Kids Go to College",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/yes---too-many-kids-go-to-college--in-first-ever-chicago-intelligence-squared-u-s--debate%2Cc9173865"
+    },
+    {
+      "id": 12,
+      "topic": "Congress Should Pass Obama's Jobs Plan",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared?k=NPR"
+    },
+    {
+      "id": 13,
+      "topic": "It's Time to End the War on Terror",
+      "winner": "CON",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared?k=NPR"
+    },
+    {
+      "id": 14,
+      "topic": "Freedom of the Press Does Not Extend to State Secrets",
+      "winner": "CON",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/at-intelligence-squared-us-debate-audience-says-freedom-of-the-press-does-extend-to-state-secrets-%2Cc9133352"
+    },
+    {
+      "id": 15,
+      "topic": "Grandma's Benefits Imperil Junior's Future",
+      "winner": "CON",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared?k=Skirball+Center"
+    },
+    {
+      "id": 16,
+      "topic": "Men Are Finished",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S.",
+      "source_url": "https://news.cision.com/intelligence-squared/r/overwhelming-victory-for-the-motion--men-are-finished--at-intelligence-squared-u-s--debates%2Cc9164640"
+    },
+    {
+      "id": 17,
+      "topic": "America Cannot and Will Not Succeed in Afghanistan and Pakistan",
+      "winner": "CON",
+      "source": "Intelligence Squared U.S. transcript",
+      "source_url": "https://s3.us-east-1.amazonaws.com/files.cnas.org/documents/John-Nagl_Intelligence-Squared-Debate.pdf"
+    },
+    {
+      "id": 18,
+      "topic": "Genetically Engineered Crops",
+      "winner": "PRO",
+      "source": "Intelligence Squared U.S. debate report",
+      "source_url": "https://www.intelligencesquaredus.org/wp-content/uploads/2022/03/watch-the-intelligence-squared-gmo-debate.pdf"
+    },
+    {
+      "id": 19,
+      "topic": "Don't Trust the Promise of Artificial Intelligence",
+      "winner": "PRO",
+      "source": "Institute for Ethics and Emerging Technologies",
+      "source_url": "https://ieet.org/archive/articles/hamilton20160401.html"
+    },
+    {
+      "id": 20,
+      "topic": "Silicon Valley Has Lost Its Soul",
+      "winner": "CON",
+      "source": "WIRED",
+      "source_url": "https://www.wired.com/story/intelligence-squared-debate-silicon-valley-lost-its-soul/"
+    }
+  ]
+}

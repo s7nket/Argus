@@ -1,0 +1,882 @@
+[
+  {
+    "id": "Resolved-There-is-no-afterlife./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "God-Does-exist/6/",
+    "true": "con",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": false,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "mp3-players-should-be-allowed-in-public-schools/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": true,
+    "failed": false
+  },
+  {
+    "id": "Smoking-in-public-places/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "The-Cleaners/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Border-Fence/14/",
+    "true": "con",
+    "v3": "pro",
+    "v3_swapped": "con",
+    "correct": false,
+    "flipped": true,
+    "failed": false
+  },
+  {
+    "id": "MU-is-better-than-KU-football/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "where-oh-where-has-my-little-dog-gone/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Solarman1969-should-be-removed-from-Debate.org/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Is-suicide-bombing-moral/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Resolved-Tell-others-that-the-water-will-be-shut-off./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": true,
+    "failed": false
+  },
+  {
+    "id": "NiamCs-Music-Tourney-R1/1/",
+    "true": "con",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": false,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "The-U.S.-regime-should-be-disarmed/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Yo-Momma-Fight/2/",
+    "true": "pro",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": false,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Picking-your-teeth-with-your-fingers-is-better-than-picking-your-teeth-with-a-toothpick./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": true,
+    "failed": false
+  },
+  {
+    "id": "the-death-penalty-is-justified./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Banning-guns/2/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Little-brothers-are-less-of-a-pain-than-older-brothers/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Debate.org-this-website-should-allow-all-years-of-birth-from-13-years-ago-up-to-year-zero/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "People-who-exercise-often-do-not-kill-people-for-no-reason/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "If-God-doesnt-exist-we-should-not-show-the-evidence-to-the-world./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Gay-Marriage/73/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "bible-fallible/1/",
+    "true": "con",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": false,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "nasa-should-be-shut-down/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Does-God-exist/67/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Some-people-think-you-are-bad-for-this-website/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Genetically-Modified-Food/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "religion-is-false/4/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "You-have-either-eternal-life-now-or-eternal-death-now./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Resolved-God-doesnt-exist./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Universal-health-care-nuts-should-also-be-in-favor-of-universal-food-shelter-clothing-etc./1/",
+    "true": "pro",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": false,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Social-Security/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "All-human-beings-belong-to-a-same-race./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Creation-vs.-Evolution./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "ROGER-CLEMMENS-HAS-NEVER-USED-PERFORMANCE-ENHANCING-DRUGS-AND-IF-HE-DID-HE-SHOULD-STILL-BE-IN-HOF/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "should-religion-be-based-on-the-parents-wants/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Is-it-like-idol-worship-to-learn-about-evolution/1/",
+    "true": "pro",
+    "v3": "con",
+    "v3_swapped": "pro",
+    "correct": false,
+    "flipped": true,
+    "failed": false
+  },
+  {
+    "id": "I-am-the-greatest-person-ever./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Is-America-the-greatest-country-in-the-world/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Gun-Rights/7/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Should-assisted-suicide-be-legal/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Atheists-strictly-create-their-own-false-reality./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "People-w-Houses-in-areas-prone-to-natural-disaster-give-up-their-right-to-government-bailouts/1/",
+    "true": "pro",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": false,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Gay-marriage/100/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "People-who-buy-hummers-have-small-private-parts./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Capitalism-works/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Theism-is-more-beneficial-than-atheism/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Dr.-Pepper-Coca-Cola/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "The-Messiah-loves-everyone-and-the-world-Wrong-HE-does-not-love-everyone-including-the-world/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Abortion-should-be-legal./4/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "A-Poetry-Contest/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "gcsd/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Welfare-Should-Be-Dissolved-or-Heavily-Regulated/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Abortion-Should-Be-Legal/2/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Nirvana-is-a-better-band-than-RHCP/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "politics-is-the-topic/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "do-the-masses-have-any-wisdom/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Resolved-It-is-impossible-for-Pro-to-fully-win-this-debate-a-revision-of-two-flawed-resolutions./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Political-party-manifestos-should-be-legally-binding/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": true,
+    "failed": false
+  },
+  {
+    "id": "Is-peace-possible-for-the-countries-of-Earth/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "In-general-violence-in-video-games-has-not-caused-real-world-violence./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Global-warming-is-man-made/2/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Do-Richard-Dawkins-words-really-describe-God-of-the-old-testament/1/",
+    "failed": true
+  },
+  {
+    "id": "Extra-Activites-should-be-added-to-primary-classes-every-week./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Useless-coincidence-contest/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "izbo10-is-an-Idiot-and-a-Troll/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Gay-marriage-should-be-legal./3/",
+    "failed": true
+  },
+  {
+    "id": "Resolved-That-on-balance-the-rise-of-Brazil-Russia-India-and-China-BRIC-has-had-a-positive-i/2/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Evil-proves-God-does-not-exist-Part-2/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Girls-are-better-than-boys./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Finish-my-Story/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Is-child-behavior-better-or-worse-than-it-was-years-ago/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Frozen-is-better-than-all-the-crap-you-watch/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Should-Abortion-be-abolished/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Al-Sharpton-and-Jesse-Jackson-are-NO-MLK-and-are-racist/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "America-Does-Not-Need-More-STEM-Education/3/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Anarcho-capitalism-would-be-a-more-humanitarian-form-of-social-organization-than-Anarcho-communism/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Women-in-the-Kitchen/3/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Should-religion-and-politics-be-separated/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Would-Changing-the-Past-Via-Time-Travel-be-Moral/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Psychotherapy-vs.-Pharmacotherapy/1/",
+    "failed": true
+  },
+  {
+    "id": "same-thing-self-defense-tillers-abortions-and-someone-killing-two-year-olds/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": true,
+    "failed": false
+  },
+  {
+    "id": "Child-Limit-Law/2/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "always-make-your-own-sandwhiches../1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "taxes-in-the-united-states-should-be-signifigantly-lowered-currently/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Chess-should-not-be-an-Olympic-sport/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Was-Lincoln-Oppressive-to-the-North/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Why-Justin-Beiber-is-not-a-good-influence-on-kids/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "The-biblical-God-probably-doesnt-exist./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Should-Shakespeare-be-allowed-in-schools/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Video-Games-are-a-form-of-art./1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "10-Kemonomimi-Nekomimi-is-not-furry./1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Should-the-U.N.-Monitor-Civil-Rights-in-Non-Member-Nations/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Black-is-color-regardless-of-definition/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Gay-Marriage-should-be-legalized./6/",
+    "failed": true
+  },
+  {
+    "id": "America-should-not-have-welfare/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "0.0-r-1-0.0/1/",
+    "true": "con",
+    "v3": "con",
+    "v3_swapped": "con",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "schools-and-internet-blocking-websites/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Liebeck-v.-McDonald-s-Restaurants-The-McDonalds-Coffee-Case-was-not-frivolous/1/",
+    "true": "con",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": false,
+    "flipped": false,
+    "failed": false
+  },
+  {
+    "id": "Are-zombies-better-than-vampires/1/",
+    "true": "pro",
+    "v3": "pro",
+    "v3_swapped": "pro",
+    "correct": true,
+    "flipped": false,
+    "failed": false
+  }
+]

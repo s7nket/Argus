@@ -1,11 +1,12 @@
 import asyncio
 import re
 from fastapi import WebSocket
-from agents.pro_agent import generate_pro_argument
-from agents.con_agent import generate_con_argument
-from agents.rebuttal_agent import generate_pro_rebuttal, generate_con_rebuttal
-from agents.judge_agent import judge_round, judge_final_verdict
+from backend.agents.pro_agent import generate_pro_argument
+from backend.agents.con_agent import generate_con_argument
+from backend.agents.rebuttal_agent import generate_pro_rebuttal, generate_con_rebuttal
+from backend.agents.judge_agent import judge_round, judge_final_verdict
 from debate.history import new_debate_id, save_debate
+from llm_retry import set_retry_listener
 from debate.topic import parse_topic
 
 
@@ -22,19 +23,24 @@ from debate.topic import parse_topic
 # { "type": "error",          "message": str }
 #
 # Each main round has 3 sub-rounds:
-#   Sub-round 1 — Opening : PRO makes main argument → CON responds
-#   Sub-round 2 — Counter : PRO rebuts CON          → CON doubles down
-#   Sub-round 3 — Justify : PRO justifies position  → CON closing counter
+#   Sub-round 1 — Opening  : PRO makes its argument → CON responds
+#   Sub-round 2 — Rebuttal : PRO rebuts CON         → CON answers back
+#   Sub-round 3 — Justify  : PRO justifies position → CON closing counter
+#
+# Two rounds rather than three. Nine speeches per side was roughly double any
+# competitive format and took about five minutes; six keeps the full argue →
+# rebut → justify arc intact while halving the judging cycles, which is where
+# most of the time actually went.
 #
 # History stored across rounds:
-#   pro_history / con_history store FULL round summaries (all 3 sub-rounds),
-#   not just the opening argument — so agents in later rounds have complete
-#   memory of everything said in prior rounds.
+#   pro_history / con_history store each round's opening, so agents in later
+#   rounds recall what was argued before without the context growing without
+#   bound.
 # ──────────────────────────────────────────────────────────────────────────────
 
 SUB_ROUND_LABELS = {
     1: "Opening",
-    2: "Counter",
+    2: "Rebuttal",
     3: "Justify",
 }
 
@@ -55,14 +61,54 @@ _LEADING_PUNCT_RE = re.compile(r'^[\s,.;:—–-]+')
 def clean_text(text: str) -> str:
     if not text:
         return ""
+    text = re.sub(r'<think>.*?(?:</think>|$)', '', text, flags=re.DOTALL)
     return _LEADING_PUNCT_RE.sub('', _LABEL_RE.sub('', text)).strip()
 
 
-async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
+async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
+
+    async def on_retry(attempt: int, total: int, delay: float, rate_limited: bool) -> None:
+        """
+        Tell the client a call is waiting rather than leaving it staring at
+        nothing. A rate-limit wait can run to LLM_RATE_LIMIT_MAX_WAIT seconds,
+        several minutes across attempts, and silence for that span is
+        indistinguishable from a broken button.
+
+        Registered before anything else runs, because the first call a debate
+        makes is the topic parse — and that is precisely where a debate was
+        observed hanging with no output at all.
+        """
+        try:
+            await websocket.send_json({
+                "type": "notice",
+                "reason": "rate_limit" if rate_limited else "transient_error",
+                "attempt": attempt,
+                "of": total,
+                "retry_in": round(delay),
+                "message": (
+                    f"Rate limit reached — waiting {round(delay)}s before retrying "
+                    f"(attempt {attempt} of {total})."
+                    if rate_limited else
+                    f"Upstream hiccup — retrying in {round(delay)}s (attempt {attempt} of {total})."
+                ),
+            })
+        except Exception:
+            pass
+
+    set_retry_listener(on_retry)
+
+    # Let the client know work has begun before the first upstream call, so a
+    # slow topic parse does not look like nothing happening.
+    await websocket.send_json({"type": "accepted", "topic": topic})
+
     # Resolve the topic into two explicit stances BEFORE any agent runs. On a
     # comparative topic ("Athens or Sparta?") the old code told CON to "argue
     # against the topic", so CON attacked Athens and nobody ever argued for Sparta.
-    sides = await parse_topic(topic)
+    try:
+        sides = await parse_topic(topic)
+    except Exception as e:
+        await websocket.send_json({"type": "error", "message": f"Could not start the debate: {e}"})
+        return
     pro_side, con_side = sides["pro_side"], sides["con_side"]
 
     # The record is built as the debate runs, not at the end, so a debate that
@@ -83,7 +129,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
     async def fail(message: str) -> None:
         """Archive what the debate produced before reporting that it stopped."""
         record["error"] = message
-        save_debate(record)
+        await save_debate(record)
         await websocket.send_json({"type": "error", "message": message})
 
     await websocket.send_json({
@@ -107,7 +153,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
 
     for round_num in range(1, rounds + 1):
 
-        # exchange holds all utterances for this main round (all sub-rounds)
+        # exchange holds all three sub-rounds of this main round
         exchange: list[dict] = []
 
         # ── Sub-round 1: Opening ────────────────────────────────────────────
@@ -148,7 +194,6 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "model": pro_model
         })
 
-        await asyncio.sleep(0.4)
 
         # CON responds to PRO's opening
         await websocket.send_json({
@@ -181,7 +226,6 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "model": con_model
         })
 
-        await asyncio.sleep(0.4)
 
         # ── Sub-round 2: Counter ────────────────────────────────────────────
         await websocket.send_json({
@@ -223,7 +267,6 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "model": pro_model
         })
 
-        await asyncio.sleep(0.4)
 
         # CON doubles down against PRO's counter
         await websocket.send_json({
@@ -257,7 +300,6 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "model": con_model
         })
 
-        await asyncio.sleep(0.4)
 
         # ── Sub-round 3: Justify ────────────────────────────────────────────
         await websocket.send_json({
@@ -299,8 +341,6 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "model": pro_model
         })
 
-        await asyncio.sleep(0.4)
-
         # CON delivers closing counter-justification
         await websocket.send_json({
             "type": "agent_typing",
@@ -333,9 +373,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
             "model": con_model
         })
 
-        await asyncio.sleep(0.4)
-
-        # ── Judge scores the full round (all 3 sub-rounds) ──────────────────
+        # ── Judge scores the full round (all three sub-rounds) ──────────────
         await websocket.send_json({
             "type": "agent_typing",
             "agent": "judge",
@@ -363,6 +401,19 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
         # beside the text that produced them rather than numbers alone.
         record["rounds"].append({"round": round_num, "exchange": list(exchange), **verdict})
 
+        # Persist after every round, not only at the final verdict.
+        #
+        # The error paths already archive, but nothing survives the process
+        # simply going away — a redeploy, an out-of-memory kill, a closed tab.
+        # A three-round debate takes minutes and costs real tokens, and losing
+        # all of it because the last round never arrived is the worst possible
+        # trade. Observed exactly that: a host restart mid-debate left two
+        # completed rounds unrecorded.
+        #
+        # The write is an upsert keyed on the debate id, so each round replaces
+        # the previous snapshot rather than accumulating duplicates.
+        await save_debate(record)
+
         await websocket.send_json({
             "type": "round_verdict",
             "round": round_num,
@@ -379,7 +430,6 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
         pro_all_texts.extend(t["text"] for t in exchange if t["speaker"] == "pro")
         con_all_texts.extend(t["text"] for t in exchange if t["speaker"] == "con")
 
-        await asyncio.sleep(0.4)
 
     # ── Final verdict after all main rounds ─────────────────────────────────
     await websocket.send_json({
@@ -401,7 +451,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 3):
         return
 
     record["final_verdict"] = final
-    save_debate(record)
+    await save_debate(record, index_turns=True)
 
     await websocket.send_json({
         "type": "final_verdict",

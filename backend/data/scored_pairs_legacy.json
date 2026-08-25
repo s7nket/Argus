@@ -1,0 +1,458 @@
+[
+  {
+    "topic": "The use of public defenders should be mandatory",
+    "true_winner": "pro",
+    "human_margin": 0.1903,
+    "pro_total": 5.33,
+    "con_total": 3.33,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should legalize cannabis",
+    "true_winner": "pro",
+    "human_margin": 0.285,
+    "pro_total": 7.67,
+    "con_total": 6.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should prohibit women in combat",
+    "true_winner": "con",
+    "human_margin": -0.1672,
+    "pro_total": 3.33,
+    "con_total": 5.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should ban factory farming",
+    "true_winner": "pro",
+    "human_margin": 0.1514,
+    "pro_total": 4.67,
+    "con_total": 3.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should ban factory farming",
+    "true_winner": "pro",
+    "human_margin": 0.063,
+    "pro_total": 4.67,
+    "con_total": 6.33,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "The use of public defenders should be mandatory",
+    "true_winner": "con",
+    "human_margin": -0.4088,
+    "pro_total": 3.33,
+    "con_total": 2.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should prohibit school prayer",
+    "true_winner": "pro",
+    "human_margin": 0.4082,
+    "pro_total": 5.33,
+    "con_total": 3.33,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should prohibit women in combat",
+    "true_winner": "con",
+    "human_margin": -0.1389,
+    "pro_total": 4.0,
+    "con_total": 8.33,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should adopt atheism",
+    "true_winner": "pro",
+    "human_margin": 0.0863,
+    "pro_total": 5.33,
+    "con_total": 6.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "The use of public defenders should be mandatory",
+    "true_winner": "pro",
+    "human_margin": 0.4662,
+    "pro_total": 5.33,
+    "con_total": 3.33,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "Social media brings more harm than good",
+    "true_winner": "tie",
+    "human_margin": 0.0,
+    "pro_total": 5.33,
+    "con_total": 6.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should ban algorithmic trading",
+    "true_winner": "con",
+    "human_margin": -0.3762,
+    "pro_total": 4.67,
+    "con_total": 4.67,
+    "legacy_winner": "tie"
+  },
+  {
+    "topic": "Holocaust denial should be a criminal offence",
+    "true_winner": "con",
+    "human_margin": -0.47,
+    "pro_total": 5.33,
+    "con_total": 7.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should abolish the three-strikes laws",
+    "true_winner": "tie",
+    "human_margin": -0.0251,
+    "pro_total": 3.33,
+    "con_total": 4.33,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should legalize cannabis",
+    "true_winner": "pro",
+    "human_margin": 0.4447,
+    "pro_total": 5.33,
+    "con_total": 4.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "Holocaust denial should be a criminal offence",
+    "true_winner": "pro",
+    "human_margin": 0.483,
+    "pro_total": 4.67,
+    "con_total": 2.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should adopt libertarianism",
+    "true_winner": "pro",
+    "human_margin": 0.4845,
+    "pro_total": 3.33,
+    "con_total": 2.33,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should adopt libertarianism",
+    "true_winner": "pro",
+    "human_margin": 0.0899,
+    "pro_total": 4.33,
+    "con_total": 5.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should ban private military companies",
+    "true_winner": "con",
+    "human_margin": -0.2765,
+    "pro_total": 3.33,
+    "con_total": 5.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should prohibit school prayer",
+    "true_winner": "pro",
+    "human_margin": 0.1458,
+    "pro_total": 4.67,
+    "con_total": 4.67,
+    "legacy_winner": "tie"
+  },
+  {
+    "topic": "We should legalize cannabis",
+    "true_winner": "con",
+    "human_margin": -0.5153,
+    "pro_total": 3.33,
+    "con_total": 5.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should abolish the Olympic Games",
+    "true_winner": "pro",
+    "human_margin": 0.3762,
+    "pro_total": 3.33,
+    "con_total": 3.0,
+    "legacy_winner": "tie"
+  },
+  {
+    "topic": "We should ban targeted killing",
+    "true_winner": "con",
+    "human_margin": -0.1546,
+    "pro_total": 5.33,
+    "con_total": 6.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should ban targeted killing",
+    "true_winner": "con",
+    "human_margin": -0.6268,
+    "pro_total": 5.67,
+    "con_total": 5.33,
+    "legacy_winner": "tie"
+  },
+  {
+    "topic": "We should adopt atheism",
+    "true_winner": "con",
+    "human_margin": -0.2751,
+    "pro_total": 3.33,
+    "con_total": 5.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should adopt atheism",
+    "true_winner": "pro",
+    "human_margin": 0.2416,
+    "pro_total": 5.33,
+    "con_total": 2.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should legalize cannabis",
+    "true_winner": "pro",
+    "human_margin": 0.3455,
+    "pro_total": 5.33,
+    "con_total": 7.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should ban factory farming",
+    "true_winner": "pro",
+    "human_margin": 0.0855,
+    "pro_total": 5.33,
+    "con_total": 4.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should ban algorithmic trading",
+    "true_winner": "pro",
+    "human_margin": 0.481,
+    "pro_total": 5.33,
+    "con_total": 4.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should abolish the three-strikes laws",
+    "true_winner": "tie",
+    "human_margin": 0.0,
+    "pro_total": 5.33,
+    "con_total": 3.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should abolish the three-strikes laws",
+    "true_winner": "con",
+    "human_margin": -0.092,
+    "pro_total": 5.33,
+    "con_total": 3.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should legalize cannabis",
+    "true_winner": "pro",
+    "human_margin": 0.2953,
+    "pro_total": 5.33,
+    "con_total": 6.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should abolish the three-strikes laws",
+    "true_winner": "pro",
+    "human_margin": 0.6308,
+    "pro_total": 7.33,
+    "con_total": 2.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should adopt libertarianism",
+    "true_winner": "pro",
+    "human_margin": 0.3484,
+    "pro_total": 4.67,
+    "con_total": 2.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should ban private military companies",
+    "true_winner": "con",
+    "human_margin": -0.1847,
+    "pro_total": 3.33,
+    "con_total": 5.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should abolish the three-strikes laws",
+    "true_winner": "con",
+    "human_margin": -0.5335,
+    "pro_total": 4.67,
+    "con_total": 4.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "The use of public defenders should be mandatory",
+    "true_winner": "tie",
+    "human_margin": 0.034,
+    "pro_total": 5.33,
+    "con_total": 4.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should legalize cannabis",
+    "true_winner": "pro",
+    "human_margin": 0.347,
+    "pro_total": 5.33,
+    "con_total": 4.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should adopt libertarianism",
+    "true_winner": "tie",
+    "human_margin": -0.0381,
+    "pro_total": 4.67,
+    "con_total": 4.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "The use of public defenders should be mandatory",
+    "true_winner": "con",
+    "human_margin": -0.1563,
+    "pro_total": 4.67,
+    "con_total": 5.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should legalize cannabis",
+    "true_winner": "pro",
+    "human_margin": 0.4608,
+    "pro_total": 4.67,
+    "con_total": 3.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should adopt libertarianism",
+    "true_winner": "con",
+    "human_margin": -0.3762,
+    "pro_total": 3.33,
+    "con_total": 4.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should adopt atheism",
+    "true_winner": "pro",
+    "human_margin": 0.4185,
+    "pro_total": 4.67,
+    "con_total": 2.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should prohibit women in combat",
+    "true_winner": "pro",
+    "human_margin": 0.0861,
+    "pro_total": 3.33,
+    "con_total": 5.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "Holocaust denial should be a criminal offence",
+    "true_winner": "pro",
+    "human_margin": 0.279,
+    "pro_total": 5.33,
+    "con_total": 2.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should prohibit school prayer",
+    "true_winner": "tie",
+    "human_margin": 0.0163,
+    "pro_total": 6.33,
+    "con_total": 2.67,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should ban factory farming",
+    "true_winner": "tie",
+    "human_margin": 0.0351,
+    "pro_total": 5.33,
+    "con_total": 6.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should prohibit women in combat",
+    "true_winner": "con",
+    "human_margin": -0.1609,
+    "pro_total": 5.33,
+    "con_total": 5.67,
+    "legacy_winner": "tie"
+  },
+  {
+    "topic": "The use of public defenders should be mandatory",
+    "true_winner": "pro",
+    "human_margin": 0.4459,
+    "pro_total": 4.33,
+    "con_total": 4.0,
+    "legacy_winner": "tie"
+  },
+  {
+    "topic": "The use of public defenders should be mandatory",
+    "true_winner": "pro",
+    "human_margin": 0.1276,
+    "pro_total": 5.33,
+    "con_total": 6.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should prohibit women in combat",
+    "true_winner": "pro",
+    "human_margin": 0.4519,
+    "pro_total": 5.33,
+    "con_total": 7.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "The use of public defenders should be mandatory",
+    "true_winner": "con",
+    "human_margin": -0.2873,
+    "pro_total": 2.67,
+    "con_total": 5.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should prohibit women in combat",
+    "true_winner": "con",
+    "human_margin": -0.5632,
+    "pro_total": 3.33,
+    "con_total": 5.67,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "We should legalize cannabis",
+    "true_winner": "con",
+    "human_margin": -0.0782,
+    "pro_total": 4.67,
+    "con_total": 3.0,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should adopt atheism",
+    "true_winner": "pro",
+    "human_margin": 0.1401,
+    "pro_total": 5.33,
+    "con_total": 3.33,
+    "legacy_winner": "pro"
+  },
+  {
+    "topic": "We should adopt atheism",
+    "true_winner": "con",
+    "human_margin": -0.1544,
+    "pro_total": 5.33,
+    "con_total": 8.0,
+    "legacy_winner": "con"
+  },
+  {
+    "topic": "Holocaust denial should be a criminal offence",
+    "true_winner": "pro",
+    "human_margin": 0.3469,
+    "pro_total": 5.33,
+    "con_total": 7.0,
+    "legacy_winner": "con"
+  }
+]

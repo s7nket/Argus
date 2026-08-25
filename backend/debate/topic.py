@@ -79,7 +79,7 @@ async def parse_topic(topic: str) -> dict:
                 {"role": "system", "content": TOPIC_PARSER_PROMPT},
                 {"role": "user", "content": f'Topic: "{topic}"\n\nReturn ONLY the JSON object.'},
             ],
-            max_tokens=300,
+            max_tokens=1000,
             temperature=0,
         )
         raw = response.choices[0].message.content

@@ -838,5 +838,20 @@
   "scorer": "kaggle-ft (audited)",
   "pro_coverage": null,
   "con_coverage": null
+ },
+ {
+  "topic": "We should ban targeted killing",
+  "pro_argument": "even the government should not have the power to kill anyone they wish.",
+  "con_argument": "Dangerous terrorists who are really hard to catch cause lot of destruction and deaths. Only targeted killing can save us from more deaths caused by them",
+  "human_pro": 0.3732,
+  "human_con": 1.0,
+  "human_margin": -0.6268,
+  "true_winner": "con",
+  "pro_total": 6.3,
+  "con_total": 5.5,
+  "argus_winner": "pro",
+  "scorer": "kaggle-ft (audited)",
+  "pro_coverage": null,
+  "con_coverage": null
  }
 ]

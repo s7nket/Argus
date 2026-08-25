@@ -1,25 +1,14 @@
-"""
-Rate-limit retry for Groq calls.
+"""Provider-neutral async LLM retry helper for ARGUS.
 
-Groq's free tier allows 6000 tokens per minute. A single debate round costs
-roughly that much — six agent turns, two blind scoring passes at up to 1400
-tokens each, and a verification call — so a three-round debate reliably hit 429
-partway through and the orchestrator aborted the whole debate:
-
-    CON agent failed (R2S1): Error code: 429 - Limit 6000, Used 5597,
-    Requested 1384. Please try again in 9.81s.
-
-Losing a debate two rounds in is bad interactively and fatal for an unattended
-eval sweep, where hundreds of debates run without anyone watching. Retrying is
-what makes those runs *complete*; it does not make them faster, since the
-token-per-minute ceiling is a hard physical limit.
-
-Groq states the exact wait in the error message, so the first choice is always
-to obey what the server said rather than guess.
+The judge can use NVIDIA NIM (OpenAI-compatible) or Groq. This wrapper does not
+assume a provider-specific client; it retries only transient/rate-limit failures.
+It keeps ``groq_call`` as a backwards-compatible alias for existing imports.
 """
 
 import asyncio
+import contextvars
 import logging
+import os
 import random
 import re
 
@@ -27,12 +16,31 @@ import config
 
 logger = logging.getLogger("argus.llm_retry")
 
-# "Please try again in 9.81s" / "try again in 1m30s"
+_retry_listener: contextvars.ContextVar = contextvars.ContextVar(
+    "argus_retry_listener", default=None
+)
+
+
+def set_retry_listener(fn) -> None:
+    """Register an async fn(attempt, total, delay, rate_limited)."""
+    _retry_listener.set(fn)
+
+
+async def _notify(attempt: int, total: int, delay: float, rate_limited: bool) -> None:
+    fn = _retry_listener.get()
+    if fn is None:
+        return
+    try:
+        await fn(attempt, total, delay, rate_limited)
+    except Exception:
+        pass
+
+
 _WAIT_RE = re.compile(r"try again in\s+(?:(\d+)m)?([\d.]+)s", re.IGNORECASE)
 
 
 def _server_requested_delay(exc: Exception) -> float | None:
-    """The wait Groq asked for, from the Retry-After header or the message."""
+    """Extract a server-provided retry delay when one exists."""
     response = getattr(exc, "response", None)
     if response is not None:
         header = getattr(response, "headers", {}) or {}
@@ -51,17 +59,24 @@ def _server_requested_delay(exc: Exception) -> float | None:
     return None
 
 
-def _is_rate_limit(exc: Exception) -> bool:
-    """
-    True only for "you sent too much too fast", never "this request is too big".
-
-    Groq reports an oversized single request as HTTP 413 but tags it
-    code: rate_limit_exceeded, so a naive string match retries it — and the
-    identical request fails identically every time. That cost 45s of pointless
-    backoff before failing anyway. Size errors must reach the caller, which can
-    respond by splitting the batch.
-    """
+def _status_code(exc: Exception) -> int | None:
     status = getattr(exc, "status_code", None)
+    if status is not None:
+        try:
+            return int(status)
+        except (TypeError, ValueError):
+            pass
+    response = getattr(exc, "response", None)
+    status = getattr(response, "status_code", None) if response is not None else None
+    try:
+        return int(status) if status is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _is_rate_limit(exc: Exception) -> bool:
+    """True for throttling/rate-limit failures, not request-size failures."""
+    status = _status_code(exc)
     if status == 413:
         return False
     if status == 429:
@@ -69,64 +84,116 @@ def _is_rate_limit(exc: Exception) -> bool:
     text = str(exc).lower()
     if "413" in text or "request too large" in text or "reduce your message size" in text:
         return False
-    return "429" in text or "rate_limit" in text
+    return "429" in text or "rate_limit" in text or "rate limit" in text
 
 
 def _is_transient(exc: Exception) -> bool:
-    """Server-side wobble worth retrying. Never retry 4xx other than 429."""
-    status = getattr(exc, "status_code", None)
+    """Retry server/network failures; never retry ordinary 4xx errors."""
+    status = _status_code(exc)
     if status is not None:
         return status in (408, 500, 502, 503, 504)
-    return any(s in str(exc).lower() for s in
-               ("timeout", "connection", "temporarily unavailable", "service unavailable"))
+    text = str(exc).lower()
+    return any(s in text for s in (
+        "timeout", "connection", "temporarily unavailable", "service unavailable",
+        "server disconnected", "connection reset",
+    ))
 
 
-async def groq_call(fn, *args, **kwargs):
+def _provider() -> str:
+    return "nvidia" if os.getenv("NVIDIA_API_KEY", "").strip() else "groq"
+
+
+def _init_groq_api_keys() -> list[str]:
+    keys = []
+    for var in ("GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"):
+        raw = os.getenv(var, "")
+        keys.extend(k.strip() for k in raw.split(",") if k.strip())
+    return keys
+
+
+async def llm_call(fn, *args, **kwargs):
+    """Call the configured LLM client with safe retry/backoff behavior.
+
+    NVIDIA NIM uses the OpenAI-compatible client and normally has one key, so a
+    401/429 is surfaced rather than accidentally swapping in a Groq key. Groq
+    retains its existing multi-key rotation behavior.
     """
-    Call a Groq endpoint, waiting out rate limits instead of failing the debate.
+    provider = _provider()
+    groq_keys = _init_groq_api_keys() if provider == "groq" else []
+    current_key_idx = 0
 
-    Usage mirrors the original call, one wrapper deep:
-
-        response = await groq_call(client.chat.completions.create, model=..., ...)
-
-    A 429 waits for whatever the server asked for; anything else transient uses
-    exponential backoff. Jitter matters here because the two blind scoring passes
-    fire concurrently via asyncio.gather — without it they would rate-limit
-    together, sleep for the same interval, and collide again on every retry.
-
-    Non-retryable errors (bad key, bad model, malformed request) propagate
-    immediately: retrying those just delays a failure the caller must see.
-    """
-    attempts = max(1, config.LLM_MAX_ATTEMPTS)
+    base_attempts = max(1, config.LLM_MAX_ATTEMPTS)
+    attempts = base_attempts * max(1, len(groq_keys))
     last: Exception | None = None
 
     for attempt in range(attempts):
         try:
             return await fn(*args, **kwargs)
-        except Exception as e:                     # noqa: BLE001 - re-raised below
-            last = e
-            rate_limited = _is_rate_limit(e)
-            if not (rate_limited or _is_transient(e)) or attempt == attempts - 1:
+        except Exception as exc:
+            last = exc
+            status = _status_code(exc)
+            text = str(exc).lower()
+
+            # Groq-only key rotation. Never rotate an NVIDIA request into a
+            # different provider or mutate the NVIDIA client with a Groq key.
+            quota_exceeded = (
+                provider == "groq"
+                and (
+                    status == 401
+                    or (status == 429 and (
+                        "insufficient_quota" in text
+                        or "billing" in text
+                        or "please upgrade" in text
+                    ))
+                )
+            )
+            if quota_exceeded and len(groq_keys) > 1:
+                current_key_idx = (current_key_idx + 1) % len(groq_keys)
+                client = getattr(getattr(fn, "__self__", None), "_client", None)
+                if client is not None and hasattr(client, "api_key"):
+                    client.api_key = groq_keys[current_key_idx]
+                print(
+                    f"[llm] Groq quota/auth error — switching key "
+                    f"(index {current_key_idx})"
+                )
+                continue
+
+            rate_limited = _is_rate_limit(exc)
+            transient = _is_transient(exc)
+            if not (rate_limited or transient) or attempt == attempts - 1:
                 raise
 
-            requested = _server_requested_delay(e) if rate_limited else None
+            requested = _server_requested_delay(exc) if rate_limited else None
             if requested is not None:
-                # Obey the server. LLM_BACKOFF_MAX must NOT clamp this: if Groq
-                # says wait 60s and our cap is 45, we retry early and get limited
-                # again immediately. A separate, larger ceiling only guards
-                # against a pathological instruction to sleep for hours.
-                delay = min(requested + 0.5, config.LLM_RATE_LIMIT_MAX_WAIT)
+                delay = min(
+                    requested + 0.5,
+                    config.LLM_RATE_LIMIT_MAX_WAIT,
+                )
             else:
-                # Our own guess, so our own cap applies.
-                delay = min(config.LLM_BACKOFF_BASE * (2 ** attempt), config.LLM_BACKOFF_MAX)
+                delay = min(
+                    config.LLM_BACKOFF_BASE * (2 ** (attempt % base_attempts)),
+                    config.LLM_BACKOFF_MAX,
+                )
 
             delay += random.uniform(0, 0.75)
             logger.warning(
-                f"{'rate limited' if rate_limited else type(e).__name__}, "
+                "%s %s, retry %s/%s in %.1fs",
+                provider,
+                "rate limited" if rate_limited else type(exc).__name__,
+                attempt + 1,
+                attempts - 1,
+                delay,
+            )
+            print(
+                f"[llm] {provider} — "
+                f"{'429' if rate_limited else type(exc).__name__} — "
                 f"retry {attempt + 1}/{attempts - 1} in {delay:.1f}s"
             )
-            print(f"[llm] {'429' if rate_limited else type(e).__name__} — "
-                  f"retry {attempt + 1}/{attempts - 1} in {delay:.1f}s")
+            await _notify(attempt + 1, attempts - 1, delay, rate_limited)
             await asyncio.sleep(delay)
 
-    raise last if last else RuntimeError("groq_call exhausted with no exception")
+    raise last if last else RuntimeError("llm_call exhausted with no exception")
+
+
+# Backwards compatibility: other ARGUS modules can continue importing groq_call.
+groq_call = llm_call

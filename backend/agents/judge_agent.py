@@ -4,8 +4,10 @@ import re
 import json
 import time
 import httpx
+from typing import Any
 from dotenv import load_dotenv
 from groq import AsyncGroq
+from openai import AsyncOpenAI
 
 import config
 from config import (
@@ -17,20 +19,49 @@ from config import (
 )
 from llm_retry import groq_call
 
-load_dotenv()
+# Load .env from the backend directory regardless of CWD
+_here = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(os.path.dirname(_here), ".env"), override=True)
+# Trigger uvicorn reload 3
 
-# ── Groq — explanation + final verdict ───────────────────────────────────────
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "llama-3.3-70b-versatile")
+# ── Judge client — NVIDIA NIM (preferred) or Groq (fallback) ─────────────────
+# NVIDIA NIM is OpenAI-compatible. The model is selected from backend/.env.
+# For this test configuration, use the fast non-reasoning model:
+# meta/llama-3.3-70b-instruct
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "meta/llama-3.3-70b-instruct")
+_NVIDIA_KEY = os.getenv("NVIDIA_API_KEY", "")
+_JUDGE_BASE_URL = os.getenv("JUDGE_BASE_URL", "https://integrate.api.nvidia.com/v1")
+_USING_NVIDIA = bool(_NVIDIA_KEY and not _NVIDIA_KEY.startswith("your-"))
 
 
 def _judge_api_key() -> str:
+    if _USING_NVIDIA:
+        return _NVIDIA_KEY
     key = os.getenv("JUDGE_GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
     if not key:
-        raise ValueError("Set JUDGE_GROQ_API_KEY (or GROQ_API_KEY) in backend/.env")
+        raise ValueError(
+            "Set NVIDIA_API_KEY (for NVIDIA NIM) or JUDGE_GROQ_API_KEY in backend/.env"
+        )
     return key
 
 
-groq_client = AsyncGroq(api_key=_judge_api_key(), timeout=45.0)
+if _USING_NVIDIA:
+    judge_client = AsyncOpenAI(
+        api_key=_NVIDIA_KEY,
+        base_url=_JUDGE_BASE_URL,
+        timeout=120.0,   # llama-3.3-70b with 4096 max_tokens needs headroom
+    )
+    print(f"[judge] NVIDIA NIM → {JUDGE_MODEL}")
+else:
+    # NVIDIA key not configured — fall back to Groq with a model that actually
+    # exists on this account. deepseek-ai/deepseek-r1 is NVIDIA-only.
+    JUDGE_MODEL = os.getenv("JUDGE_GROQ_MODEL", "qwen/qwen3.6-27b")
+    judge_client = AsyncGroq(api_key=_judge_api_key(), timeout=45.0)
+    print(f"[judge] Groq fallback → {JUDGE_MODEL}")
+
+# Keep the old name as an alias so any external code that imports groq_client
+# still works without changes.
+groq_client = judge_client
 
 # ── Fine-tuned 4B (Kaggle FT_JUDGE_URL) — round scoring only ─────────────────
 FT_JUDGE_URL = os.getenv("FT_JUDGE_URL", "http://127.0.0.1:8002")
@@ -153,7 +184,9 @@ Return ONLY valid JSON. No markdown.
 
 
 def _clean_response(raw: str) -> str:
-    raw = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL)
+    if not raw:
+        return ""
+    raw = re.sub(r'<think>.*?(?:</think>|$)', '', raw, flags=re.DOTALL)
     raw = raw.replace("```json", "").replace("```", "").strip()
     start = raw.find("{")
     if start == -1:
@@ -371,7 +404,7 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
                 f"Extract first, then score both debaters. Return ONLY the JSON object."
             )},
         ],
-        max_tokens=1400,
+        max_tokens=4096,
         temperature=0,
     )
     raw = _clean_response(response.choices[0].message.content)
@@ -442,8 +475,17 @@ async def _get_ft_round_scores(topic: str, exchange_text: str) -> dict | None:
                 )
                 if resp.status_code == 200:
                     result = resp.json()
+                    # v3 emits {"winner", "pro_total", "con_total"}; v2 emitted
+                    # per-criterion pro_scores/con_scores. Both are accepted so a
+                    # rollback to v2 does not need a code change, and so a
+                    # half-updated deployment fails loudly rather than silently
+                    # scoring with whichever half it got.
+                    if "pro_total" in result and "con_total" in result:
+                        print(f"[FT] v3 scored in {time.monotonic() - started:.1f}s"
+                              f"{f' (attempt {attempt + 1})' if attempt else ''}")
+                        return result
                     if "pro_scores" in result and "con_scores" in result:
-                        print(f"[FT] scored in {time.monotonic() - started:.1f}s"
+                        print(f"[FT] v2 scored in {time.monotonic() - started:.1f}s"
                               f"{f' (attempt {attempt + 1})' if attempt else ''}")
                         return result
                     # The notebook returns {"error": ...} on a parse failure.
@@ -580,8 +622,22 @@ async def judge_round(
     # The FT scorer, when online, supplies the raw numbers — but the blind audit
     # still governs the evidence ceiling, so FT cannot certify evidence that the
     # extraction pass could not find.
+    #
+    # v3 returns a winner and two totals, because those are the only quantities
+    # it was supervised on: the human vote decided an outcome, not a breakdown
+    # into evidence, logic and relevance. v2 returned all three criteria, but
+    # they were derived from one synthetic score and were the same number three
+    # times over. So v3's totals override the totals, and the criteria are left
+    # as the blind Groq passes measured them — which keeps the per-criterion
+    # display honest instead of restating one number in three places.
     ft_used = isinstance(ft, dict) and ft is not None
-    if ft_used:
+    ft_totals = None
+    if ft_used and "pro_total" in ft and "con_total" in ft:
+        try:
+            ft_totals = (float(ft["pro_total"]), float(ft["con_total"]))
+        except (TypeError, ValueError):
+            ft_totals = None
+    elif ft_used:
         for src, dst in ((ft.get("pro_scores", {}), pro_scores), (ft.get("con_scores", {}), con_scores)):
             for c in ("evidence", "logic", "relevance"):
                 if c in src:
@@ -608,6 +664,28 @@ async def judge_round(
 
     pro_scores["total"] = _total(pro_scores, pro_penalty)
     con_scores["total"] = _total(con_scores, con_penalty)
+
+    # v3's totals replace the averaged ones, after the deterministic rules run.
+    # It is much the better judge of who won — 90.6% against 62.3% for v2 on
+    # identical debates — so its verdict is what the totals should express.
+    #
+    # What it cannot do is escape the penalties. Repetition and fabrication are
+    # measured in code from the transcript and the corpus, not asserted by any
+    # model, so they are subtracted here exactly as they are from a Groq total.
+    #
+    # The evidence ceiling is a genuine narrowing and worth stating plainly: it
+    # bounds the evidence CRITERION, which v3 does not produce, so it no longer
+    # bounds the total when v3 is scoring. The criterion is still capped and
+    # still reported in the audit, so a reader can still see that a side cited
+    # nothing checkable — but that fact no longer arithmetically caps the score.
+    # Bounding v3's total by the criteria-based one instead would let the weaker
+    # scorer veto the stronger, which is the wrong trade at this accuracy gap.
+    if ft_totals is not None:
+        pro_fab = (pro_grounding or {}).get("fabrication_penalty", 0.0)
+        con_fab = (con_grounding or {}).get("fabrication_penalty", 0.0)
+        for total, scores, penalty in ((ft_totals[0], pro_scores, pro_penalty + pro_fab),
+                                       (ft_totals[1], con_scores, con_penalty + con_fab)):
+            scores["total"] = round(max(0.0, min(10.0, total) - penalty), 1)
 
     margin = round(pro_scores["total"] - con_scores["total"], 1)
     round_winner = "tie" if abs(margin) <= TIE_BAND else ("pro" if margin > 0 else "con")
@@ -649,6 +727,99 @@ async def judge_round(
                 passes[0]["pro_scores"]["evidence"] - passes[-1]["pro_scores"]["evidence"]
             ), 1) if len(passes) > 1 else None,
         },
+    }
+
+
+def _verdict_receipts(all_rounds: list[dict]) -> dict:
+    """
+    Aggregate the per-round audits into the evidence behind the verdict.
+
+    Everything here was already computed and then thrown away: the judge returned
+    prose about who won while the extracted claims, the corpus verification, and
+    the penalties that actually moved the totals stayed buried in each round's
+    audit. A reader was left taking the outcome on trust.
+
+    This exposes the arithmetic instead — which criterion produced the gap, which
+    rounds contributed it, what each side cited and whether the corpus confirmed
+    it, and every penalty applied with its reason.
+    """
+    if not all_rounds:
+        return {}
+
+    n = len(all_rounds)
+
+    def mean(side: str, criterion: str) -> float:
+        return round(sum(r[f"{side}_scores"].get(criterion, 0) for r in all_rounds) / n, 2)
+
+    criteria = {
+        side: {c: mean(side, c) for c in ("evidence", "logic", "relevance")}
+        for side in ("pro", "con")
+    }
+    # The criterion that opened the largest gap is the honest answer to "why".
+    gaps = {c: round(criteria["pro"][c] - criteria["con"][c], 2)
+            for c in ("evidence", "logic", "relevance")}
+    decisive_criterion = max(gaps, key=lambda c: abs(gaps[c]))
+
+    per_round = [{
+        "r": i + 1,
+        "pro": r["pro_scores"]["total"],
+        "con": r["con_scores"]["total"],
+        "delta": round(r["pro_scores"]["total"] - r["con_scores"]["total"], 1),
+        "winner": r["round_winner"],
+    } for i, r in enumerate(all_rounds)]
+
+    def verification(side: str) -> dict:
+        supported = refuted = nei = 0
+        checked = 0
+        for r in all_rounds:
+            g = (r.get("audit") or {}).get(f"{side}_grounding") or {}
+            supported += g.get("supported", 0)
+            refuted += g.get("refuted", 0)
+            nei += g.get("nei", 0)
+            checked += g.get("claims_checked", 0)
+        adjudicable = supported + refuted
+        return {
+            "claims_checked": checked,
+            "supported": supported,
+            "refuted": refuted,
+            "nei": nei,
+            "coverage": round(adjudicable / checked, 2) if checked else None,
+            "precision": round(supported / adjudicable, 2) if adjudicable else None,
+        }
+
+    def cited(side: str) -> list[str]:
+        out: list[str] = []
+        for r in all_rounds:
+            out.extend((r.get("audit") or {}).get(f"{side}_evidence_cited", []) or [])
+        return _dedup_claims(out)
+
+    def penalties(side: str) -> dict:
+        rep = round(sum((r.get("audit") or {}).get(f"{side}_repetition_penalty", 0) or 0
+                        for r in all_rounds), 1)
+        fab = round(sum(((r.get("audit") or {}).get(f"{side}_grounding") or {}).get("fabrication_penalty", 0) or 0
+                        for r in all_rounds), 1)
+        # A capped round is one where the corpus refused to certify the evidence
+        # score the scorer wanted to give.
+        capped = sum(1 for r in all_rounds
+                     if (((r.get("audit") or {}).get(f"{side}_grounding") or {}).get("evidence_cap", 10.0) < 10.0))
+        return {"repetition": rep, "fabrication": fab, "rounds_evidence_capped": capped}
+
+    disagreements = [(r.get("audit") or {}).get("label_disagreement") for r in all_rounds]
+    disagreements = [d for d in disagreements if d is not None]
+
+    return {
+        "criteria": criteria,
+        "criterion_gaps": gaps,
+        "decisive_criterion": decisive_criterion,
+        "per_round": per_round,
+        "verification": {"pro": verification("pro"), "con": verification("con")},
+        "cited": {"pro": cited("pro"), "con": cited("con")},
+        "penalties": {"pro": penalties("pro"), "con": penalties("con")},
+        "scorer": (all_rounds[0].get("audit") or {}).get("scorer"),
+        "verification_backend": (all_rounds[0].get("audit") or {}).get("verification_backend"),
+        # Mean disagreement between the two label-swapped passes. Near zero means
+        # the result did not depend on which side wore which label.
+        "position_bias": round(sum(disagreements) / len(disagreements), 2) if disagreements else None,
     }
 
 
@@ -769,7 +940,7 @@ async def judge_final_verdict(
                 f"Return ONLY the JSON object."
             )},
         ],
-        max_tokens=600,
+        max_tokens=2000,
         temperature=0,
     )
 
@@ -818,6 +989,9 @@ async def judge_final_verdict(
     result.setdefault("winner", {})
     result["winner"]["strongest_round"] = strongest_round
     result["confidence"] = _verdict_confidence(pro_total, con_total)
+    # The arithmetic behind the outcome, so the verdict can be checked rather
+    # than believed.
+    result["receipts"] = _verdict_receipts(all_rounds)
 
     # Per-round winners and margins come from the scores, never from the model.
     model_rounds = {r.get("r"): r for r in (result.get("rounds") or []) if isinstance(r, dict)}

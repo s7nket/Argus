@@ -1,13 +1,14 @@
 import os
 from dotenv import load_dotenv
-from groq import AsyncGroq
 
 from config import debater_model
 from llm_retry import groq_call
+from agents.debater_client import debater_client, DEBATER_PROVIDER
 
-load_dotenv()
+_here = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(os.path.dirname(_here), ".env"), override=True)
 
-client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"), timeout=20.0)
+client = debater_client
 
 
 def _system_prompt(pro_side: str, con_side: str) -> str:

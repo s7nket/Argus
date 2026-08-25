@@ -1,0 +1,975 @@
+[
+  {
+    "id": "Resolved-There-is-no-afterlife./1/",
+    "topic": "Resolved: There is no afterlife.",
+    "true_winner": "pro",
+    "chars": 14313,
+    "pro_total": 8.0,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "God-Does-exist/6/",
+    "topic": "God Does exist!",
+    "true_winner": "con",
+    "chars": 7900,
+    "pro_total": 7.0,
+    "con_total": 5.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "mp3-players-should-be-allowed-in-public-schools/1/",
+    "topic": "mp3 players should be allowed in public schools",
+    "true_winner": "pro",
+    "chars": 8160,
+    "pro_total": 7.67,
+    "con_total": 5.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Smoking-in-public-places/1/",
+    "topic": "Smoking in public places",
+    "true_winner": "pro",
+    "chars": 5515,
+    "pro_total": 7.5,
+    "con_total": 6.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "The-Cleaners/1/",
+    "topic": "The Cleaners",
+    "true_winner": "pro",
+    "chars": 10284,
+    "pro_total": 7.33,
+    "con_total": 5.83,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Border-Fence/14/",
+    "topic": "Border Fence",
+    "true_winner": "con",
+    "chars": 9218,
+    "pro_total": 7.83,
+    "con_total": 6.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "MU-is-better-than-KU-football/1/",
+    "topic": "MU is better than KU (football)",
+    "true_winner": "con",
+    "chars": 2798,
+    "pro_total": 7.0,
+    "con_total": 7.83,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "where-oh-where-has-my-little-dog-gone/1/",
+    "topic": "where oh where has my little dog gone",
+    "true_winner": "con",
+    "chars": 4719,
+    "failed": true
+  },
+  {
+    "id": "Solarman1969-should-be-removed-from-Debate.org/1/",
+    "topic": "Solarman1969 should be removed from Debate.org",
+    "true_winner": "pro",
+    "chars": 11832,
+    "pro_total": 7.0,
+    "con_total": 7.17,
+    "ft_winner": "tie",
+    "failed": false
+  },
+  {
+    "id": "Is-suicide-bombing-moral/1/",
+    "topic": "Is suicide bombing moral?",
+    "true_winner": "pro",
+    "chars": 3835,
+    "pro_total": 7.5,
+    "con_total": 5.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Resolved-Tell-others-that-the-water-will-be-shut-off./1/",
+    "topic": "Resolved: Tell others that the water will be shut off.",
+    "true_winner": "con",
+    "chars": 26080,
+    "pro_total": 7.33,
+    "con_total": 7.0,
+    "ft_winner": "tie",
+    "failed": false
+  },
+  {
+    "id": "NiamCs-Music-Tourney-R1/1/",
+    "topic": "NiamC's Music Tourney R1",
+    "true_winner": "con",
+    "chars": 1950,
+    "pro_total": 7.5,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "The-U.S.-regime-should-be-disarmed/1/",
+    "topic": "The U.S. regime should be disarmed",
+    "true_winner": "con",
+    "chars": 18462,
+    "pro_total": 4.0,
+    "con_total": 8.0,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "Yo-Momma-Fight/2/",
+    "topic": "Yo Momma Fight",
+    "true_winner": "pro",
+    "chars": 1371,
+    "pro_total": 7.33,
+    "con_total": 6.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Picking-your-teeth-with-your-fingers-is-better-than-picking-your-teeth-with-a-toothpick./1/",
+    "topic": "Picking your teeth with your fingers is better than picking your teeth with a toothpick.",
+    "true_winner": "pro",
+    "chars": 13716,
+    "pro_total": 8.17,
+    "con_total": 6.47,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "the-death-penalty-is-justified./1/",
+    "topic": "the death penalty is justified.",
+    "true_winner": "pro",
+    "chars": 14105,
+    "pro_total": 7.83,
+    "con_total": 6.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Banning-guns/2/",
+    "topic": "Banning guns",
+    "true_winner": "con",
+    "chars": 29761,
+    "pro_total": 6.67,
+    "con_total": 5.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Little-brothers-are-less-of-a-pain-than-older-brothers/1/",
+    "topic": "Little brothers are less of a pain than older brothers",
+    "true_winner": "con",
+    "chars": 3567,
+    "pro_total": 7.5,
+    "con_total": 5.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Debate.org-this-website-should-allow-all-years-of-birth-from-13-years-ago-up-to-year-zero/1/",
+    "topic": "Debate.org (this website) should allow all years of birth from 13 years ago up to year zero",
+    "true_winner": "con",
+    "chars": 5779,
+    "pro_total": 7.0,
+    "con_total": 7.83,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "People-who-exercise-often-do-not-kill-people-for-no-reason/1/",
+    "topic": "People who exercise often do not kill people for no reason",
+    "true_winner": "con",
+    "chars": 5172,
+    "pro_total": 7.0,
+    "con_total": 7.83,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "If-God-doesnt-exist-we-should-not-show-the-evidence-to-the-world./1/",
+    "topic": "If God doesn't exist, we should not show the evidence to the world.",
+    "true_winner": "con",
+    "chars": 26427,
+    "pro_total": 7.67,
+    "con_total": 6.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Gay-Marriage/73/",
+    "topic": "Gay Marriage",
+    "true_winner": "pro",
+    "chars": 9097,
+    "pro_total": 7.5,
+    "con_total": 5.47,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "bible-fallible/1/",
+    "topic": "bible = fallible",
+    "true_winner": "con",
+    "chars": 11637,
+    "pro_total": 6.67,
+    "con_total": 8.5,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "nasa-should-be-shut-down/1/",
+    "topic": "nasa should be shut down",
+    "true_winner": "con",
+    "chars": 1968,
+    "failed": true
+  },
+  {
+    "id": "Does-God-exist/67/",
+    "topic": "Does God exist?",
+    "true_winner": "con",
+    "chars": 13684,
+    "pro_total": 7.5,
+    "con_total": 5.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Some-people-think-you-are-bad-for-this-website/1/",
+    "topic": "Some people think you are bad for this website",
+    "true_winner": "pro",
+    "chars": 2914,
+    "pro_total": 7.0,
+    "con_total": 3.83,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Genetically-Modified-Food/1/",
+    "topic": "Genetically Modified Food",
+    "true_winner": "pro",
+    "chars": 12257,
+    "pro_total": 7.5,
+    "con_total": 6.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "religion-is-false/4/",
+    "topic": "religion is false",
+    "true_winner": "con",
+    "chars": 19282,
+    "pro_total": 6.83,
+    "con_total": 7.83,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "You-have-either-eternal-life-now-or-eternal-death-now./1/",
+    "topic": "You have either eternal life now or eternal death now.",
+    "true_winner": "con",
+    "chars": 15551,
+    "pro_total": 5.17,
+    "con_total": 7.5,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "Resolved-God-doesnt-exist./1/",
+    "topic": "Resolved: God doesn't exist.",
+    "true_winner": "pro",
+    "chars": 16289,
+    "failed": true
+  },
+  {
+    "id": "Universal-health-care-nuts-should-also-be-in-favor-of-universal-food-shelter-clothing-etc./1/",
+    "topic": "Universal health care nuts should also be in favor of universal food, shelter, clothing, etc.",
+    "true_winner": "pro",
+    "chars": 26034,
+    "pro_total": 6.67,
+    "con_total": 5.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Social-Security/1/",
+    "topic": "Social Security",
+    "true_winner": "pro",
+    "chars": 3712,
+    "pro_total": 7.5,
+    "con_total": 5.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "All-human-beings-belong-to-a-same-race./1/",
+    "topic": "All human beings belong to a same race.",
+    "true_winner": "pro",
+    "chars": 6370,
+    "pro_total": 7.33,
+    "con_total": 6.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Creation-vs.-Evolution./1/",
+    "topic": "Creation vs. Evolution.",
+    "true_winner": "con",
+    "chars": 21042,
+    "pro_total": 7.67,
+    "con_total": 5.83,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "ROGER-CLEMMENS-HAS-NEVER-USED-PERFORMANCE-ENHANCING-DRUGS-AND-IF-HE-DID-HE-SHOULD-STILL-BE-IN-HOF/1/",
+    "topic": "ROGER CLEMMENS HAS NEVER USED PERFORMANCE-ENHANCING DRUGS AND IF HE DID HE SHOULD STILL BE IN HOF",
+    "true_winner": "con",
+    "chars": 1452,
+    "pro_total": 7.5,
+    "con_total": 6.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "should-religion-be-based-on-the-parents-wants/1/",
+    "topic": "should religion be based on the parents wants?",
+    "true_winner": "pro",
+    "chars": 5672,
+    "pro_total": 7.67,
+    "con_total": 5.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Is-it-like-idol-worship-to-learn-about-evolution/1/",
+    "topic": "Is it like idol worship to learn about evolution",
+    "true_winner": "pro",
+    "chars": 4567,
+    "pro_total": 7.67,
+    "con_total": 6.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "I-am-the-greatest-person-ever./1/",
+    "topic": "I am the greatest person ever.",
+    "true_winner": "con",
+    "chars": 1738,
+    "pro_total": 7.17,
+    "con_total": 6.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Is-America-the-greatest-country-in-the-world/1/",
+    "topic": "Is America the greatest country in the world?",
+    "true_winner": "pro",
+    "chars": 5860,
+    "pro_total": 7.33,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Gun-Rights/7/",
+    "topic": "Gun Rights",
+    "true_winner": "pro",
+    "chars": 10177,
+    "pro_total": 7.67,
+    "con_total": 5.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Should-assisted-suicide-be-legal/1/",
+    "topic": "Should assisted suicide be legal",
+    "true_winner": "pro",
+    "chars": 1579,
+    "pro_total": 7.5,
+    "con_total": 6.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Atheists-strictly-create-their-own-false-reality./1/",
+    "topic": "Atheists strictly create their own false reality.",
+    "true_winner": "con",
+    "chars": 19871,
+    "pro_total": 7.33,
+    "con_total": 6.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "People-w-Houses-in-areas-prone-to-natural-disaster-give-up-their-right-to-government-bailouts/1/",
+    "topic": "People w/Houses in areas prone to natural disaster, give up their right to government bailouts!",
+    "true_winner": "pro",
+    "chars": 7952,
+    "pro_total": 7.67,
+    "con_total": 6.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Gay-marriage/100/",
+    "topic": "Gay marriage",
+    "true_winner": "con",
+    "chars": 6578,
+    "failed": true
+  },
+  {
+    "id": "People-who-buy-hummers-have-small-private-parts./1/",
+    "topic": "People who buy hummers have small private parts.",
+    "true_winner": "pro",
+    "chars": 7107,
+    "pro_total": 7.5,
+    "con_total": 5.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Capitalism-works/1/",
+    "topic": "Capitalism works",
+    "true_winner": "con",
+    "chars": 2982,
+    "pro_total": 5.5,
+    "con_total": 7.83,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "Theism-is-more-beneficial-than-atheism/1/",
+    "topic": "Theism is more beneficial than atheism",
+    "true_winner": "pro",
+    "chars": 8386,
+    "pro_total": 7.17,
+    "con_total": 6.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Dr.-Pepper-Coca-Cola/1/",
+    "topic": "Dr. Pepper > Coca-Cola",
+    "true_winner": "con",
+    "chars": 3268,
+    "pro_total": 7.67,
+    "con_total": 8.33,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "The-Messiah-loves-everyone-and-the-world-Wrong-HE-does-not-love-everyone-including-the-world/1/",
+    "topic": "The Messiah loves everyone and the world? Wrong; HE does not love everyone, including the world!",
+    "true_winner": "pro",
+    "chars": 3175,
+    "pro_total": 7.5,
+    "con_total": 6.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Abortion-should-be-legal./4/",
+    "topic": "Abortion should be legal.",
+    "true_winner": "con",
+    "chars": 21259,
+    "failed": true
+  },
+  {
+    "id": "A-Poetry-Contest/1/",
+    "topic": "A Poetry Contest",
+    "true_winner": "pro",
+    "chars": 10559,
+    "pro_total": 7.93,
+    "con_total": 6.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "gcsd/1/",
+    "topic": "gcsd",
+    "true_winner": "pro",
+    "chars": 2970,
+    "pro_total": 7.83,
+    "con_total": 6.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Welfare-Should-Be-Dissolved-or-Heavily-Regulated/1/",
+    "topic": "Welfare Should Be Dissolved or Heavily Regulated",
+    "true_winner": "pro",
+    "chars": 7348,
+    "pro_total": 7.33,
+    "con_total": 3.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Abortion-Should-Be-Legal/2/",
+    "topic": "Abortion Should Be Legal",
+    "true_winner": "pro",
+    "chars": 22683,
+    "pro_total": 7.5,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Nirvana-is-a-better-band-than-RHCP/1/",
+    "topic": "Nirvana is a better band than RHCP",
+    "true_winner": "con",
+    "chars": 7537,
+    "pro_total": 7.5,
+    "con_total": 8.17,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "politics-is-the-topic/1/",
+    "topic": "politics is the topic",
+    "true_winner": "con",
+    "chars": 11137,
+    "pro_total": 8.0,
+    "con_total": 6.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "do-the-masses-have-any-wisdom/1/",
+    "topic": "do the masses have any wisdom ?",
+    "true_winner": "pro",
+    "chars": 23384,
+    "pro_total": 8.07,
+    "con_total": 6.6,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Resolved-It-is-impossible-for-Pro-to-fully-win-this-debate-a-revision-of-two-flawed-resolutions./1/",
+    "topic": "Resolved: It is impossible for Pro to fully win this debate (a revision of two flawed resolutions.)",
+    "true_winner": "con",
+    "chars": 11253,
+    "pro_total": 7.5,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Political-party-manifestos-should-be-legally-binding/1/",
+    "topic": "Political party manifestos should be legally binding",
+    "true_winner": "con",
+    "chars": 14591,
+    "pro_total": 7.33,
+    "con_total": 8.67,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "Is-peace-possible-for-the-countries-of-Earth/1/",
+    "topic": "Is peace possible for the countries of Earth?",
+    "true_winner": "pro",
+    "chars": 9091,
+    "pro_total": 7.5,
+    "con_total": 7.83,
+    "ft_winner": "tie",
+    "failed": false
+  },
+  {
+    "id": "In-general-violence-in-video-games-has-not-caused-real-world-violence./1/",
+    "topic": "In general, violence in video games has not caused real-world violence.",
+    "true_winner": "pro",
+    "chars": 10519,
+    "failed": true
+  },
+  {
+    "id": "Global-warming-is-man-made/2/",
+    "topic": "Global warming is man made",
+    "true_winner": "con",
+    "chars": 6955,
+    "pro_total": 6.67,
+    "con_total": 4.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Do-Richard-Dawkins-words-really-describe-God-of-the-old-testament/1/",
+    "topic": "Do Richard Dawkins' words really describe God of the old testament?",
+    "true_winner": "pro",
+    "chars": 24707,
+    "pro_total": 8.67,
+    "con_total": 7.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Extra-Activites-should-be-added-to-primary-classes-every-week./1/",
+    "topic": "Extra Activites should be added to primary classes every week.",
+    "true_winner": "con",
+    "chars": 5397,
+    "pro_total": 7.5,
+    "con_total": 6.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Useless-coincidence-contest/1/",
+    "topic": "Useless coincidence contest",
+    "true_winner": "pro",
+    "chars": 1924,
+    "pro_total": 8.17,
+    "con_total": 7.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "izbo10-is-an-Idiot-and-a-Troll/1/",
+    "topic": "izbo10 is an Idiot and a Troll",
+    "true_winner": "pro",
+    "chars": 22812,
+    "pro_total": 8.0,
+    "con_total": 4.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Gay-marriage-should-be-legal./3/",
+    "topic": "Gay marriage should be legal.",
+    "true_winner": "con",
+    "chars": 27244,
+    "pro_total": 5.83,
+    "con_total": 5.33,
+    "ft_winner": "tie",
+    "failed": false
+  },
+  {
+    "id": "Resolved-That-on-balance-the-rise-of-Brazil-Russia-India-and-China-BRIC-has-had-a-positive-i/2/",
+    "topic": "Resolved: That, on balance, the rise of Brazil, Russia, India, and China (BRIC) has had a positive i",
+    "true_winner": "con",
+    "chars": 11070,
+    "pro_total": 8.0,
+    "con_total": 8.0,
+    "ft_winner": "tie",
+    "failed": false
+  },
+  {
+    "id": "Evil-proves-God-does-not-exist-Part-2/1/",
+    "topic": "Evil proves God does not exist (Part 2)",
+    "true_winner": "con",
+    "chars": 21619,
+    "pro_total": 8.0,
+    "con_total": 6.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Girls-are-better-than-boys./1/",
+    "topic": "Girls are better than boys.",
+    "true_winner": "con",
+    "chars": 7774,
+    "pro_total": 7.5,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Finish-my-Story/1/",
+    "topic": "Finish my Story!!",
+    "true_winner": "pro",
+    "chars": 3028,
+    "pro_total": 7.67,
+    "con_total": 5.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Is-child-behavior-better-or-worse-than-it-was-years-ago/1/",
+    "topic": "Is child behavior better or worse than it was years ago?",
+    "true_winner": "con",
+    "chars": 3081,
+    "pro_total": 7.33,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Frozen-is-better-than-all-the-crap-you-watch/1/",
+    "topic": "Frozen is better than all the crap you watch",
+    "true_winner": "con",
+    "chars": 12260,
+    "failed": true
+  },
+  {
+    "id": "Should-Abortion-be-abolished/1/",
+    "topic": "Should Abortion be abolished?",
+    "true_winner": "con",
+    "chars": 13054,
+    "pro_total": 6.33,
+    "con_total": 6.83,
+    "ft_winner": "tie",
+    "failed": false
+  },
+  {
+    "id": "Al-Sharpton-and-Jesse-Jackson-are-NO-MLK-and-are-racist/1/",
+    "topic": "Al Sharpton and Jesse Jackson are NO MLK and are racist!",
+    "true_winner": "con",
+    "chars": 6098,
+    "pro_total": 8.0,
+    "con_total": 6.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "America-Does-Not-Need-More-STEM-Education/3/",
+    "topic": "America Does Not Need More STEM Education",
+    "true_winner": "pro",
+    "chars": 21331,
+    "pro_total": 7.0,
+    "con_total": 7.33,
+    "ft_winner": "tie",
+    "failed": false
+  },
+  {
+    "id": "Anarcho-capitalism-would-be-a-more-humanitarian-form-of-social-organization-than-Anarcho-communism/1/",
+    "topic": "Anarcho-capitalism would be a more humanitarian form of social organization than Anarcho-communism",
+    "true_winner": "pro",
+    "chars": 18296,
+    "pro_total": 8.0,
+    "con_total": 5.83,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Women-in-the-Kitchen/3/",
+    "topic": "Women in the Kitchen",
+    "true_winner": "pro",
+    "chars": 2754,
+    "pro_total": 7.5,
+    "con_total": 6.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Should-religion-and-politics-be-separated/1/",
+    "topic": "Should religion and politics be separated?",
+    "true_winner": "con",
+    "chars": 5308,
+    "pro_total": 5.17,
+    "con_total": 7.0,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "Would-Changing-the-Past-Via-Time-Travel-be-Moral/1/",
+    "topic": "Would Changing the Past Via Time Travel be Moral",
+    "true_winner": "pro",
+    "chars": 9308,
+    "failed": true
+  },
+  {
+    "id": "Psychotherapy-vs.-Pharmacotherapy/1/",
+    "topic": "Psychotherapy vs. Pharmacotherapy",
+    "true_winner": "con",
+    "chars": 25002,
+    "pro_total": 8.17,
+    "con_total": 7.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "same-thing-self-defense-tillers-abortions-and-someone-killing-two-year-olds/1/",
+    "topic": "same thing: self defense, tiller's abortions, and someone killing two year olds",
+    "true_winner": "con",
+    "chars": 4717,
+    "failed": true
+  },
+  {
+    "id": "Child-Limit-Law/2/",
+    "topic": "Child Limit Law",
+    "true_winner": "con",
+    "chars": 20228,
+    "pro_total": 7.5,
+    "con_total": 7.73,
+    "ft_winner": "tie",
+    "failed": false
+  },
+  {
+    "id": "always-make-your-own-sandwhiches../1/",
+    "topic": "always make your own sandwhiches..",
+    "true_winner": "con",
+    "chars": 6281,
+    "pro_total": 7.0,
+    "con_total": 8.17,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "taxes-in-the-united-states-should-be-signifigantly-lowered-currently/1/",
+    "topic": "taxes in the united states should be signifigantly lowered currently",
+    "true_winner": "pro",
+    "chars": 23146,
+    "pro_total": 8.67,
+    "con_total": 6.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Chess-should-not-be-an-Olympic-sport/1/",
+    "topic": "Chess should not be an Olympic sport",
+    "true_winner": "pro",
+    "chars": 1647,
+    "pro_total": 7.5,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Was-Lincoln-Oppressive-to-the-North/1/",
+    "topic": "Was Lincoln Oppressive to the North",
+    "true_winner": "pro",
+    "chars": 6179,
+    "pro_total": 8.17,
+    "con_total": 6.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Why-Justin-Beiber-is-not-a-good-influence-on-kids/1/",
+    "topic": "Why Justin Beiber is not a good influence on kids",
+    "true_winner": "con",
+    "chars": 12642,
+    "pro_total": 7.67,
+    "con_total": 6.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "The-biblical-God-probably-doesnt-exist./1/",
+    "topic": "The biblical God probably doesn't exist.",
+    "true_winner": "pro",
+    "chars": 3446,
+    "pro_total": 8.0,
+    "con_total": 6.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Should-Shakespeare-be-allowed-in-schools/1/",
+    "topic": "Should Shakespeare be allowed in schools",
+    "true_winner": "pro",
+    "chars": 5580,
+    "pro_total": 7.67,
+    "con_total": 6.17,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Video-Games-are-a-form-of-art./1/",
+    "topic": "Video Games are a form of art.",
+    "true_winner": "con",
+    "chars": 10374,
+    "pro_total": 7.0,
+    "con_total": 7.83,
+    "ft_winner": "con",
+    "failed": false
+  },
+  {
+    "id": "10-Kemonomimi-Nekomimi-is-not-furry./1/",
+    "topic": "10% (Kemonomimi/Nekomimi) is not furry.",
+    "true_winner": "pro",
+    "chars": 5621,
+    "pro_total": 7.67,
+    "con_total": 5.0,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Should-the-U.N.-Monitor-Civil-Rights-in-Non-Member-Nations/1/",
+    "topic": "Should the U.N. Monitor Civil Rights in Non-Member Nations",
+    "true_winner": "pro",
+    "chars": 7363,
+    "pro_total": 7.33,
+    "con_total": 5.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Black-is-color-regardless-of-definition/1/",
+    "topic": "Black is color regardless of definition",
+    "true_winner": "con",
+    "chars": 2618,
+    "pro_total": 7.0,
+    "con_total": 3.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Gay-Marriage-should-be-legalized./6/",
+    "topic": "Gay Marriage should be legalized.",
+    "true_winner": "pro",
+    "chars": 15617,
+    "pro_total": 6.0,
+    "con_total": 4.83,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "America-should-not-have-welfare/1/",
+    "topic": "America should not have welfare",
+    "true_winner": "con",
+    "chars": 4717,
+    "pro_total": 7.5,
+    "con_total": 6.83,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "0.0-r-1-0.0/1/",
+    "topic": "0.0(r)1=0.0",
+    "true_winner": "con",
+    "chars": 2186,
+    "pro_total": 7.5,
+    "con_total": 5.67,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "schools-and-internet-blocking-websites/1/",
+    "topic": "schools and internet blocking websites",
+    "true_winner": "pro",
+    "chars": 2914,
+    "pro_total": 7.67,
+    "con_total": 6.5,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Liebeck-v.-McDonald-s-Restaurants-The-McDonalds-Coffee-Case-was-not-frivolous/1/",
+    "topic": "Liebeck v. McDonald's Restaurants (The McDonalds Coffee Case) was not frivolous",
+    "true_winner": "con",
+    "chars": 5399,
+    "pro_total": 8.0,
+    "con_total": 6.33,
+    "ft_winner": "pro",
+    "failed": false
+  },
+  {
+    "id": "Are-zombies-better-than-vampires/1/",
+    "topic": "Are zombies better than vampires",
+    "true_winner": "pro",
+    "chars": 3118,
+    "pro_total": 7.0,
+    "con_total": 5.17,
+    "ft_winner": "pro",
+    "failed": false
+  }
+]

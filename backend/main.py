@@ -1,18 +1,31 @@
 import asyncio
 import os
+import sys
 import urllib.request
 import urllib.error
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv()
+# ── Path bootstrap ────────────────────────────────────────────────────────────
+# The codebase mixes two import styles:
+#   • main.py / orchestrator.py use  `from backend.debate.X`  (absolute from root)
+#   • internal modules use           `from config import …`    (relative to backend/)
+# Adding both directories satisfies both styles regardless of CWD.
+_backend_dir = os.path.dirname(os.path.abspath(__file__))   # …/Argus/backend
+_project_root = os.path.dirname(_backend_dir)               # …/Argus
+for _p in (_project_root, _backend_dir):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+load_dotenv(os.path.join(_backend_dir, ".env"), override=True)
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from debate.orchestrator import run_debate
+from backend.debate.orchestrator import run_debate
 
-from debate.vector_store import get_vector_store
+from backend.debate.vector_store import get_vector_store
+from backend.debate.history import store_name as history_store_name
 
 app = FastAPI()
 
@@ -32,8 +45,26 @@ async def startup_event():
         print(f"[VectorDB] ChromaDB ready. Seeded {seeded} evidence documents.")
 
 
-@app.get("/")
-async def root():
+@app.get("/healthz", include_in_schema=False)
+async def healthz():
+    """
+    Liveness only. Touches nothing.
+
+    This exists because /status was being used as the host's health check, and
+    /status calls into ChromaDB for its document count. During a debate the
+    retrieval work saturated the instance, /status exceeded the 5-second health
+    check budget, and the host killed the container — ending the debate it was
+    in the middle of running. A health check must never contend with the work it
+    is checking on.
+    """
+    return {"ok": True}
+
+
+# Deployed, "/" serves the built single-page app, so the backend status moved to
+# its own path. "/" still answers with this payload when no frontend build is
+# present, which is the local backend-only workflow.
+@app.get("/status")
+async def status():
     vs = get_vector_store()
     return {
         "name": "Argus AI Debate Backend",
@@ -41,7 +72,10 @@ async def root():
         "health_check": "/judge/health",
         "websocket": "/ws/debate",
         "vector_db": vs.get_stats(),
-        "frontend_url": "http://localhost:5174/"
+        # Which archive is live. On a free host the file store is wiped by every
+        # restart, so this is the difference between history that survives and
+        # history that quietly does not.
+        "history_store": history_store_name(),
     }
 
 
@@ -78,13 +112,13 @@ async def vector_db_query(q: str, top_k: int = 3):
 @app.get("/debates")
 async def debates_list(limit: int = 50, offset: int = 0):
     from debate.history import list_debates
-    return list_debates(limit=limit, offset=offset)
+    return await list_debates(limit=limit, offset=offset)
 
 
 @app.get("/debates/{debate_id}")
 async def debate_detail(debate_id: str):
     from debate.history import get_debate
-    record = get_debate(debate_id)
+    record = await get_debate(debate_id)
     if record is None:
         return JSONResponse(status_code=404, content={"error": "no such debate"})
     return record
@@ -93,14 +127,14 @@ async def debate_detail(debate_id: str):
 @app.delete("/debates/{debate_id}")
 async def debate_delete(debate_id: str):
     from debate.history import delete_debate
-    return {"deleted": delete_debate(debate_id)}
+    return {"deleted": await delete_debate(debate_id)}
 
 
 @app.get("/judge/logs")
 async def judge_log_feed(limit: int = 100):
     """Per-round audit trail across all debates, newest first."""
     from debate.history import judge_logs
-    return {"logs": judge_logs(limit=limit)}
+    return {"logs": await judge_logs(limit=limit)}
 
 
 NGROK_HEADERS = {"ngrok-skip-browser-warning": "true"}
@@ -108,22 +142,19 @@ NGROK_HEADERS = {"ngrok-skip-browser-warning": "true"}
 
 def _ft_judge_probe_urls(ft_url: str) -> list[str]:
     base = ft_url.rstrip("/")
-    return [f"{base}/openapi.json", f"{base}/ft-judge"]
+    # /health requires the FastAPI app inside the Kaggle notebook to be alive.
+    # /openapi.json is served by ngrok itself and would return 200 even when the
+    # Kaggle session has expired, causing a false-positive online report.
+    return [f"{base}/health"]
 
 
 def _probe_url_sync(url: str, headers: dict) -> bool:
     try:
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=2.5) as response:
+            # Only accept 200 — the /health endpoint returns 200 with a JSON body
+            # when the scorer is live. Any other status means it is not ready.
             return response.status == 200
-    except urllib.error.HTTPError as e:
-        # 405/422 prove a real handler is behind the URL and only rejected the
-        # method or payload. 404 does NOT: an offline ngrok tunnel serves its own
-        # 404 page, so accepting it reported the Kaggle scorer as online while
-        # every scoring call was silently falling back to Groq.
-        if e.code in (200, 405, 422):
-            return True
-        return False
     except Exception:
         return False
 
@@ -156,33 +187,25 @@ async def _is_ft_judge_online(ft_url: str, attempts: int = 2) -> bool:
 @app.get("/judge/health")
 async def judge_health():
     """
-    Checks Kaggle FT scorer (FT_JUDGE_URL) and Groq key for verdict generation.
-    Returns: { "status": "online" | "offline", "url": str, "scorer": str, "verdict": str }
+    Checks only the Kaggle FT scorer (FT_JUDGE_URL).
+    API-key-based providers (Groq, NVIDIA) are not pinged — they're assumed
+    available if configured; they fail at call-time, not at startup.
+    Returns: { "status": "online" | "offline", "url": str, "ft_online": bool }
     """
     load_dotenv(override=True)
     ft_url = os.getenv("FT_JUDGE_URL", "http://127.0.0.1:8002")
-    groq_key = os.getenv("JUDGE_GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
-    model = os.getenv("JUDGE_MODEL", "llama-3.3-70b-versatile")
 
     ft_online = await _is_ft_judge_online(ft_url)
-    groq_configured = bool(groq_key)
-    # The application is operational if Groq or Kaggle FT scorer is online
-    online = groq_configured or ft_online
 
     result = {
-        "status": "online" if online else "offline",
+        "status": "online" if ft_online else "offline",
         "url": ft_url,
-        "scorer": "kaggle-ft" if ft_online else "groq-fallback",
-        "verdict": "groq",
-        "model": model,
         "ft_online": ft_online,
-        "groq_configured": groq_configured,
     }
-    if not groq_configured and not ft_online:
-        result["reason"] = "Neither Kaggle FT judge (FT_JUDGE_URL) nor JUDGE_GROQ_API_KEY is available in backend/.env"
-    elif not ft_online:
-        result["note"] = "Kaggle FT scorer offline — using Groq fallback for round scoring"
+    if not ft_online:
+        result["note"] = "Kaggle FT scorer is offline or unreachable"
     return result
+
 
 
 @app.websocket("/ws/debate")
@@ -207,3 +230,48 @@ async def debate_websocket(websocket: WebSocket):
             await websocket.send_json({"type": "error", "message": str(e)})
         except:
             pass
+
+
+# ── Frontend ─────────────────────────────────────────────────────────────────
+# Deployed, one process serves both halves: same origin, so no CORS to configure
+# and no second URL to keep in sync. Mounted last so every API route above wins.
+#
+# When no build exists — the local `uvicorn` + `npm run dev` workflow — these
+# routes simply do not register and "/" falls back to the status payload.
+
+FRONTEND_DIST = os.getenv(
+    "FRONTEND_DIST",
+    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dist"),
+)
+
+if os.path.isdir(FRONTEND_DIST):
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    _INDEX = os.path.join(FRONTEND_DIST, "index.html")
+    _ASSETS = os.path.join(FRONTEND_DIST, "assets")
+    if os.path.isdir(_ASSETS):
+        app.mount("/assets", StaticFiles(directory=_ASSETS), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa(full_path: str):
+        """
+        Serve the SPA, letting react-router own client-side paths.
+
+        A deep link such as /debate-dashboard has no file behind it, so a plain
+        static mount would 404 on refresh. Real files are served when they exist;
+        everything else returns index.html and the router takes over.
+        """
+        candidate = os.path.normpath(os.path.join(FRONTEND_DIST, full_path))
+        # normpath collapses "..", so confirm the result stayed inside the build.
+        if candidate.startswith(FRONTEND_DIST) and os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(_INDEX)
+
+    print(f"[frontend] serving build from {FRONTEND_DIST}")
+else:
+    @app.get("/", include_in_schema=False)
+    async def root_no_build():
+        return await status()
+
+    print(f"[frontend] no build at {FRONTEND_DIST} — API only")

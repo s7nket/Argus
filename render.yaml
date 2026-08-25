@@ -1,0 +1,48 @@
+# Render blueprint — one Docker service serving the API and the built frontend.
+#
+# Declared here rather than clicked through the dashboard so a redeploy, or a
+# deploy by someone else, reproduces the same configuration.
+#
+# The free instance is 0.1 vCPU / 512 MB. That is tight for this workload:
+# ChromaDB's ONNX embedder is a few hundred MB resident, and retrieval is
+# CPU-bound. If the service restarts under load or requests crawl, the instance
+# size is the first thing to raise.
+
+services:
+  - type: web
+    name: argus
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: Sanket-Features
+    dockerfilePath: ./Dockerfile
+
+    # Must touch nothing. /status calls into ChromaDB for its document count,
+    # and during a debate that exceeded the 5-second budget — Render killed the
+    # container mid-debate with "health check failed (timed out after 5 seconds)
+    # while running your code". /healthz returns a constant.
+    healthCheckPath: /healthz
+
+    envVars:
+      # Set in the dashboard, never committed.
+      - key: GROQ_API_KEY
+        sync: false
+
+      # Kaggle ArguScore-4B over its reserved ngrok domain. The domain is stable
+      # across notebook sessions, so this is set once; when the notebook is not
+      # running the backend falls back to Groq and says so in the UI.
+      - key: FT_JUDGE_URL
+        value: https://viewer-backboned-jellied.ngrok-free.dev
+
+      - key: JUDGE_MODEL
+        value: llama-3.3-70b-versatile
+
+      # Two label-swapped scoring passes are what make the position-bias metric
+      # possible, but they double judge token spend against a 100k/day free Groq
+      # quota. Drop to 1 if demos start exhausting it.
+      - key: BLIND_PASSES
+        value: "2"
+
+      # Render assigns the port; the Dockerfile CMD already reads it.
+      - key: PORT
+        value: "10000"
