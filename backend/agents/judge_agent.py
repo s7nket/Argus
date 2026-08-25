@@ -25,10 +25,10 @@ load_dotenv(os.path.join(os.path.dirname(_here), ".env"), override=True)
 # Trigger uvicorn reload 3
 
 # ── Judge client — NVIDIA NIM (preferred) or Groq (fallback) ─────────────────
-# NVIDIA NIM is OpenAI-compatible and gives access to deepseek-ai/deepseek-r1,
-# the strongest freely available reasoning model. DeepSeek-R1's <think> blocks
-# are stripped by _clean_response before JSON parsing, so they are harmless.
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "deepseek-ai/deepseek-r1")
+# NVIDIA NIM is OpenAI-compatible. The model is selected from backend/.env.
+# For this test configuration, use the fast non-reasoning model:
+# meta/llama-3.3-70b-instruct
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "meta/llama-3.3-70b-instruct")
 _NVIDIA_KEY = os.getenv("NVIDIA_API_KEY", "")
 _JUDGE_BASE_URL = os.getenv("JUDGE_BASE_URL", "https://integrate.api.nvidia.com/v1")
 _USING_NVIDIA = bool(_NVIDIA_KEY and not _NVIDIA_KEY.startswith("your-"))
@@ -49,7 +49,7 @@ if _USING_NVIDIA:
     judge_client = AsyncOpenAI(
         api_key=_NVIDIA_KEY,
         base_url=_JUDGE_BASE_URL,
-        timeout=120.0,   # DeepSeek-R1 reasons before answering — give it time
+        timeout=120.0,   # llama-3.3-70b with 4096 max_tokens needs headroom
     )
     print(f"[judge] NVIDIA NIM → {JUDGE_MODEL}")
 else:

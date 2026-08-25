@@ -187,33 +187,25 @@ async def _is_ft_judge_online(ft_url: str, attempts: int = 2) -> bool:
 @app.get("/judge/health")
 async def judge_health():
     """
-    Checks Kaggle FT scorer (FT_JUDGE_URL) and Groq key for verdict generation.
-    Returns: { "status": "online" | "offline", "url": str, "scorer": str, "verdict": str }
+    Checks only the Kaggle FT scorer (FT_JUDGE_URL).
+    API-key-based providers (Groq, NVIDIA) are not pinged — they're assumed
+    available if configured; they fail at call-time, not at startup.
+    Returns: { "status": "online" | "offline", "url": str, "ft_online": bool }
     """
     load_dotenv(override=True)
     ft_url = os.getenv("FT_JUDGE_URL", "http://127.0.0.1:8002")
-    groq_key = os.getenv("JUDGE_GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
-    model = os.getenv("JUDGE_MODEL", "llama-3.3-70b-versatile")
 
     ft_online = await _is_ft_judge_online(ft_url)
-    groq_configured = bool(groq_key)
-    # The application is operational if Groq or Kaggle FT scorer is online
-    online = groq_configured or ft_online
 
     result = {
-        "status": "online" if online else "offline",
+        "status": "online" if ft_online else "offline",
         "url": ft_url,
-        "scorer": "kaggle-ft" if ft_online else "groq-fallback",
-        "verdict": "groq",
-        "model": model,
         "ft_online": ft_online,
-        "groq_configured": groq_configured,
     }
-    if not groq_configured and not ft_online:
-        result["reason"] = "Neither Kaggle FT judge (FT_JUDGE_URL) nor JUDGE_GROQ_API_KEY is available in backend/.env"
-    elif not ft_online:
-        result["note"] = "Kaggle FT scorer offline — using Groq fallback for round scoring"
+    if not ft_online:
+        result["note"] = "Kaggle FT scorer is offline or unreachable"
     return result
+
 
 
 @app.websocket("/ws/debate")
