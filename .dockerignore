@@ -17,6 +17,8 @@ backend/chroma_db
 
 # Runtime output and refetchable caches.
 backend/data/debates
+backend/data/debates.json
+backend/data/ddo_pool.json
 backend/data/ibm_rank_*.json
 
 docs
