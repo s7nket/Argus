@@ -24,43 +24,25 @@ _here = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(os.path.dirname(_here), ".env"), override=True)
 # Trigger uvicorn reload 3
 
-# ── Judge client — NVIDIA NIM (preferred) or Groq (fallback) ─────────────────
-# NVIDIA NIM is OpenAI-compatible. The model is selected from backend/.env.
-# For this test configuration, use the fast non-reasoning model:
-# meta/llama-3.3-70b-instruct
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "meta/llama-3.3-70b-instruct")
-_NVIDIA_KEY = os.getenv("NVIDIA_API_KEY", "")
-_JUDGE_BASE_URL = os.getenv("JUDGE_BASE_URL", "https://integrate.api.nvidia.com/v1")
-_USING_NVIDIA = bool(_NVIDIA_KEY and not _NVIDIA_KEY.startswith("your-"))
+# ── Judge client — Gemini (preferred) or Groq (fallback) ─────────
+_GEMINI_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 
-
-def _judge_api_key() -> str:
-    if _USING_NVIDIA:
-        return _NVIDIA_KEY
+if _GEMINI_KEY:
+    JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gemini-3.6-flash")
+    judge_client = AsyncOpenAI(
+        api_key=_GEMINI_KEY,
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        timeout=60.0,
+    )
+    print(f"[judge] Gemini -> {JUDGE_MODEL}")
+else:
+    JUDGE_MODEL = os.getenv("JUDGE_GROQ_MODEL", "openai/gpt-oss-120b")
     key = os.getenv("JUDGE_GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
     if not key:
-        raise ValueError(
-            "Set NVIDIA_API_KEY (for NVIDIA NIM) or JUDGE_GROQ_API_KEY in backend/.env"
-        )
-    return key
+        raise ValueError("Set GEMINI_API_KEY or GROQ_API_KEY in backend/.env")
+    judge_client = AsyncGroq(api_key=key, timeout=45.0)
+    print(f"[judge] Groq fallback -> {JUDGE_MODEL}")
 
-
-if _USING_NVIDIA:
-    judge_client = AsyncOpenAI(
-        api_key=_NVIDIA_KEY,
-        base_url=_JUDGE_BASE_URL,
-        timeout=120.0,   # llama-3.3-70b with 4096 max_tokens needs headroom
-    )
-    print(f"[judge] NVIDIA NIM → {JUDGE_MODEL}")
-else:
-    # NVIDIA key not configured — fall back to Groq with a model that actually
-    # exists on this account. deepseek-ai/deepseek-r1 is NVIDIA-only.
-    JUDGE_MODEL = os.getenv("JUDGE_GROQ_MODEL", "qwen/qwen3.6-27b")
-    judge_client = AsyncGroq(api_key=_judge_api_key(), timeout=45.0)
-    print(f"[judge] Groq fallback → {JUDGE_MODEL}")
-
-# Keep the old name as an alias so any external code that imports groq_client
-# still works without changes.
 groq_client = judge_client
 
 # ── Fine-tuned 4B (Kaggle FT_JUDGE_URL) — round scoring only ─────────────────
@@ -186,20 +168,31 @@ Return ONLY valid JSON. No markdown.
 def _clean_response(raw: str) -> str:
     if not raw:
         return ""
-    raw = re.sub(r'<think>.*?(?:</think>|$)', '', raw, flags=re.DOTALL)
-    raw = raw.replace("```json", "").replace("```", "").strip()
-    start = raw.find("{")
+    # Strip completed <think> blocks
+    cleaned = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL)
+    cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+    
+    # Locate JSON object
+    start = cleaned.find("{")
     if start == -1:
-        return raw
+        # Fallback: maybe JSON was inside <think> or raw string
+        start = raw.find("{")
+        if start != -1:
+            cleaned = raw[start:]
+        else:
+            return raw.strip()
+    else:
+        cleaned = cleaned[start:]
+
     depth = 0
-    for i, ch in enumerate(raw[start:], start):
+    for i, ch in enumerate(cleaned):
         if ch == "{":
             depth += 1
         elif ch == "}":
             depth -= 1
             if depth == 0:
-                return raw[start:i + 1]
-    return raw[start:]
+                return cleaned[:i + 1]
+    return cleaned
 
 
 def _format_exchange_for_judge(exchange: list[dict]) -> str:
@@ -423,6 +416,14 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
             "relevance": float(s.get("relevance", 0) or 0),
         }
 
+    # Unmask the reasoning text so the UI shows PRO/CON instead of DEBATER-X/Y.
+    reasoning = result.get("reasoning", "")
+    if reasoning:
+        x_target = "CON" if swap else "PRO"
+        y_target = "PRO" if swap else "CON"
+        reasoning = re.sub(r"\bdebater[\s\-_]*x\b", x_target, reasoning, flags=re.IGNORECASE)
+        reasoning = re.sub(r"\bdebater[\s\-_]*y\b", y_target, reasoning, flags=re.IGNORECASE)
+
     return {
         "pro_scores": side(pro_key),
         "con_scores": side(con_key),
@@ -435,7 +436,7 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
             for f in (result.get("fallacy_claims", []) or [])
             if isinstance(f, dict)
         ],
-        "reasoning": result.get("reasoning", ""),
+        "reasoning": reasoning,
     }
 
 
@@ -877,8 +878,12 @@ async def judge_final_verdict(
     pro_arguments: list[str] | None = None,
     con_arguments: list[str] | None = None,
 ) -> dict:
-    pro_total = round(sum(r["pro_scores"]["total"] for r in all_rounds), 1)
-    con_total = round(sum(r["con_scores"]["total"] for r in all_rounds), 1)
+    def _safe_total(r: dict, side: str) -> float:
+        s = r.get(f"{side}_scores") or {}
+        return float(s.get("total", 0) or 0)
+
+    pro_total = round(sum(_safe_total(r, "pro") for r in all_rounds), 1)
+    con_total = round(sum(_safe_total(r, "con") for r in all_rounds), 1)
     max_possible = len(all_rounds) * 10
 
     # Decided here, in Python, from the scores. The old code let the language
@@ -888,12 +893,12 @@ async def judge_final_verdict(
     overall_winner = "tie" if abs(margin) <= TIE_BAND else ("pro" if margin > 0 else "con")
     win_key = "con_scores" if overall_winner == "con" else "pro_scores"
     strongest_round = max(
-        range(len(all_rounds)), key=lambda i: all_rounds[i][win_key]["total"]
+        range(len(all_rounds)), key=lambda i: ((all_rounds[i].get(win_key) or {}).get("total") or 0)
     ) + 1 if all_rounds else 1
 
     rounds_summary = "\n".join([
-        f"R{i+1}: PRO={r['pro_scores']['total']} CON={r['con_scores']['total']} "
-        f"Winner={r['round_winner'].upper()} — {r['reasoning']}"
+        f"R{i+1}: PRO={_safe_total(r, 'pro')} CON={_safe_total(r, 'con')} "
+        f"Winner={(r.get('round_winner') or 'tie').upper()} — {r.get('reasoning', '')}"
         for i, r in enumerate(all_rounds)
     ])
 
@@ -940,7 +945,7 @@ async def judge_final_verdict(
                 f"Return ONLY the JSON object."
             )},
         ],
-        max_tokens=2000,
+        max_tokens=4096,
         temperature=0,
     )
 
@@ -957,7 +962,7 @@ async def judge_final_verdict(
             },
             "winner": {
                 "decisive_argument": "Stronger evidence and argument consistency throughout the debate.",
-                "points": ["Maintained key arguments across all rounds."],
+                "points": ["Maintained key arguments and factual grounding across rounds."],
             },
             "loser": {
                 "fatal_weakness": "Scored lower across the overall debate rounds.",
@@ -976,6 +981,27 @@ async def judge_final_verdict(
     # container, and the client renders these fields directly.
     _coerce_verdict_strings(result)
 
+    # Sanitize any placeholder ellipsis or empty items
+    def _sanitize_list(items: list, fallback: list) -> list:
+        cleaned = [s for s in items if s and str(s).strip() not in ("...", ".", "…", "-", "")]
+        return cleaned if cleaned else fallback
+
+    w_block = result.setdefault("winner", {})
+    w_block["points"] = _sanitize_list(
+        w_block.get("points", []),
+        [f"Consistent performance across {len(all_rounds)} rounds of debate."]
+    )
+    if str(w_block.get("decisive_argument", "")).strip() in ("...", ".", "…", ""):
+        w_block["decisive_argument"] = "Superior factual evidence and coherent logical structure."
+
+    l_block = result.setdefault("loser", {})
+    l_block["missed_points"] = _sanitize_list(
+        l_block.get("missed_points", []),
+        ["Failed to counter key factual claims made by the opponent."]
+    )
+    if str(l_block.get("fatal_weakness", "")).strip() in ("...", ".", "…", ""):
+        l_block["fatal_weakness"] = "Lack of verifiable source citations in core arguments."
+
     # Deterministic fields always win over anything the model returned.
     result["overall_winner"] = overall_winner
     result["pro_total"] = pro_total
@@ -986,7 +1012,6 @@ async def judge_final_verdict(
         "pro": round((pro_total / max_possible) * 100, 1) if max_possible else 0.0,
         "con": round((con_total / max_possible) * 100, 1) if max_possible else 0.0,
     }
-    result.setdefault("winner", {})
     result["winner"]["strongest_round"] = strongest_round
     result["confidence"] = _verdict_confidence(pro_total, con_total)
     # The arithmetic behind the outcome, so the verdict can be checked rather
@@ -995,17 +1020,17 @@ async def judge_final_verdict(
 
     # Per-round winners and margins come from the scores, never from the model.
     model_rounds = {r.get("r"): r for r in (result.get("rounds") or []) if isinstance(r, dict)}
-    result["rounds"] = [
-        {
+    result["rounds"] = []
+    for i, r in enumerate(all_rounds):
+        swing_val = _as_text(model_rounds.get(i + 1, {}).get("swing"))
+        if not swing_val or swing_val.strip() in ("...", ".", "…", "-"):
+            swing_val = _as_text(r.get("reasoning"))
+        result["rounds"].append({
             "r": i + 1,
-            "winner": r["round_winner"],
-            "margin": round(abs(r["pro_scores"]["total"] - r["con_scores"]["total"]), 1),
-            # _as_text, not a bare slice: a dict here raises TypeError on [:80].
-            "swing": (_as_text(model_rounds.get(i + 1, {}).get("swing"))
-                      or _as_text(r.get("reasoning")))[:80],
-        }
-        for i, r in enumerate(all_rounds)
-    ]
+            "winner": r.get("round_winner") or "tie",
+            "margin": round(abs(_safe_total(r, "pro") - _safe_total(r, "con")), 1),
+            "swing": (swing_val or "Round decided on argumentation and evidence.")[:120],
+        })
 
     # Surface only fallacy accusations the judge confirmed were misapplied.
     result["fallacies"] = [

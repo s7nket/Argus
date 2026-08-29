@@ -1,4 +1,5 @@
 import asyncio
+import json
 import re
 from fastapi import WebSocket
 from backend.agents.pro_agent import generate_pro_argument
@@ -65,7 +66,33 @@ def clean_text(text: str) -> str:
     return _LEADING_PUNCT_RE.sub('', _LABEL_RE.sub('', text)).strip()
 
 
-async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
+async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2, human_side: str | None = None):
+    """
+    human_side: 'pro' | 'con' | None
+      None  → AI vs AI (default)
+      'pro' → user controls PRO, AI controls CON
+      'con' → user controls CON, AI controls PRO
+    """
+
+    async def get_human_argument(role: str, round_num: int, sub_round: int) -> str:
+        """Pause and wait for the human's typed argument over the WebSocket."""
+        await websocket.send_json({
+            "type": "human_turn",
+            "role": role,
+            "round": round_num,
+            "sub_round": sub_round,
+        })
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                msg = json.loads(raw)
+            except Exception:
+                continue
+            if msg.get("type") == "human_argument":
+                return msg.get("text", "").strip() or "I support my position."
+            # ignore ping / other frames
+
+
 
     async def on_retry(attempt: int, total: int, delay: float, rate_limited: bool) -> None:
         """
@@ -141,6 +168,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
         "topic_type": sides.get("type", "proposition"),
         "pro_side": pro_side,
         "con_side": con_side,
+        "human_side": human_side,
     })
 
     # Opening arguments only — kept short to bound agent context growth.
@@ -171,18 +199,22 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
             "round": round_num,
             "sub_round": 1
         })
-        try:
-            pro_open, pro_model = await generate_pro_argument(
-                topic=topic,
-                round_num=round_num,
-                pro_history=pro_history,
-                con_history=con_history,
-                pro_side=pro_side,
-                con_side=con_side,
-            )
-        except Exception as e:
-            await fail(f"PRO agent failed (R{round_num}S1): {e}")
-            return
+        pro_model = "human"
+        if human_side == "pro":
+            pro_open = await get_human_argument("pro", round_num, 1)
+        else:
+            try:
+                pro_open, pro_model = await generate_pro_argument(
+                    topic=topic,
+                    round_num=round_num,
+                    pro_history=pro_history,
+                    con_history=con_history,
+                    pro_side=pro_side,
+                    con_side=con_side,
+                )
+            except Exception as e:
+                await fail(f"PRO agent failed (R{round_num}S1): {e}")
+                return
 
         pro_open = clean_text(pro_open)
         exchange.append({"speaker": "pro", "sub_round": 1, "text": pro_open})
@@ -202,19 +234,23 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
             "round": round_num,
             "sub_round": 1
         })
-        try:
-            con_open, con_model = await generate_con_argument(
-                topic=topic,
-                round_num=round_num,
-                current_pro_argument=pro_open,
-                pro_history=pro_history,
-                con_history=con_history,
-                pro_side=pro_side,
-                con_side=con_side,
-            )
-        except Exception as e:
-            await fail(f"CON agent failed (R{round_num}S1): {e}")
-            return
+        con_model = "human"
+        if human_side == "con":
+            con_open = await get_human_argument("con", round_num, 1)
+        else:
+            try:
+                con_open, con_model = await generate_con_argument(
+                    topic=topic,
+                    round_num=round_num,
+                    current_pro_argument=pro_open,
+                    pro_history=pro_history,
+                    con_history=con_history,
+                    pro_side=pro_side,
+                    con_side=con_side,
+                )
+            except Exception as e:
+                await fail(f"CON agent failed (R{round_num}S1): {e}")
+                return
 
         con_open = clean_text(con_open)
         exchange.append({"speaker": "con", "sub_round": 1, "text": con_open})
@@ -242,20 +278,24 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
             "round": round_num,
             "sub_round": 2
         })
-        try:
-            pro_counter, pro_model = await generate_pro_rebuttal(
-                topic=topic,
-                round_num=round_num,
-                sub_round=2,
-                exchange_so_far=exchange,
-                pro_history=pro_history,
-                con_history=con_history,
-                pro_side=pro_side,
-                con_side=con_side,
-            )
-        except Exception as e:
-            await fail(f"PRO rebuttal failed (R{round_num}S2): {e}")
-            return
+        pro_model = "human"
+        if human_side == "pro":
+            pro_counter = await get_human_argument("pro", round_num, 2)
+        else:
+            try:
+                pro_counter, pro_model = await generate_pro_rebuttal(
+                    topic=topic,
+                    round_num=round_num,
+                    sub_round=2,
+                    exchange_so_far=exchange,
+                    pro_history=pro_history,
+                    con_history=con_history,
+                    pro_side=pro_side,
+                    con_side=con_side,
+                )
+            except Exception as e:
+                await fail(f"PRO rebuttal failed (R{round_num}S2): {e}")
+                return
 
         pro_counter = clean_text(pro_counter)
         exchange.append({"speaker": "pro", "sub_round": 2, "text": pro_counter})
@@ -275,20 +315,24 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
             "round": round_num,
             "sub_round": 2
         })
-        try:
-            con_counter, con_model = await generate_con_rebuttal(
-                topic=topic,
-                round_num=round_num,
-                sub_round=2,
-                exchange_so_far=exchange,
-                pro_history=pro_history,
-                con_history=con_history,
-                pro_side=pro_side,
-                con_side=con_side,
-            )
-        except Exception as e:
-            await fail(f"CON rebuttal failed (R{round_num}S2): {e}")
-            return
+        con_model = "human"
+        if human_side == "con":
+            con_counter = await get_human_argument("con", round_num, 2)
+        else:
+            try:
+                con_counter, con_model = await generate_con_rebuttal(
+                    topic=topic,
+                    round_num=round_num,
+                    sub_round=2,
+                    exchange_so_far=exchange,
+                    pro_history=pro_history,
+                    con_history=con_history,
+                    pro_side=pro_side,
+                    con_side=con_side,
+                )
+            except Exception as e:
+                await fail(f"CON rebuttal failed (R{round_num}S2): {e}")
+                return
 
         con_counter = clean_text(con_counter)
         exchange.append({"speaker": "con", "sub_round": 2, "text": con_counter})
@@ -316,20 +360,24 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
             "round": round_num,
             "sub_round": 3
         })
-        try:
-            pro_justify, pro_model = await generate_pro_rebuttal(
-                topic=topic,
-                round_num=round_num,
-                sub_round=3,
-                exchange_so_far=exchange,
-                pro_history=pro_history,
-                con_history=con_history,
-                pro_side=pro_side,
-                con_side=con_side,
-            )
-        except Exception as e:
-            await fail(f"PRO rebuttal failed (R{round_num}S3): {e}")
-            return
+        pro_model = "human"
+        if human_side == "pro":
+            pro_justify = await get_human_argument("pro", round_num, 3)
+        else:
+            try:
+                pro_justify, pro_model = await generate_pro_rebuttal(
+                    topic=topic,
+                    round_num=round_num,
+                    sub_round=3,
+                    exchange_so_far=exchange,
+                    pro_history=pro_history,
+                    con_history=con_history,
+                    pro_side=pro_side,
+                    con_side=con_side,
+                )
+            except Exception as e:
+                await fail(f"PRO rebuttal failed (R{round_num}S3): {e}")
+                return
 
         pro_justify = clean_text(pro_justify)
         exchange.append({"speaker": "pro", "sub_round": 3, "text": pro_justify})
@@ -348,20 +396,24 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2):
             "round": round_num,
             "sub_round": 3
         })
-        try:
-            con_justify, con_model = await generate_con_rebuttal(
-                topic=topic,
-                round_num=round_num,
-                sub_round=3,
-                exchange_so_far=exchange,
-                pro_history=pro_history,
-                con_history=con_history,
-                pro_side=pro_side,
-                con_side=con_side,
-            )
-        except Exception as e:
-            await fail(f"CON rebuttal failed (R{round_num}S3): {e}")
-            return
+        con_model = "human"
+        if human_side == "con":
+            con_justify = await get_human_argument("con", round_num, 3)
+        else:
+            try:
+                con_justify, con_model = await generate_con_rebuttal(
+                    topic=topic,
+                    round_num=round_num,
+                    sub_round=3,
+                    exchange_so_far=exchange,
+                    pro_history=pro_history,
+                    con_history=con_history,
+                    pro_side=pro_side,
+                    con_side=con_side,
+                )
+            except Exception as e:
+                await fail(f"CON rebuttal failed (R{round_num}S3): {e}")
+                return
 
         con_justify = clean_text(con_justify)
         exchange.append({"speaker": "con", "sub_round": 3, "text": con_justify})

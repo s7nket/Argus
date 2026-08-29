@@ -8,11 +8,16 @@ import {
   Scale,
   X,
   Brain,
-  ArrowLeft
+  ArrowLeft,
+  Share2,
+  Check,
+  FileDown,
+  Loader2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { api, wsUrl } from '../lib/api';
 import { useNavigate } from 'react-router';
+import { exportAndShareDebatePdf } from '../lib/pdfExport';
 
 /**
  * Coerce a judge field to renderable text.
@@ -70,6 +75,100 @@ export function DebateDashboard() {
   const judgeFailuresRef = useRef(0);
   const debateCompleteRef = useRef(false);
   const errorOccurredRef = useRef(false);
+  const [debateId, setDebateId] = useState<string | null>(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfExported, setPdfExported] = useState<'downloaded' | 'shared' | null>(null);
+  const [historyPdfExported, setHistoryPdfExported] = useState(false);
+  const [humanSide, setHumanSide] = useState<'pro' | 'con' | null>(null);
+  const [humanTurn, setHumanTurn] = useState<{ role: string; round: number; sub_round: number } | null>(null);
+  const [humanInput, setHumanInput] = useState('');
+
+  const handleExportPdf = async () => {
+    if (isExportingPdf || messages.length === 0) return;
+    setIsExportingPdf(true);
+    try {
+      await exportAndShareDebatePdf({
+        topic: prompt || 'AI Debate Session',
+        debateId: debateId,
+        messages: messages,
+        stack: stack,
+        createdAt: new Date().toISOString(),
+      });
+      setPdfExported('downloaded');
+      setTimeout(() => setPdfExported(null), 3500);
+    } catch (e) {
+      console.error('PDF export failed:', e);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleExportHistoryDebate = async (debate: any) => {
+    if (!debate || isExportingPdf) return;
+    setIsExportingPdf(true);
+    try {
+      const reconstructedMessages: any[] = [];
+      (debate.rounds ?? []).forEach((r: any) => {
+        reconstructedMessages.push({
+          type: 'sub_round_divider',
+          round: r.round,
+          label: `Round ${r.round} Exchanges`,
+        });
+        (r.exchange ?? []).forEach((ex: any) => {
+          reconstructedMessages.push({
+            type: ex.speaker === 'pro' ? 'pro' : 'con',
+            round: r.round,
+            sub_round: ex.sub_round || 1,
+            text: ex.text,
+            model: ex.model || debate.scorer || 'unknown',
+            latency: ex.latency || 0,
+          });
+        });
+        reconstructedMessages.push({
+          type: 'verdict',
+          round: r.round,
+          data: {
+            pro_scores: r.pro_scores,
+            con_scores: r.con_scores,
+            round_winner: r.round_winner,
+            reasoning: r.reasoning,
+          },
+        });
+      });
+
+      if (debate.final_verdict) {
+        reconstructedMessages.push({
+          type: 'final_verdict',
+          data: debate.final_verdict,
+        });
+      }
+
+      await exportAndShareDebatePdf({
+        topic: debate.topic || 'Archived Debate',
+        debateId: debate.id,
+        messages: reconstructedMessages,
+        finalVerdict: debate.final_verdict,
+        stack: { scorer: debate.scorer },
+        createdAt: debate.created_at,
+      });
+      setHistoryPdfExported(true);
+      setTimeout(() => setHistoryPdfExported(false), 3500);
+    } catch (e) {
+      console.error('History PDF export failed:', e);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const sendHumanArgument = () => {
+    if (!wsRef.current || !humanInput.trim()) return;
+    wsRef.current.send(JSON.stringify({ type: 'human_argument', text: humanInput.trim() }));
+    // We do NOT append locally to `messages` here.
+    // The backend orchestrator will immediately broadcast the argument back
+    // over the WebSocket (as `pro_argument` / `con_argument`), which will append it.
+    setHumanInput('');
+    setHumanTurn(null);
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -139,6 +238,8 @@ export function DebateDashboard() {
     setTypingAgent(null);
     setDebateComplete(false);
     setNotice(null);
+    setDebateId(null);
+    setPdfExported(null);
     debateCompleteRef.current = false;
     errorOccurredRef.current = false;
     setError(null);
@@ -146,7 +247,7 @@ export function DebateDashboard() {
     const ws = new WebSocket(wsUrl('/ws/debate'));
     wsRef.current = ws;
     ws.onopen = () => {
-      ws.send(JSON.stringify({ topic: prompt, rounds }));
+      ws.send(JSON.stringify({ topic: prompt, rounds, human_side: humanSide }));
       // Browsers cannot emit WS ping frames; agent generation can leave the
       // socket silent for 30-60s, long enough for a middlebox to drop the idle
       // connection (close 1006). A periodic outbound frame keeps it warm.
@@ -196,7 +297,14 @@ export function DebateDashboard() {
         // call. Without this the topic parse — which can stall on a rate limit —
         // leaves the UI blank and looks like the button did nothing.
         case 'accepted':
-          setNotice('Starting debate…');
+          setNotice('Starting debate\u2026');
+          break;
+        case 'debate_start':
+          if (msg.debate_id) setDebateId(msg.debate_id);
+          break;
+        case 'human_turn':
+          setTypingAgent(null);
+          setHumanTurn({ role: msg.role, round: msg.round, sub_round: msg.sub_round });
           break;
         // A call is waiting out a rate limit or a transient error. These waits
         // run to minutes, so they have to be visible.
@@ -226,7 +334,7 @@ export function DebateDashboard() {
         setError('Connection lost. The debate was interrupted.');
       }
     };
-  }, [prompt, rounds, typingAgent, judgeStatus]);
+  }, [prompt, rounds, typingAgent, judgeStatus, humanSide]);
 
   // Fetched when the tab is opened rather than on mount, so the dashboard does
   // not pay for data most sessions never look at. Refetched on every open so a
@@ -363,10 +471,34 @@ export function DebateDashboard() {
                   <ArrowLeft className="w-4 h-4" />
                   <span className="font-['JetBrains_Mono'] text-[11px] tracking-widest uppercase">Back to history</span>
                 </button>
-                <h2 className="font-['Orbitron'] text-lg text-white/90 mb-1">{asText(openDebate.topic)}</h2>
-                <p className="font-['JetBrains_Mono'] text-[10px] text-white/35 tracking-widest uppercase mb-6">
-                  {new Date(openDebate.created_at).toLocaleString()} · {(openDebate.rounds ?? []).length} rounds
-                </p>
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div>
+                    <h2 className="font-['Orbitron'] text-lg text-white/90 mb-1">{asText(openDebate.topic)}</h2>
+                    <p className="font-['JetBrains_Mono'] text-[10px] text-white/35 tracking-widest uppercase">
+                      {new Date(openDebate.created_at).toLocaleString()} · {(openDebate.rounds ?? []).length} rounds
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleExportHistoryDebate(openDebate)}
+                    disabled={isExportingPdf}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-500/[0.08] hover:bg-emerald-500/[0.15] text-emerald-300 transition-all text-xs font-['JetBrains_Mono'] tracking-wider shrink-0 cursor-pointer active:scale-95 disabled:opacity-50"
+                  >
+                    {isExportingPdf ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                    ) : historyPdfExported ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+                    )}
+                    <span>
+                      {isExportingPdf
+                        ? 'Exporting…'
+                        : historyPdfExported
+                        ? 'PDF Downloaded!'
+                        : 'Export PDF'}
+                    </span>
+                  </button>
+                </div>
                 {(openDebate.rounds ?? []).map((r: any) => (
                   <div key={r.round} className="mb-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-3">
@@ -486,8 +618,30 @@ export function DebateDashboard() {
                 <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center"><Brain className="w-5 h-5 text-white/30" /></div>
               </div>
               <h2 className="font-['Orbitron'] text-xl tracking-[0.2em] text-white/60 mb-4 uppercase font-semibold">Awaiting Parameters</h2>
-              <p className="font-['DM_Sans'] text-sm text-white/30 leading-relaxed font-medium mb-10">Enter a debate topic below to engage neural simulation protocols and deploy active agents.</p>
-              
+              <p className="font-['DM_Sans'] text-sm text-white/30 leading-relaxed font-medium mb-8">Enter a debate topic below to engage neural simulation protocols and deploy active agents.</p>
+
+              {/* Mode selector */}
+              <div className="flex items-center gap-2 p-1 bg-white/[0.04] border border-white/[0.06] rounded-full mb-10">
+                {([
+                  { value: null,  label: '🤖 AI vs AI' },
+                  { value: 'pro', label: '🧑 I\'m PRO' },
+                  { value: 'con', label: '🧑 I\'m CON' },
+                ] as const).map(({ value, label }) => (
+                  <button
+                    key={String(value)}
+                    onClick={() => setHumanSide(value)}
+                    className={cn(
+                      "flex-1 py-2 px-3 rounded-full font-['JetBrains_Mono'] text-[10px] tracking-widest uppercase font-bold transition-all",
+                      humanSide === value
+                        ? 'bg-white text-black shadow'
+                        : 'text-white/40 hover:text-white'
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               {judgeStatus === 'offline' && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center mb-6">
                   <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/5 max-w-md w-full text-left">
@@ -513,6 +667,20 @@ export function DebateDashboard() {
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto px-6 md:px-20 lg:px-40 pt-32 pb-40 flex flex-col gap-6 scroll-smooth z-0">
+            {messages.length === 0 && isDebating && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center my-auto py-20 text-center">
+                <div className="w-16 h-16 rounded-full border border-dashed border-emerald-400/40 flex items-center justify-center mb-6 animate-[spin_8s_linear_infinite]">
+                  <Zap className="w-6 h-6 text-emerald-400" />
+                </div>
+                <h3 className="font-['Orbitron'] text-sm tracking-[0.2em] text-white/80 uppercase font-semibold mb-2">
+                  Initializing Arena Protocol
+                </h3>
+                <p className="font-['JetBrains_Mono'] text-xs text-white/40 tracking-wider uppercase">
+                  {notice || 'Deploying autonomous debaters & judge agent…'}
+                </p>
+              </motion.div>
+            )}
+
             {messages.map((msg, idx) => {
               if (msg.type === 'sub_round_divider') {
                 const subColors: Record<number, string> = { 1: 'text-sky-400/70 border-sky-500/20', 2: 'text-amber-400/70 border-amber-500/20', 3: 'text-violet-400/70 border-violet-500/20' };
@@ -1071,9 +1239,31 @@ export function DebateDashboard() {
             )}
 
             {debateComplete && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3">
                 <div className="font-['JetBrains_Mono'] text-[10px] text-white/30 tracking-widest uppercase flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-green-500" />DEBATE PROTOCOL COMPLETE
+                </div>
+                <div className="flex items-center gap-3 flex-wrap justify-center">
+                  <button
+                    onClick={handleExportPdf}
+                    disabled={isExportingPdf}
+                    className="flex items-center gap-2 px-6 py-3 rounded-full border border-emerald-500/40 hover:border-emerald-500/70 bg-emerald-500/[0.08] hover:bg-emerald-500/[0.16] text-emerald-300 transition-all cursor-pointer shadow-[0_0_20px_rgba(52,211,153,0.12)] active:scale-95 disabled:opacity-50"
+                  >
+                    {isExportingPdf ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                    ) : pdfExported ? (
+                      <Check className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <FileDown className="w-4 h-4 text-emerald-400" />
+                    )}
+                    <span className="font-['JetBrains_Mono'] text-[11px] tracking-widest uppercase font-bold">
+                      {isExportingPdf
+                        ? 'GENERATING PDF…'
+                        : pdfExported === 'downloaded'
+                        ? 'PDF DOWNLOADED!'
+                        : 'EXPORT DEBATE (PDF)'}
+                    </span>
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -1082,16 +1272,75 @@ export function DebateDashboard() {
         )}
 
         {/* Input Bar */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 flex justify-center z-10 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c] to-transparent pt-20">
-          <form onSubmit={handleStartDebate} className="w-full max-w-4xl bg-[#161618] rounded-full p-2 pl-6 flex items-center border border-white/[0.05]">
-            <div className="flex items-center justify-center shrink-0 mr-4"><Zap className="w-5 h-5 text-white" /></div>
-            <input type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="ENTER DEBATE TOPIC..." className="flex-1 bg-transparent border-none outline-none text-white/80 font-['JetBrains_Mono'] text-xs tracking-widest placeholder:text-white/30 font-semibold" />
-            <button type="submit" disabled={!!typingAgent || !prompt.trim()} className="bg-white text-black px-6 py-3.5 rounded-full flex items-center gap-2 hover:bg-white/90 transition-transform active:scale-95 shrink-0 ml-2 disabled:opacity-50 disabled:cursor-not-allowed">
-              <span className="font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest uppercase">{typingAgent ? 'Debating...' : 'Start Debate'}</span>
-              <span className="text-[#facc15]">{'\u26A1'}</span>
-            </button>
-          </form>
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 flex flex-col items-center z-10 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c] to-transparent pt-20 gap-3">
+
+          {/* Human argument panel — shown when it's the user's turn */}
+          <AnimatePresence>
+            {humanTurn && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 16 }}
+                className="w-full max-w-4xl"
+              >
+                <div className={cn(
+                  "rounded-2xl border p-4 mb-2",
+                  humanTurn.role === 'pro'
+                    ? 'bg-emerald-500/[0.06] border-emerald-500/25'
+                    : 'bg-rose-500/[0.06] border-rose-500/25'
+                )}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={cn(
+                      "font-['JetBrains_Mono'] text-[10px] tracking-widest uppercase font-bold",
+                      humanTurn.role === 'pro' ? 'text-emerald-400' : 'text-rose-400'
+                    )}>
+                      🎤 Your turn — {humanTurn.role.toUpperCase()} · R{humanTurn.round} · {humanTurn.sub_round === 1 ? 'Opening' : humanTurn.sub_round === 2 ? 'Rebuttal' : 'Justify'}
+                    </span>
+                    <span className="font-['JetBrains_Mono'] text-[10px] text-white/30 tracking-widest">
+                      {humanInput.trim().split(/\s+/).filter(Boolean).length} words
+                    </span>
+                  </div>
+                  <textarea
+                    autoFocus
+                    value={humanInput}
+                    onChange={e => setHumanInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendHumanArgument(); }}
+                    placeholder="Type your argument… (Ctrl+Enter to submit)"
+                    rows={4}
+                    className="w-full bg-transparent border-none outline-none text-white/80 font-['DM_Sans'] text-sm leading-relaxed placeholder:text-white/20 resize-none"
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      onClick={sendHumanArgument}
+                      disabled={!humanInput.trim()}
+                      className={cn(
+                        "px-5 py-2.5 rounded-full font-['JetBrains_Mono'] text-[10px] font-bold tracking-widest uppercase transition-all",
+                        humanInput.trim()
+                          ? 'bg-white text-black hover:bg-white/90 active:scale-95'
+                          : 'bg-white/10 text-white/30 cursor-not-allowed'
+                      )}
+                    >
+                      Submit argument →
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Normal debate topic input */}
+          {!humanTurn && (
+            <form onSubmit={handleStartDebate} className="w-full max-w-4xl bg-[#161618] rounded-full p-2 pl-6 flex items-center border border-white/[0.05]">
+              <div className="flex items-center justify-center shrink-0 mr-4"><Zap className="w-5 h-5 text-white" /></div>
+              <input type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="ENTER DEBATE TOPIC..." className="flex-1 bg-transparent border-none outline-none text-white/80 font-['JetBrains_Mono'] text-xs tracking-widest placeholder:text-white/30 font-semibold" />
+              <button type="submit" disabled={!!typingAgent || !prompt.trim()} className="bg-white text-black px-6 py-3.5 rounded-full flex items-center gap-2 hover:bg-white/90 transition-transform active:scale-95 shrink-0 ml-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span className="font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest uppercase">{typingAgent ? 'Debating...' : 'Start Debate'}</span>
+                <span className="text-[#facc15]">{'\u26A1'}</span>
+              </button>
+            </form>
+          )}
         </div>
+
       </main>
     </div>
   );

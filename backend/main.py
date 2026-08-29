@@ -151,10 +151,16 @@ def _ft_judge_probe_urls(ft_url: str) -> list[str]:
 def _probe_url_sync(url: str, headers: dict) -> bool:
     try:
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=2.5) as response:
-            # Only accept 200 — the /health endpoint returns 200 with a JSON body
-            # when the scorer is live. Any other status means it is not ready.
-            return response.status == 200
+        # Timeout bumped to 8s — ngrok→Kaggle round-trip can take 3-5s
+        with urllib.request.urlopen(req, timeout=8) as response:
+            if response.status != 200:
+                return False
+            # Validate the response is JSON, not the ngrok HTML warning page.
+            # The warning page also returns HTTP 200 but has Content-Type: text/html.
+            content_type = response.headers.get("Content-Type", "")
+            if "text/html" in content_type:
+                return False
+            return True
     except Exception:
         return False
 
@@ -168,7 +174,7 @@ async def _probe_ft_judge_once(ft_url: str) -> bool:
     return False
 
 
-async def _is_ft_judge_online(ft_url: str, attempts: int = 2) -> bool:
+async def _is_ft_judge_online(ft_url: str, attempts: int = 3) -> bool:
     """Fast probe check for Kaggle FT scorer."""
     for attempt in range(attempts):
         if await _probe_ft_judge_once(ft_url):
@@ -215,13 +221,14 @@ async def debate_websocket(websocket: WebSocket):
         data = await websocket.receive_json()
         topic = data.get("topic", "").strip()
         rounds = int(data.get("rounds", 3))
+        human_side = data.get("human_side") or None  # 'pro' | 'con' | None
 
         if not topic:
             await websocket.send_json({"type": "error", "message": "Topic is required."})
             await websocket.close()
             return
 
-        await run_debate(websocket, topic, rounds)
+        await run_debate(websocket, topic, rounds, human_side=human_side)
 
     except WebSocketDisconnect:
         pass
