@@ -387,13 +387,15 @@ def _repetition_penalty(ratio: float) -> float:
 
 async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dict:
     """One blind scoring pass. Returns scores keyed by 'pro'/'con' after unmapping X/Y."""
+    exchange_text = _format_exchange_blind(exchange, swap=swap)
+    print(f"[blind-score] INPUT EXCHANGE LENGTH: {len(exchange_text)}\n{exchange_text[:200]}...", flush=True)
     response = await groq_call(groq_client.chat.completions.create,
         model=JUDGE_MODEL,
         messages=[
             {"role": "system", "content": ROUND_SCORING_SYSTEM_PROMPT},
             {"role": "user", "content": (
                 f"Resolution being debated: {topic}\n\n"
-                f"Exchange:\n{_format_exchange_blind(exchange, swap=swap)}\n\n"
+                f"Exchange:\n{exchange_text}\n\n"
                 f"Extract first, then score both debaters. Return ONLY the JSON object."
             )},
         ],
@@ -639,10 +641,15 @@ async def judge_round(
         except (TypeError, ValueError):
             ft_totals = None
     elif ft_used:
-        for src, dst in ((ft.get("pro_scores", {}), pro_scores), (ft.get("con_scores", {}), con_scores)):
-            for c in ("evidence", "logic", "relevance"):
-                if c in src:
-                    dst[c] = float(src[c])
+        # v2 returned all three criteria derived from one synthetic score —
+        # the same number three times over, at 62.3% accuracy vs the blind
+        # swap's own accuracy. Letting it overwrite the per-criterion scores
+        # was the main source of systematic PRO bias: a single biased number
+        # replaced three independently measured ones. Log it for diagnostics
+        # but do NOT override the blind scores.
+        ft_pro = ft.get("pro_scores", {})
+        ft_con = ft.get("con_scores", {})
+        print(f"[FT] v2 scores (NOT applied): PRO={ft_pro} CON={ft_con}")
 
     _apply_evidence_cap(pro_scores, pro_evidence)
     _apply_evidence_cap(con_scores, con_evidence)
@@ -986,7 +993,8 @@ async def judge_final_verdict(
         cleaned = [s for s in items if s and str(s).strip() not in ("...", ".", "…", "-", "")]
         return cleaned if cleaned else fallback
 
-    w_block = result.setdefault("winner", {})
+    w_block = result.get("winner") if isinstance(result.get("winner"), dict) else {}
+    result["winner"] = w_block
     w_block["points"] = _sanitize_list(
         w_block.get("points", []),
         [f"Consistent performance across {len(all_rounds)} rounds of debate."]
@@ -994,7 +1002,8 @@ async def judge_final_verdict(
     if str(w_block.get("decisive_argument", "")).strip() in ("...", ".", "…", ""):
         w_block["decisive_argument"] = "Superior factual evidence and coherent logical structure."
 
-    l_block = result.setdefault("loser", {})
+    l_block = result.get("loser") if isinstance(result.get("loser"), dict) else {}
+    result["loser"] = l_block
     l_block["missed_points"] = _sanitize_list(
         l_block.get("missed_points", []),
         ["Failed to counter key factual claims made by the opponent."]
@@ -1034,10 +1043,10 @@ async def judge_final_verdict(
 
     # Surface only fallacy accusations the judge confirmed were misapplied.
     result["fallacies"] = [
-        f"{f.get('by', '?').upper()} misapplied \"{f.get('named')}\""
-        for r in all_rounds
-        for f in r.get("audit", {}).get("fallacy_claims", [])
-        if _is_real_fallacy_claim(f) and f.get("valid") is False
+        f"{(f.get('by') or '?').upper()} misapplied \"{f.get('named')}\""
+        for r in all_rounds if isinstance(r, dict)
+        for f in ((r.get("audit") or {}).get("fallacy_claims") or [])
+        if isinstance(f, dict) and _is_real_fallacy_claim(f) and f.get("valid") is False
     ][:6]
 
     return result

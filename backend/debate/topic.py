@@ -20,7 +20,7 @@ from llm_retry import groq_call
 
 load_dotenv()
 
-PARSER_MODEL = os.getenv("PARSER_MODEL", "llama-3.3-70b-versatile")
+PARSER_MODEL = os.getenv("PARSER_MODEL", "openai/gpt-oss-20b")
 
 _client = AsyncGroq(
     api_key=os.getenv("JUDGE_GROQ_API_KEY") or os.getenv("GROQ_API_KEY"),

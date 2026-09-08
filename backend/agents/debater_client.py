@@ -35,9 +35,10 @@ if not _PROVIDER_VALID.get(DEBATER_PROVIDER):
             DEBATER_PROVIDER = _p
             break
 
-# If we fell back to Groq, the `.env`'s DEBATER_MODEL (e.g. llama-3.3-70b) won't work on Groq.
-# Force it to a valid Groq model on this account.
-if DEBATER_PROVIDER == "groq" and os.getenv("DEBATER_MODEL") == "llama-3.3-70b":
+# If we fell back to Groq, validate the DEBATER_MODEL is still available.
+# Discontinued models get replaced with a capable default.
+_DISCONTINUED = {"llama-3.3-70b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"}
+if DEBATER_PROVIDER == "groq" and os.getenv("DEBATER_MODEL", "") in _DISCONTINUED:
     os.environ["DEBATER_MODEL"] = "allam-2-7b"
 
 
@@ -62,7 +63,7 @@ def _make_client():
             timeout=60.0,
         )
     # groq
-    print(f"[debater] Groq -> {os.getenv('DEBATER_MODEL', 'allam-2-7b')}")
+    print(f"[debater] Groq -> {os.getenv('DEBATER_MODEL', 'per-side config')}")
     return AsyncGroq(api_key=_GROQ_KEY, timeout=20.0)
 
 

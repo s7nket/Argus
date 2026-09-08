@@ -297,6 +297,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2, human_si
                 await fail(f"PRO rebuttal failed (R{round_num}S2): {e}")
                 return
 
+        print(f"[debater] RAW PRO REBUTTAL:\n{repr(pro_counter)}\n", flush=True)
         pro_counter = clean_text(pro_counter)
         exchange.append({"speaker": "pro", "sub_round": 2, "text": pro_counter})
         await websocket.send_json({
@@ -499,6 +500,8 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2, human_si
             con_arguments=con_history,
         )
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         await fail(f"Final verdict failed: {e}")
         return
 
