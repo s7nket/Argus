@@ -30,23 +30,26 @@ load_dotenv()
 # job is deliberation and whose output is short JSON; they do not suit debaters.
 DEFAULT_PRO_MODEL = "qwen/qwen3.6-27b"
 DEFAULT_CON_MODEL = "openai/gpt-oss-20b"
+DEFAULT_SYN_MODEL = "allam-2-7b"
 
 
 def debater_model(side: str) -> str:
     """
-    Model for a debater. PRO_MODEL / CON_MODEL override DEBATER_MODEL, which in
-    turn overrides the per-side defaults.
-
-    Setting DEBATER_MODEL puts both sides back on one model and one rate bucket —
-    useful as an ablation control, costly in throughput.
+    Model for a debater. PRO_MODEL / CON_MODEL / SYN_MODEL override DEBATER_MODEL,
+    which in turn overrides the per-side defaults.
     """
-    override = os.getenv("PRO_MODEL" if side == "pro" else "CON_MODEL")
+    env_key = "PRO_MODEL" if side == "pro" else ("SYN_MODEL" if side == "syn" else "CON_MODEL")
+    override = os.getenv(env_key)
     if override:
         return override
     shared = os.getenv("DEBATER_MODEL")
     if shared:
         return shared
-    return DEFAULT_PRO_MODEL if side == "pro" else DEFAULT_CON_MODEL
+    if side == "pro":
+        return DEFAULT_PRO_MODEL
+    elif side == "syn":
+        return DEFAULT_SYN_MODEL
+    return DEFAULT_CON_MODEL
 
 
 # ── Scoring policy ───────────────────────────────────────────────────────────

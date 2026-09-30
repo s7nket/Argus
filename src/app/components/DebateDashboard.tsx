@@ -12,7 +12,11 @@ import {
   Share2,
   Check,
   FileDown,
-  Loader2
+  Loader2,
+  ShieldCheck,
+  Search,
+  Activity,
+  CircleDot
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { api, wsUrl } from '../lib/api';
@@ -79,9 +83,10 @@ export function DebateDashboard() {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [pdfExported, setPdfExported] = useState<'downloaded' | 'shared' | null>(null);
   const [historyPdfExported, setHistoryPdfExported] = useState(false);
-  const [humanSide, setHumanSide] = useState<'pro' | 'con' | null>(null);
+  const [humanSide, setHumanSide] = useState<'pro' | 'con' | 'syn' | null>(null);
   const [humanTurn, setHumanTurn] = useState<{ role: string; round: number; sub_round: number } | null>(null);
   const [humanInput, setHumanInput] = useState('');
+  const [agentPipeline, setAgentPipeline] = useState<any[]>([]);
 
   const handleExportPdf = async () => {
     if (isExportingPdf || messages.length === 0) return;
@@ -116,7 +121,7 @@ export function DebateDashboard() {
         });
         (r.exchange ?? []).forEach((ex: any) => {
           reconstructedMessages.push({
-            type: ex.speaker === 'pro' ? 'pro' : 'con',
+            type: ex.speaker === 'pro' ? 'pro' : ex.speaker === 'con' ? 'con' : 'syn',
             round: r.round,
             sub_round: ex.sub_round || 1,
             text: ex.text,
@@ -130,6 +135,7 @@ export function DebateDashboard() {
           data: {
             pro_scores: r.pro_scores,
             con_scores: r.con_scores,
+            syn_scores: r.syn_scores,
             round_winner: r.round_winner,
             reasoning: r.reasoning,
           },
@@ -279,6 +285,12 @@ export function DebateDashboard() {
           setMessages(prev => [...prev, { type: 'con', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: msg.model || 'unknown' }]);
           break;
         }
+        case 'syn_argument': {
+          const latency = Date.now() - typingStartRef.current;
+          setTypingAgent(null);
+          setMessages(prev => [...prev, { type: 'syn', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: msg.model || 'unknown' }]);
+          break;
+        }
         case 'round_verdict':
           setTypingAgent(null);
           setMessages(prev => [...prev, { type: 'verdict', round: msg.round, data: msg.data }]);
@@ -310,6 +322,13 @@ export function DebateDashboard() {
         // run to minutes, so they have to be visible.
         case 'notice':
           setNotice(msg.message);
+          break;
+        case 'fact_check':
+          setTypingAgent(null);
+          setMessages(prev => [...prev, { type: 'fact_check', round: msg.round, sub_round: msg.sub_round, data: msg.data }]);
+          break;
+        case 'agent_status':
+          setAgentPipeline(msg.agents ?? []);
           break;
         case 'error':
           errorOccurredRef.current = true;
@@ -384,12 +403,12 @@ export function DebateDashboard() {
             </div>
             <div className="flex flex-col min-w-0">
               <span className="font-['Orbitron'] text-xs font-bold text-white tracking-widest">
-                {stack.ftOnline ? 'ARGUSCORE-4B' : 'JUDGE-0'}
+                {judgeStatus === 'online' ? 'ARGUSCORE-4B' : 'JUDGE-0'}
               </span>
               <div className="flex items-center gap-1.5 mt-1">
                 <div className={cn(
                   "w-1.5 h-1.5 rounded-full shrink-0",
-                  judgeStatus === 'online'   && (stack.ftOnline ? "bg-emerald-500" : "bg-amber-400"),
+                  judgeStatus === 'online'   && "bg-emerald-500",
                   judgeStatus === 'offline'  && "bg-red-500",
                   judgeStatus === 'checking' && "bg-yellow-400 animate-pulse",
                 )} />
@@ -398,7 +417,7 @@ export function DebateDashboard() {
                     ? 'Connecting'
                     : judgeStatus === 'offline'
                       ? 'Judge offline'
-                      : stack.ftOnline ? 'Fine-tuned scorer' : 'Groq fallback'}
+                      : 'Fine-tuned scorer'}
                 </span>
               </div>
               {stack.docs != null && (
@@ -427,6 +446,47 @@ export function DebateDashboard() {
               );
             })}
           </nav>
+
+          {/* Agent Pipeline — shows all agents in the system and their live status */}
+          {agentPipeline.length > 0 && (
+            <div className="px-4 mt-6">
+              <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <Activity className="w-3 h-3 text-white/40" />
+                  <span className="font-['JetBrains_Mono'] text-[9px] font-bold text-white/50 tracking-[0.2em] uppercase">Agent Pipeline</span>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  {agentPipeline.map((agent: any) => {
+                    const statusConfig = {
+                      active: { dot: 'bg-cyan-400 shadow-[0_0_6px_#22d3ee] animate-pulse', text: 'text-cyan-400', label: 'ACTIVE' },
+                      done:   { dot: 'bg-emerald-400', text: 'text-emerald-400/60', label: '✓ DONE' },
+                      idle:   { dot: 'bg-white/20', text: 'text-white/25', label: 'IDLE' },
+                    }[agent.status] ?? { dot: 'bg-white/20', text: 'text-white/25', label: 'IDLE' };
+                    const AgentIcon = agent.id === 'fact_checker' ? ShieldCheck
+                      : agent.id === 'topic_parser' ? Search
+                      : agent.id === 'judge' ? Gavel
+                      : agent.id === 'conformal' ? Activity
+                      : CircleDot;
+                    return (
+                      <div key={agent.id} className="flex items-center gap-2 py-1 px-1.5 rounded-lg transition-colors">
+                        <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", statusConfig.dot)} />
+                        <AgentIcon className={cn("w-3 h-3 shrink-0", agent.status === 'active' ? 'text-cyan-400' : 'text-white/30')} />
+                        <span className={cn(
+                          "font-['JetBrains_Mono'] text-[9px] tracking-widest flex-1 truncate",
+                          agent.status === 'active' ? 'text-cyan-300 font-bold' : agent.status === 'done' ? 'text-white/50' : 'text-white/25'
+                        )}>
+                          {agent.name}
+                        </span>
+                        <span className={cn("font-['JetBrains_Mono'] text-[8px] tracking-widest shrink-0", statusConfig.text)}>
+                          {statusConfig.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div className="p-6 flex flex-col gap-3">
           {/* Judge Status Badge */}
@@ -445,7 +505,11 @@ export function DebateDashboard() {
               judgeStatus === 'offline'  && "text-red-400",
               judgeStatus === 'checking' && "text-yellow-400"
             )}>
-              JUDGE {judgeStatus === 'checking' ? 'CHECKING...' : judgeStatus.toUpperCase()}
+              {judgeStatus === 'checking'
+                ? 'JUDGE CHECKING...'
+                : judgeStatus === 'offline'
+                  ? 'JUDGE OFFLINE'
+                  : 'JUDGE (FT ONLINE)'}
             </span>
           </div>
           <button onClick={() => navigate('/')} className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-white/40 hover:text-white hover:bg-white/[0.04] transition-colors duration-200">
@@ -504,7 +568,7 @@ export function DebateDashboard() {
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-['JetBrains_Mono'] text-[11px] font-bold text-white/70 tracking-widest uppercase">Round {r.round}</span>
                       <span className="font-['JetBrains_Mono'] text-[11px] text-white/50">
-                        PRO {r.pro_scores?.total} · CON {r.con_scores?.total} → {String(r.round_winner).toUpperCase()}
+                        PRO {r.pro_scores?.total} · CON {r.con_scores?.total} {r.syn_scores?.total != null ? '· SYN ' + r.syn_scores.total : ''} → {String(r.round_winner).toUpperCase()}
                       </span>
                     </div>
                     <p className="font-['DM_Sans'] text-xs text-white/55 leading-snug">{asText(r.reasoning)}</p>
@@ -544,10 +608,10 @@ export function DebateDashboard() {
                         ) : (
                           <>
                             <span className={cn("font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest uppercase",
-                              d.is_tie ? "text-white/50" : d.winner === 'pro' ? "text-emerald-400" : "text-rose-400")}>
+                              d.is_tie ? "text-white/50" : d.winner === 'pro' ? "text-emerald-400" : d.winner === 'con' ? "text-rose-400" : "text-amber-400")}>
                               {d.is_tie ? 'TIE' : String(d.winner ?? '').toUpperCase()}
                             </span>
-                            <p className="font-['JetBrains_Mono'] text-[10px] text-white/35 mt-0.5">{d.pro_total} · {d.con_total}</p>
+                            <p className="font-['JetBrains_Mono'] text-[10px] text-white/35 mt-0.5">{d.pro_total} · {d.con_total}{d.syn_total != null ? ' · ' + d.syn_total : ''}</p>
                           </>
                         )}
                       </div>
@@ -575,7 +639,7 @@ export function DebateDashboard() {
                     <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 tracking-widest uppercase shrink-0">R{l.round}</span>
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-['JetBrains_Mono'] text-[10px] text-white/45 mb-2">
-                    <span>PRO {l.pro_total} · CON {l.con_total} → {String(l.winner ?? '').toUpperCase()}</span>
+                    <span>PRO {l.pro_total} · CON {l.con_total}{l.syn_total != null ? ' · SYN ' + l.syn_total : ''} → {String(l.winner ?? '').toUpperCase()}</span>
                     <span>scorer: {asText(l.scorer)}</span>
                     {l.verification_backend && <span>nli: {asText(l.verification_backend)}</span>}
                     {l.blind_passes != null && <span>passes: {l.blind_passes}</span>}
@@ -584,12 +648,14 @@ export function DebateDashboard() {
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-['JetBrains_Mono'] text-[10px] text-white/40 mb-2">
                     {l.pro_coverage != null && <span>pro coverage: {l.pro_coverage}</span>}
                     {l.con_coverage != null && <span>con coverage: {l.con_coverage}</span>}
+                    {l.syn_coverage != null && <span>syn coverage: {l.syn_coverage}</span>}
                     {!!l.pro_repetition_penalty && <span className="text-amber-400/70">pro rep −{l.pro_repetition_penalty}</span>}
                     {!!l.con_repetition_penalty && <span className="text-amber-400/70">con rep −{l.con_repetition_penalty}</span>}
+                    {!!l.syn_repetition_penalty && <span className="text-amber-400/70">syn rep −{l.syn_repetition_penalty}</span>}
                     {l.fallacy && <span className="text-rose-400/70">{asText(l.fallacy)}</span>}
                   </div>
-                  {(l.pro_evidence_cited?.length > 0 || l.con_evidence_cited?.length > 0) && (
-                    <div className="grid sm:grid-cols-2 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
+                  {(l.pro_evidence_cited?.length > 0 || l.con_evidence_cited?.length > 0 || l.syn_evidence_cited?.length > 0) && (
+                    <div className="grid sm:grid-cols-3 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
                       <div>
                         <p className="font-['JetBrains_Mono'] text-[9px] text-emerald-400/70 tracking-widest uppercase mb-1">PRO cited</p>
                         {(l.pro_evidence_cited ?? []).slice(0, 3).map((e: any, k: number) => (
@@ -603,6 +669,13 @@ export function DebateDashboard() {
                           <p key={k} className="font-['DM_Sans'] text-[11px] text-white/45 leading-snug mb-0.5">· {asText(e)}</p>
                         ))}
                         {(l.con_evidence_cited ?? []).length === 0 && <p className="font-['DM_Sans'] text-[11px] text-white/25">nothing verifiable</p>}
+                      </div>
+                      <div>
+                        <p className="font-['JetBrains_Mono'] text-[9px] text-amber-400/70 tracking-widest uppercase mb-1">SYN cited</p>
+                        {(l.syn_evidence_cited ?? []).slice(0, 3).map((e: any, k: number) => (
+                          <p key={k} className="font-['DM_Sans'] text-[11px] text-white/45 leading-snug mb-0.5">· {asText(e)}</p>
+                        ))}
+                        {(l.syn_evidence_cited ?? []).length === 0 && <p className="font-['DM_Sans'] text-[11px] text-white/25">nothing verifiable</p>}
                       </div>
                     </div>
                   )}
@@ -623,9 +696,10 @@ export function DebateDashboard() {
               {/* Mode selector */}
               <div className="flex items-center gap-2 p-1 bg-white/[0.04] border border-white/[0.06] rounded-full mb-10">
                 {([
-                  { value: null,  label: '🤖 AI vs AI' },
+                  { value: null,  label: '🤖 3 AI DEBATERS' },
                   { value: 'pro', label: '🧑 I\'m PRO' },
                   { value: 'con', label: '🧑 I\'m CON' },
+                  { value: 'syn', label: '🧑 I\'m SYN' },
                 ] as const).map(({ value, label }) => (
                   <button
                     key={String(value)}
@@ -649,12 +723,13 @@ export function DebateDashboard() {
                     <div>
                       <p className="font-['JetBrains_Mono'] text-[11px] font-bold text-red-400 tracking-widest uppercase mb-1">Judge Offline</p>
                       <p className="font-['DM_Sans'] text-sm text-red-300/80 leading-relaxed">
-                        Scores need Kaggle FT judge (port 8002 → FT_JUDGE_URL in backend/.env). Verdicts use JUDGE_GROQ_API_KEY on Groq. Restart the backend after updating .env. Status refreshes every 5 seconds.
+                        Judge is unavailable. Neither Kaggle FT scorer nor Groq API keys are configured in backend/.env. Add GROQ_API_KEY to enable Groq fallback judge.
                       </p>
                     </div>
                   </div>
                 </motion.div>
               )}
+
 
               {error && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center mb-6">
@@ -737,33 +812,115 @@ export function DebateDashboard() {
                   </motion.div>
                 );
               }
+              if (msg.type === 'syn') {
+                return (
+                  <motion.div key={idx} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col gap-2.5 max-w-3xl mx-auto w-full will-change-[transform,opacity] transform-gpu">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="bg-amber-500/20 px-3 py-1 rounded-full border border-amber-500/30 shrink-0">
+                        <span className="font-['JetBrains_Mono'] text-[10px] text-amber-300 tracking-widest font-bold">AGENT-03</span>
+                      </div>
+                      <span className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest uppercase">{msg.model}</span>
+                      <div className="h-[1px] bg-amber-500/15 flex-1" />
+                      <span className="font-['JetBrains_Mono'] text-[10px] text-amber-400/90 tracking-widest font-bold">SYN</span>
+                      <span className="font-['JetBrains_Mono'] text-[10px] text-white/30 tracking-widest">R{msg.round}</span>
+                    </div>
+                    <div className="bg-amber-500/[0.03] border border-amber-500/15 rounded-2xl p-4">
+                      <p className="font-['DM_Sans'] text-[15px] text-white/80 leading-[1.6] font-light">{msg.text}</p>
+                    </div>
+                    <div className="font-['JetBrains_Mono'] text-[10px] text-white/30 uppercase tracking-widest flex items-center gap-6">
+                      <span>MODEL: {msg.model}</span>
+                      <span>LATENCY: {msg.latency}ms</span>
+                    </div>
+                  </motion.div>
+                );
+              }
+              if (msg.type === 'fact_check') {
+                const d = msg.data ?? {};
+                const proVerdicts = d.pro?.verdicts ?? [];
+                const conVerdicts = d.con?.verdicts ?? [];
+                const synVerdicts = d.syn?.verdicts ?? [];
+                const allVerdicts = [
+                  ...proVerdicts.map((v: any) => ({ ...v, side: 'PRO' })),
+                  ...conVerdicts.map((v: any) => ({ ...v, side: 'CON' })),
+                  ...synVerdicts.map((v: any) => ({ ...v, side: 'SYN' })),
+                ];
+                const labelColor: Record<string, string> = {
+                  SUPPORTED: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+                  REFUTED: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+                  NEI: 'text-white/40 bg-white/[0.04] border-white/10',
+                };
+                return (
+                  <motion.div key={idx} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="flex justify-center will-change-[transform,opacity] transform-gpu">
+                    <div className="bg-cyan-500/[0.04] border border-cyan-500/15 rounded-2xl p-4 max-w-lg w-full">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                        <span className="font-['JetBrains_Mono'] text-[10px] text-cyan-400 tracking-widest uppercase font-bold">AGENT-04 · FACT CHECK</span>
+                        <div className="h-[1px] bg-cyan-500/10 flex-1" />
+                        <span className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest">R{msg.round}·S{msg.sub_round}</span>
+                      </div>
+                      {allVerdicts.length === 0 ? (
+                        <p className="font-['DM_Sans'] text-xs text-white/35">{d.summary || 'No verifiable claims detected.'}</p>
+                      ) : (
+                        <div className="flex flex-col gap-1.5">
+                          {allVerdicts.map((v: any, vi: number) => (
+                            <div key={vi} className="flex items-start gap-2">
+                              <span className={cn("font-['JetBrains_Mono'] text-[8px] px-1.5 py-0.5 rounded border tracking-widest shrink-0 mt-0.5", labelColor[v.label] ?? labelColor.NEI)}>
+                                {v.label}
+                              </span>
+                              <span className={cn("font-['JetBrains_Mono'] text-[8px] px-1 py-0.5 rounded tracking-widest shrink-0 mt-0.5",
+                                v.side === 'PRO' ? 'text-emerald-400/60 bg-emerald-500/[0.06]' : v.side === 'CON' ? 'text-rose-400/60 bg-rose-500/[0.06]' : 'text-amber-400/80 bg-amber-500/[0.06]'
+                              )}>
+                                {v.side}
+                              </span>
+                              <span className="font-['DM_Sans'] text-[11px] text-white/55 leading-snug">{v.claim}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {d.summary && allVerdicts.length > 0 && (
+                        <p className="font-['JetBrains_Mono'] text-[9px] text-white/30 tracking-widest mt-2 pt-2 border-t border-white/[0.04]">{d.summary}</p>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              }
               if (msg.type === 'verdict') {
+                const hasSyn = !!msg.data?.syn_scores;
+                const winnerSide = String(msg.data?.round_winner || '').toLowerCase();
+                const winnerColor = winnerSide === 'pro' ? 'text-emerald-400' : winnerSide === 'con' ? 'text-rose-400' : winnerSide === 'syn' ? 'text-amber-400' : 'text-white';
                 return (
                   <motion.div key={idx} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }} className="flex justify-center will-change-[transform,opacity] transform-gpu">
                     <div className="bg-indigo-500/[0.06] border border-indigo-500/20 rounded-2xl p-6 max-w-lg w-full text-center">
                       <div className="font-['JetBrains_Mono'] text-[10px] text-indigo-400 tracking-widest uppercase mb-4 font-bold flex items-center justify-center gap-2">
                         <Gavel className="w-3.5 h-3.5" />ROUND {msg.round} VERDICT
                       </div>
-                      <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className={cn("grid gap-3 mb-4", hasSyn ? "grid-cols-3" : "grid-cols-2")}>
                         <div className="bg-white/[0.03] rounded-xl p-3">
-                          <div className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest mb-1">PRO SCORE</div>
-                          <div className="text-2xl font-['DM_Sans'] text-white font-semibold">{msg.data.pro_scores.total}<span className="text-sm text-white/30">/10</span></div>
+                          <div className="font-['JetBrains_Mono'] text-[9px] text-emerald-400/70 tracking-widest mb-1">PRO SCORE</div>
+                          <div className="text-xl font-['DM_Sans'] text-white font-semibold">{msg.data.pro_scores?.total}<span className="text-xs text-white/30">/10</span></div>
                         </div>
                         <div className="bg-white/[0.03] rounded-xl p-3">
-                          <div className="font-['JetBrains_Mono'] text-[9px] text-white/40 tracking-widest mb-1">CON SCORE</div>
-                          <div className="text-2xl font-['DM_Sans'] text-white font-semibold">{msg.data.con_scores.total}<span className="text-sm text-white/30">/10</span></div>
+                          <div className="font-['JetBrains_Mono'] text-[9px] text-rose-400/70 tracking-widest mb-1">CON SCORE</div>
+                          <div className="text-xl font-['DM_Sans'] text-white font-semibold">{msg.data.con_scores?.total}<span className="text-xs text-white/30">/10</span></div>
                         </div>
+                        {hasSyn && (
+                          <div className="bg-white/[0.03] rounded-xl p-3">
+                            <div className="font-['JetBrains_Mono'] text-[9px] text-amber-400/70 tracking-widest mb-1">SYN SCORE</div>
+                            <div className="text-xl font-['DM_Sans'] text-white font-semibold">{msg.data.syn_scores?.total}<span className="text-xs text-white/30">/10</span></div>
+                          </div>
+                        )}
                       </div>
-                      <div className="font-['JetBrains_Mono'] text-[10px] text-white/60 tracking-widest uppercase mb-2">WINNER: <span className="text-white font-bold">{msg.data.round_winner.toUpperCase()}</span></div>
+                      <div className="font-['JetBrains_Mono'] text-[10px] text-white/60 tracking-widest uppercase mb-2">WINNER: <span className={cn("font-bold", winnerColor)}>{msg.data.round_winner.toUpperCase()}</span></div>
                       <p className="font-['DM_Sans'] text-sm text-white/50 leading-relaxed">{asText(msg.data.reasoning)}</p>
                     </div>
                   </motion.div>
                 );
               }
               if (msg.type === 'final_verdict') {
-                const winner = msg.data.overall_winner as 'pro' | 'con' | 'tie';
+                const winner = msg.data.overall_winner as 'pro' | 'con' | 'syn' | 'tie';
                 const proTotal = msg.data.pro_total as number;
                 const conTotal = msg.data.con_total as number;
+                const synTotal = (msg.data.syn_total ?? 0) as number;
 
                 const winnerConfig = {
                   pro: {
@@ -780,6 +937,13 @@ export function DebateDashboard() {
                     bg: 'bg-rose-500/[0.06]',
                     glow: 'shadow-[0_0_30px_rgba(251,113,133,0.08)]',
                   },
+                  syn: {
+                    label: 'AGENT-03 // SYN WINS',
+                    color: 'text-amber-400',
+                    border: 'border-amber-500/30',
+                    bg: 'bg-amber-500/[0.06]',
+                    glow: 'shadow-[0_0_30px_rgba(245,158,11,0.08)]',
+                  },
                   tie: {
                     label: 'DRAW // TIE',
                     color: 'text-yellow-400',
@@ -787,12 +951,18 @@ export function DebateDashboard() {
                     bg: 'bg-yellow-500/[0.04]',
                     glow: 'shadow-[0_0_30px_rgba(250,204,21,0.06)]',
                   },
-                }[winner];
+                }[winner] || {
+                  label: 'DECISION PENDING',
+                  color: 'text-white',
+                  border: 'border-white/20',
+                  bg: 'bg-white/5',
+                  glow: '',
+                };
 
                 const d = msg.data;
                 const winnerAnalysis = d.winner ?? {};
                 const loserAnalysis = d.loser ?? {};
-                const accuracy = d.accuracy ?? { pro: 0, con: 0 };
+                const accuracy = d.accuracy ?? { pro: 0, con: 0, syn: 0 };
                 const winnerPoints: string[] = (winnerAnalysis.points ?? winnerAnalysis.strengths ?? []).map(asText);
                 const fallacies: string[] = (d.fallacies ?? []).map(asText);
                 const verdictText: string = asText(d.verdict ?? d.final_reasoning);
@@ -829,9 +999,8 @@ export function DebateDashboard() {
                           lengths across a gap; one split bar makes the margin
                           the thing you see first.
 
-                          Colour is carried by the two agents only — emerald and
-                          rose — and used nowhere else, so it always means
-                          "which side" and never decoration. */}
+                          Colour is carried by debater agents — emerald, rose,
+                          and amber — so it always indicates "which side". */}
 
                       {(() => {
                         const R = d.receipts;
@@ -852,54 +1021,48 @@ export function DebateDashboard() {
                             "font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase mb-3",
                             tone ?? "text-white/40")}>{children}</div>
                         );
-                        const total = Math.max(1, proTotal + conTotal);
+                        const total = Math.max(1, proTotal + conTotal + synTotal);
                         const proShare = (proTotal / total) * 100;
+                        const conShare = (conTotal / total) * 100;
+                        const synShare = synTotal > 0 ? (synTotal / total) * 100 : 0;
 
                         return (
                           <>
-                            {/* The hero carries the result. Everything sat
-                                within a narrow type range before — a 15px
-                                header, a 34px name, 26px scores — so nothing
-                                led. The winner is now the largest thing on the
-                                screen by a wide margin, the kicker is small and
-                                letterspaced so it reads as a caption rather
-                                than a competing heading, and a soft radial wash
-                                in the winning side's colour gives the block
-                                depth without adding a border. */}
                             <div className="relative">
                               <div
                                 aria-hidden
                                 className="pointer-events-none absolute inset-x-0 -top-10 h-64 opacity-[0.22]"
                                 style={{
                                   background: `radial-gradient(ellipse 60% 55% at 50% 0%, ${
-                                    winner === 'pro' ? 'rgb(52,211,153)' : winner === 'con' ? 'rgb(251,113,133)' : 'rgb(148,163,184)'
+                                    winner === 'pro' ? 'rgb(52,211,153)' : winner === 'con' ? 'rgb(251,113,133)' : winner === 'syn' ? 'rgb(245,158,11)' : 'rgb(148,163,184)'
                                   }, transparent 70%)`,
                                 }}
                               />
 
                               <motion.div {...rise()} className="relative text-center pt-2">
                                 <div className="font-['JetBrains_Mono'] text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
-                                  Final Verdict
+                                  Final Verdict · 3-Agent Multi-Debate
                                 </div>
 
                                 <div className={cn(
                                   "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full mb-5",
                                   winner === 'tie' ? "bg-white/[0.07]"
-                                    : winner === 'pro' ? "bg-emerald-400/15" : "bg-rose-400/15")}>
+                                    : winner === 'pro' ? "bg-emerald-400/15" : winner === 'con' ? "bg-rose-400/15" : "bg-amber-400/15")}>
                                   <span className={cn("w-1 h-1 rounded-full",
-                                    winner === 'tie' ? "bg-white/50" : winner === 'pro' ? "bg-emerald-400" : "bg-rose-400")} />
+                                    winner === 'tie' ? "bg-white/50" : winner === 'pro' ? "bg-emerald-400" : winner === 'con' ? "bg-rose-400" : "bg-amber-400")} />
                                   <span className={cn("font-['DM_Sans'] text-[10px] font-bold tracking-[0.14em] uppercase",
-                                    winner === 'tie' ? "text-white/55" : winner === 'pro' ? "text-emerald-300" : "text-rose-300")}>
-                                    {winner === 'tie' ? 'Draw' : 'Winner'}
+                                    winner === 'tie' ? "text-white/55" : winner === 'pro' ? "text-emerald-300" : winner === 'con' ? "text-rose-300" : "text-amber-300")}>
+                                    {winner === 'tie' ? 'Draw' : 'Overall Winner'}
                                   </span>
                                 </div>
 
                                 <div className={cn(
                                   "font-['Orbitron'] font-black tracking-[0.02em] leading-[1.05] mb-6 uppercase",
-                                  winner === 'tie' ? "text-[24px] text-white/85" : "text-[34px]",
+                                  winner === 'tie' ? "text-[24px] text-white/85" : "text-[32px]",
                                   winner === 'pro' && "text-emerald-400",
-                                  winner === 'con' && "text-rose-400")}>
-                                  {winner === 'tie' ? 'Too close to separate' : winner === 'pro' ? 'Agent 01' : 'Agent 02'}
+                                  winner === 'con' && "text-rose-400",
+                                  winner === 'syn' && "text-amber-400")}>
+                                  {winner === 'tie' ? 'Too close to separate' : winner === 'pro' ? 'Agent 01 (PRO)' : winner === 'con' ? 'Agent 02 (CON)' : 'Agent 03 (SYN)'}
                                 </div>
 
                                 {winnerAnalysis.decisive_argument && (
@@ -910,71 +1073,92 @@ export function DebateDashboard() {
                               </motion.div>
                             </div>
 
-                            {/* Scores. The numbers are the anchor, so labels and
-                                percentages sit well below them in the hierarchy
-                                rather than competing at a similar size. */}
+                            {/* Scores */}
                             <motion.div {...rise()} className="pt-6 pb-5">
-                              <div className="flex items-end justify-between mb-4">
-                                <div>
-                                  <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.14em] uppercase text-emerald-400/60 mb-2">
-                                    Agent 01
+                              <div className={cn("grid gap-3 mb-4", synTotal > 0 ? "grid-cols-3" : "grid-cols-2")}>
+                                <div className="text-center sm:text-left">
+                                  <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.14em] uppercase text-emerald-400/70 mb-1">
+                                    Agent 01 (PRO)
                                   </div>
-                                  <div className="font-['Orbitron'] text-[27px] leading-[0.95] font-bold text-white tracking-[0.01em]">
-                                    {proTotal}
-                                  </div>
-                                </div>
-
-                                <div className="pb-1.5 text-center">
-                                  <div className="font-['JetBrains_Mono'] text-[10px] tracking-[0.2em] uppercase text-white/20">
-                                    out of 30
+                                  <div className="font-['Orbitron'] text-[24px] font-bold text-white tracking-[0.01em]">
+                                    {proTotal} <span className="text-xs font-normal text-white/30 font-['JetBrains_Mono']">pts</span>
                                   </div>
                                 </div>
 
-                                <div className="text-right">
-                                  <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.14em] uppercase text-rose-400/60 mb-2">
-                                    Agent 02
+                                <div className="text-center">
+                                  <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.14em] uppercase text-rose-400/70 mb-1">
+                                    Agent 02 (CON)
                                   </div>
-                                  <div className="font-['Orbitron'] text-[27px] leading-[0.95] font-bold text-white tracking-[0.01em]">
-                                    {conTotal}
+                                  <div className="font-['Orbitron'] text-[24px] font-bold text-white tracking-[0.01em]">
+                                    {conTotal} <span className="text-xs font-normal text-white/30 font-['JetBrains_Mono']">pts</span>
                                   </div>
                                 </div>
+
+                                {synTotal > 0 && (
+                                  <div className="text-center sm:text-right">
+                                    <div className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.14em] uppercase text-amber-400/70 mb-1">
+                                      Agent 03 (SYN)
+                                    </div>
+                                    <div className="font-['Orbitron'] text-[24px] font-bold text-white tracking-[0.01em]">
+                                      {synTotal} <span className="text-xs font-normal text-white/30 font-['JetBrains_Mono']">pts</span>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
 
-                              <div className="flex h-[5px] rounded-full overflow-hidden bg-white/[0.05] gap-[2px]">
+                              <div className="flex h-[6px] rounded-full overflow-hidden bg-white/[0.05] gap-[2px]">
                                 <motion.div
                                   className="bg-emerald-400 rounded-full"
-                                  initial={{ width: '50%' }}
+                                  initial={{ width: '33%' }}
                                   animate={{ width: `${proShare}%` }}
                                   transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
                                 />
-                                <div className="flex-1 bg-rose-400 rounded-full" />
+                                <motion.div
+                                  className="bg-rose-400 rounded-full"
+                                  initial={{ width: '33%' }}
+                                  animate={{ width: `${conShare}%` }}
+                                  transition={{ duration: 1, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                                />
+                                {synTotal > 0 && (
+                                  <motion.div
+                                    className="bg-amber-400 rounded-full"
+                                    initial={{ width: '33%' }}
+                                    animate={{ width: `${synShare}%` }}
+                                    transition={{ duration: 1, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                                  />
+                                )}
                               </div>
 
-                              <div className="flex justify-between mt-3">
-                                <span className="font-['DM_Sans'] text-[11px] text-white/30 tracking-wide">
-                                  {accuracy.pro.toFixed(0)}% of available
+                              <div className={cn("grid gap-2 mt-3", synTotal > 0 ? "grid-cols-3" : "grid-cols-2")}>
+                                <span className="font-['DM_Sans'] text-[10px] text-white/35 tracking-wide text-left">
+                                  {accuracy.pro?.toFixed ? `${accuracy.pro.toFixed(0)}% available` : ''}
                                 </span>
-                                <span className="font-['DM_Sans'] text-[11px] text-white/30 tracking-wide">
-                                  {accuracy.con.toFixed(0)}% of available
+                                <span className="font-['DM_Sans'] text-[10px] text-white/35 tracking-wide text-center">
+                                  {accuracy.con?.toFixed ? `${accuracy.con.toFixed(0)}% available` : ''}
                                 </span>
+                                {synTotal > 0 && (
+                                  <span className="font-['DM_Sans'] text-[10px] text-white/35 tracking-wide text-right">
+                                    {accuracy.syn?.toFixed ? `${accuracy.syn.toFixed(0)}% available` : ''}
+                                  </span>
+                                )}
                               </div>
                             </motion.div>
 
                             {/* Why each side scored what it did */}
-                            {(d.score_explanation?.pro || d.score_explanation?.con) && (
+                            {(d.score_explanation?.pro || d.score_explanation?.con || d.score_explanation?.syn) && (
                               <>
                                 <Rule />
-                                <motion.div {...rise()} className="py-5 grid sm:grid-cols-2 gap-4">
-                                  {([['pro', d.score_explanation?.pro], ['con', d.score_explanation?.con]] as const).map(([side, why]) =>
+                                <motion.div {...rise()} className={cn("py-5 grid gap-4", synTotal > 0 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+                                  {([['pro', d.score_explanation?.pro], ['con', d.score_explanation?.con], ['syn', d.score_explanation?.syn]] as const).map(([side, why]) =>
                                     why ? (
                                       <div key={side} className="rounded-2xl bg-white/[0.025] p-4">
                                         <div className="flex items-center gap-2 mb-2">
-                                          <span className={cn("w-1.5 h-1.5 rounded-full", side === 'pro' ? "bg-emerald-400" : "bg-rose-400")} />
+                                          <span className={cn("w-1.5 h-1.5 rounded-full", side === 'pro' ? "bg-emerald-400" : side === 'con' ? "bg-rose-400" : "bg-amber-400")} />
                                           <span className="font-['DM_Sans'] text-[12px] font-semibold text-white/75">
-                                            {side === 'pro' ? 'Agent 01' : 'Agent 02'}
+                                            {side === 'pro' ? 'Agent 01 (PRO)' : side === 'con' ? 'Agent 02 (CON)' : 'Agent 03 (SYN)'}
                                           </span>
                                         </div>
-                                        <p className="font-['DM_Sans'] text-[12.5px] text-white/60 leading-relaxed">{asText(why)}</p>
+                                        <p className="font-['DM_Sans'] text-[12px] text-white/60 leading-relaxed">{asText(why)}</p>
                                       </div>
                                     ) : null)}
                                 </motion.div>
@@ -1161,12 +1345,13 @@ export function DebateDashboard() {
                                     <div key={i} className="flex items-baseline gap-3.5 py-3 border-b border-white/[0.05] last:border-0">
                                       <span className="font-['JetBrains_Mono'] text-[11px] text-white/30 w-6 shrink-0">R{rv.r}</span>
                                       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 translate-y-[-1px]",
-                                        rv.winner === 'pro' ? "bg-emerald-400" : rv.winner === 'con' ? "bg-rose-400" : "bg-white/30")} />
+                                        rv.winner === 'pro' ? "bg-emerald-400" : rv.winner === 'con' ? "bg-rose-400" : rv.winner === 'syn' ? "bg-amber-400" : "bg-white/30")} />
                                       <span className={cn("font-['DM_Sans'] text-[13px] font-semibold w-[62px] shrink-0",
                                         rv.winner === 'pro' && 'text-emerald-400/90',
                                         rv.winner === 'con' && 'text-rose-400/90',
+                                        rv.winner === 'syn' && 'text-amber-400/90',
                                         rv.winner === 'tie' && 'text-white/50')}>
-                                        {rv.winner === 'tie' ? 'Draw' : rv.winner === 'pro' ? 'Agent 01' : 'Agent 02'}
+                                        {rv.winner === 'tie' ? 'Draw' : rv.winner === 'pro' ? 'Agent 01' : rv.winner === 'con' ? 'Agent 02' : 'Agent 03'}
                                       </span>
                                       <span className="font-['JetBrains_Mono'] text-[11px] text-white/30 w-10 shrink-0">
                                         +{typeof rv.margin === 'number' ? rv.margin.toFixed(1) : rv.margin}
@@ -1216,14 +1401,14 @@ export function DebateDashboard() {
             )}
 
             {typingAgent && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex items-center gap-3 py-4", typingAgent === 'con' ? "self-end" : "")}>
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex items-center gap-3 py-4", typingAgent === 'con' ? "self-end" : typingAgent === 'syn' ? "self-center" : typingAgent === 'fact_checker' ? "self-center" : "")}>
                 <div className="flex gap-1.5">
-                  <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className={cn("w-2 h-2 rounded-full animate-bounce", typingAgent === 'syn' ? "bg-amber-400/60" : typingAgent === 'fact_checker' ? "bg-cyan-400/60" : "bg-white/40")} style={{ animationDelay: '0ms' }} />
+                  <div className={cn("w-2 h-2 rounded-full animate-bounce", typingAgent === 'syn' ? "bg-amber-400/60" : typingAgent === 'fact_checker' ? "bg-cyan-400/60" : "bg-white/40")} style={{ animationDelay: '150ms' }} />
+                  <div className={cn("w-2 h-2 rounded-full animate-bounce", typingAgent === 'syn' ? "bg-amber-400/60" : typingAgent === 'fact_checker' ? "bg-cyan-400/60" : "bg-white/40")} style={{ animationDelay: '300ms' }} />
                 </div>
-                <span className="font-['JetBrains_Mono'] text-[10px] text-white/40 tracking-widest uppercase">
-                  {typingAgent === 'pro' ? 'AGENT-01' : typingAgent === 'con' ? 'AGENT-02' : 'JUDGE-0 OMNI'} {typingAgent === 'judge' ? 'evaluating' : 'generating'}...
+                <span className={cn("font-['JetBrains_Mono'] text-[10px] tracking-widest uppercase", typingAgent === 'syn' ? "text-amber-400/80" : typingAgent === 'fact_checker' ? "text-cyan-400/60" : "text-white/40")}>
+                  {typingAgent === 'pro' ? 'AGENT-01 (PRO) generating' : typingAgent === 'con' ? 'AGENT-02 (CON) generating' : typingAgent === 'syn' ? 'AGENT-03 (SYN) generating' : typingAgent === 'fact_checker' ? 'AGENT-04 (VERIFIER) verifying claims' : 'AGENT-05 (JUDGE) evaluating'}...
                 </span>
               </motion.div>
             )}
@@ -1287,12 +1472,14 @@ export function DebateDashboard() {
                   "rounded-2xl border p-4 mb-2",
                   humanTurn.role === 'pro'
                     ? 'bg-emerald-500/[0.06] border-emerald-500/25'
-                    : 'bg-rose-500/[0.06] border-rose-500/25'
+                    : humanTurn.role === 'con'
+                    ? 'bg-rose-500/[0.06] border-rose-500/25'
+                    : 'bg-amber-500/[0.06] border-amber-500/25'
                 )}>
                   <div className="flex items-center justify-between mb-3">
                     <span className={cn(
                       "font-['JetBrains_Mono'] text-[10px] tracking-widest uppercase font-bold",
-                      humanTurn.role === 'pro' ? 'text-emerald-400' : 'text-rose-400'
+                      humanTurn.role === 'pro' ? 'text-emerald-400' : humanTurn.role === 'con' ? 'text-rose-400' : 'text-amber-400'
                     )}>
                       🎤 Your turn — {humanTurn.role.toUpperCase()} · R{humanTurn.round} · {humanTurn.sub_round === 1 ? 'Opening' : humanTurn.sub_round === 2 ? 'Rebuttal' : 'Justify'}
                     </span>

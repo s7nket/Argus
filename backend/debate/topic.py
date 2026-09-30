@@ -27,51 +27,49 @@ _client = AsyncGroq(
     timeout=20.0,
 )
 
-TOPIC_PARSER_PROMPT = """You split a debate topic into the two stances that will actually be argued.
+TOPIC_PARSER_PROMPT = """You split a debate topic into three distinct stances that will be argued by three separate debaters in a 3-way multi-agent debate.
 
-A topic is COMPARATIVE if it asks which of two named alternatives is better/worse/preferable
-("X or Y: which is better?", "X vs Y", "Is X or Y the stronger choice?").
-For comparative topics the second debater must ARGUE FOR the second alternative — not merely
-attack the first. Attacking X is not the same as defending Y.
-
-A topic is a PROPOSITION if it asserts one claim to be affirmed or denied
-("Remote work is better than office work", "AI should be regulated").
+Debater 1 (PRO): Argues the affirmative, thesis, or first alternative.
+Debater 2 (CON): Argues the negative, antithesis, or second alternative.
+Debater 3 (SYN): Argues a distinct third perspective — such as a pragmatic synthesis, nuanced compromise, or independent alternative that resolves the core tension without adopting either extreme.
 
 Return ONLY valid JSON, no markdown:
 {
-  "type": "comparative" | "proposition",
-  "pro_side": "the full stance the first debater must argue, as a complete sentence",
-  "con_side": "the full stance the second debater must argue, as a complete sentence",
-  "resolution": "the question being settled, as a single clear sentence"
+  "type": "tri-way",
+  "pro_side": "the full stance the first debater (PRO) must argue, as a complete sentence",
+  "con_side": "the full stance the second debater (CON) must argue, as a complete sentence",
+  "syn_side": "the full stance the third debater (SYN) must argue, as a complete sentence",
+  "resolution": "the question or proposition being settled, as a single clear sentence"
 }
 
-Each stance must be self-contained: a debater reading only their own stance must know exactly
-what to argue without seeing the original topic."""
+Each stance must be self-contained: a debater reading only their own stance must know exactly what to argue without seeing the original topic."""
 
 
 def _fallback(topic: str) -> dict:
-    """Regex split for comparative topics when the LLM parse is unavailable."""
+    """Fallback split when the LLM parse is unavailable."""
     stripped = topic.strip()
     body = re.split(r"[:?]", stripped, maxsplit=1)[0].strip()
     m = re.match(r"^\s*(.+?)\s+(?:or|vs\.?|versus)\s+(.+?)\s*$", body, flags=re.IGNORECASE)
     if m:
         a, b = m.group(1).strip(), m.group(2).strip()
         return {
-            "type": "comparative",
-            "pro_side": f"{a} is the better answer to: {stripped}",
-            "con_side": f"{b} is the better answer to: {stripped}",
+            "type": "tri-way",
+            "pro_side": f"{a} is the superior choice regarding: {stripped}",
+            "con_side": f"{b} is the superior choice regarding: {stripped}",
+            "syn_side": f"A balanced integration combining elements of both {a} and {b} offers the optimal solution for: {stripped}",
             "resolution": stripped,
         }
     return {
-        "type": "proposition",
-        "pro_side": f"The following is true: {stripped}",
-        "con_side": f"The following is false: {stripped}",
+        "type": "tri-way",
+        "pro_side": f"The proposition is sound and essential: {stripped}",
+        "con_side": f"The proposition is fundamentally flawed or counterproductive: {stripped}",
+        "syn_side": f"A conditional, hybrid approach with targeted safeguards provides the pragmatic path for: {stripped}",
         "resolution": stripped,
     }
 
 
 async def parse_topic(topic: str) -> dict:
-    """Resolve a raw topic string into explicit PRO and CON stances."""
+    """Resolve a raw topic string into explicit PRO, CON, and SYN stances."""
     try:
         response = await groq_call(_client.chat.completions.create,
             model=PARSER_MODEL,
@@ -88,10 +86,12 @@ async def parse_topic(topic: str) -> dict:
         parsed = json.loads(raw[start:end + 1])
 
         if parsed.get("pro_side") and parsed.get("con_side"):
-            parsed.setdefault("type", "proposition")
+            parsed.setdefault("type", "tri-way")
             parsed.setdefault("resolution", topic)
+            if not parsed.get("syn_side"):
+                parsed["syn_side"] = f"A nuanced synthesis balancing the valid concerns of both sides provides the best framework for: {topic}"
             return parsed
     except Exception as e:
-        print(f"Topic parse failed, using regex fallback: {e}")
+        print(f"Topic parse failed, using fallback: {e}")
 
     return _fallback(topic)

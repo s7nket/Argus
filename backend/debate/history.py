@@ -57,6 +57,7 @@ def _summarise(record: dict) -> dict:
         "winner": final.get("overall_winner"),
         "pro_total": final.get("pro_total"),
         "con_total": final.get("con_total"),
+        "syn_total": final.get("syn_total"),
         "margin": final.get("margin"),
         "is_tie": final.get("is_tie"),
         "abstained": confidence.get("abstain"),
@@ -71,6 +72,7 @@ def _log_rows(record: dict, out: list, limit: int) -> bool:
         audit = r.get("audit") or {}
         pro_g = audit.get("pro_grounding") or {}
         con_g = audit.get("con_grounding") or {}
+        syn_g = audit.get("syn_grounding") or {}
         out.append({
             "debate_id": record["id"],
             "created_at": record.get("created_at"),
@@ -79,16 +81,20 @@ def _log_rows(record: dict, out: list, limit: int) -> bool:
             "winner": r.get("round_winner"),
             "pro_total": (r.get("pro_scores") or {}).get("total"),
             "con_total": (r.get("con_scores") or {}).get("total"),
+            "syn_total": (r.get("syn_scores") or {}).get("total") if r.get("syn_scores") else None,
             "scorer": audit.get("scorer"),
             "verification_backend": audit.get("verification_backend"),
             "blind_passes": audit.get("blind_passes"),
             "label_disagreement": audit.get("label_disagreement"),
             "pro_coverage": pro_g.get("coverage"),
             "con_coverage": con_g.get("coverage"),
+            "syn_coverage": syn_g.get("coverage") if syn_g else None,
             "pro_evidence_cited": audit.get("pro_evidence_cited", []),
             "con_evidence_cited": audit.get("con_evidence_cited", []),
+            "syn_evidence_cited": audit.get("syn_evidence_cited", []),
             "pro_repetition_penalty": audit.get("pro_repetition_penalty"),
             "con_repetition_penalty": audit.get("con_repetition_penalty"),
+            "syn_repetition_penalty": audit.get("syn_repetition_penalty"),
             "fallacy": r.get("fallacy_detected"),
             "reasoning": r.get("reasoning", ""),
         })

@@ -151,8 +151,8 @@ def _ft_judge_probe_urls(ft_url: str) -> list[str]:
 def _probe_url_sync(url: str, headers: dict) -> bool:
     try:
         req = urllib.request.Request(url, headers=headers)
-        # Timeout bumped to 8s — ngrok→Kaggle round-trip can take 3-5s
-        with urllib.request.urlopen(req, timeout=8) as response:
+        # Fast 2.5s timeout for Kaggle health probe
+        with urllib.request.urlopen(req, timeout=2.5) as response:
             if response.status != 200:
                 return False
             # Validate the response is JSON, not the ngrok HTML warning page.
@@ -174,7 +174,7 @@ async def _probe_ft_judge_once(ft_url: str) -> bool:
     return False
 
 
-async def _is_ft_judge_online(ft_url: str, attempts: int = 3) -> bool:
+async def _is_ft_judge_online(ft_url: str, attempts: int = 1) -> bool:
     """Fast probe check for Kaggle FT scorer."""
     for attempt in range(attempts):
         if await _probe_ft_judge_once(ft_url):
@@ -193,23 +193,30 @@ async def _is_ft_judge_online(ft_url: str, attempts: int = 3) -> bool:
 @app.get("/judge/health")
 async def judge_health():
     """
-    Checks only the Kaggle FT scorer (FT_JUDGE_URL).
-    API-key-based providers (Groq, NVIDIA) are not pinged — they're assumed
-    available if configured; they fail at call-time, not at startup.
-    Returns: { "status": "online" | "offline", "url": str, "ft_online": bool }
+    Checks Kaggle FT scorer (FT_JUDGE_URL) and Groq fallback judge.
+    If Kaggle FT is offline, gracefully reports online under Groq fallback mode.
     """
     load_dotenv(override=True)
     ft_url = os.getenv("FT_JUDGE_URL", "http://127.0.0.1:8002")
 
-    ft_online = await _is_ft_judge_online(ft_url)
+    ft_online = await _is_ft_judge_online(ft_url, attempts=1)
+    has_groq = bool(os.getenv("JUDGE_GROQ_API_KEY") or os.getenv("GROQ_API_KEY"))
+    judge_online = ft_online or has_groq
 
     result = {
-        "status": "online" if ft_online else "offline",
-        "url": ft_url,
+        "status": "online" if judge_online else "offline",
+        "mode": "kaggle_ft" if ft_online else ("groq_fallback" if has_groq else "offline"),
         "ft_online": ft_online,
+        "groq_fallback": has_groq,
+        "model": "ArguScore-4B (FT)" if ft_online else "openai/gpt-oss-120b (Groq)",
+        "scorer": "Kaggle Fine-Tuned" if ft_online else "Groq Fallback",
+        "url": ft_url,
     }
     if not ft_online:
-        result["note"] = "Kaggle FT scorer is offline or unreachable"
+        if has_groq:
+            result["note"] = "Kaggle FT offline — routing judge to Groq fallback"
+        else:
+            result["note"] = "Neither Kaggle FT nor Groq API keys are available"
     return result
 
 

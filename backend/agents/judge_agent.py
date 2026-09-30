@@ -61,20 +61,21 @@ Schema:
 {
   "score_explanation": {
     "pro": "1 sentence: what did PRO do to earn their score?",
-    "con": "1 sentence: what did CON do to earn their score?"
+    "con": "1 sentence: what did CON do to earn their score?",
+    "syn": "1 sentence: what did SYN do to earn their score?"
   },
   "winner": {
     "decisive_argument": "The single best point that won the debate. Max 20 words. Must reference an actual argument they made.",
     "points": ["Specific point or argument they made that scored well — max 15 plain words.", "Another specific point they made — max 15 plain words."]
   },
   "loser": {
-    "fatal_weakness": "The main reason they lost. Max 20 plain words. Must reference something they actually failed to do.",
+    "fatal_weakness": "The main reason the runners-up fell short. Max 20 plain words. Must reference something they actually failed to do.",
     "missed_points": ["A specific argument they should have made — max 15 plain words.", "Another thing they missed — max 15 plain words."]
   },
   "rounds": [
     {"r": int, "swing": "What specific argument decided this round? Max 12 words."}
   ],
-  "verdict": "Exactly 3 plain sentences: (1) who won and why in simple words, (2) what the loser got wrong, (3) the one moment that changed the debate."
+  "verdict": "Exactly 3 plain sentences: (1) who won and why in simple words, (2) what the runner-up got wrong, (3) the one moment that settled the debate."
 }
 
 Rules:
@@ -86,15 +87,11 @@ Rules:
 
 
 # ── Blind scoring rubric ─────────────────────────────────────────────────────
-# The judge never sees "PRO" / "CON" — only DEBATER-X and DEBATER-Y — and every
-# round is scored twice with those labels swapped, so a preference for either
-# label cancels out. Extraction happens BEFORE scoring: the old prompt asked for
-# an "evidence" score with no definition and no scale, so the model rewarded
-# whichever side used the WORD "evidence" more often.
-ROUND_SCORING_SYSTEM_PROMPT = """You are a strict, impartial debate judge scoring one round of a two-sided debate.
+# The judge never sees named sides — only DEBATER-X, DEBATER-Y, and DEBATER-Z — and every
+# round is scored with labels rotated, so a preference for any label cancels out.
+ROUND_SCORING_SYSTEM_PROMPT = """You are a strict, impartial debate judge scoring one round of a multi-agent debate.
 
-The debaters are labelled DEBATER-X and DEBATER-Y. You are NOT told which side of the resolution
-each one holds. Judge only what is on the page.
+The debaters are labelled DEBATER-X, DEBATER-Y, and DEBATER-Z (if present). You are NOT told which stance each one holds. Judge only what is on the page.
 
 STEP 1 — EXTRACT BEFORE YOU SCORE.
 For each debater, list the evidence they ACTUALLY cited. Evidence means verifiable specifics:
@@ -110,58 +107,43 @@ be emitted on its own.
 ATTRIBUTE BY RELIANCE, NOT BY MENTION. An item belongs to the debater who used it to support
 their OWN case. If a debater names a specific only to deny it, reframe it, or turn it against
 its author, it is NOT their evidence and must not appear in their list.
-  Example: CON cites "Thermopylae, 480 BCE" as proof of Spartan strength; PRO replies
-  "Thermopylae was a defeat". Thermopylae belongs to CON's list ONLY.
 
-MERGE DUPLICATES. One entry per distinct factual claim. "Thermopylae", "480 BCE" and
-"Thermopylae in 480 BCE" are one claim, not three — emit the single complete statement.
+MERGE DUPLICATES. One entry per distinct factual claim.
 
 - A debater describing their own case as "evidence-based", "empirical", "data-driven" or "nuanced"
   is NOT evidence. Ignore all self-description entirely.
-- Gesturing at evidence without naming it ("the archaeological record shows", "studies confirm",
-  "history demonstrates") is NOT evidence. It is an unsupported claim.
-- If a debater cited nothing verifiable, return an empty list. Empty lists are common and
-  correct. Do not pad them, and never invent a statement the debater did not make.
+- Gesturing at evidence without naming it is NOT evidence. It is an unsupported claim.
+- If a debater cited nothing verifiable, return an empty list. Empty lists are common and correct.
 
 STEP 2 — LIST UNSUPPORTED CLAIMS: statements presented as established fact with nothing behind them,
 and any claim you can identify as factually false.
 
 STEP 3 — VALIDATE EVERY FALLACY ACCUSATION.
-If a debater names a fallacy against their opponent, quote the accused text and decide whether the
+If a debater names a fallacy against an opponent, quote the accused text and decide whether the
 label genuinely fits. Naming fallacies is not a virtue and earns no credit by itself. A misapplied
 fallacy label is a reasoning error that LOWERS the accuser's logic score.
 
-STEP 4 — SCORE. Use the full range.
-  Evidence   0-2  pure assertion, nothing cited
-             3-4  vague appeals to evidence or data with no specifics
-             5-6  one concrete, checkable example
-             7-8  several concrete specifics that carry the argument
-             9-10 precise data, dates or named sources that settle the point
-  Logic      0-2  incoherent or self-contradictory
-             3-4  asserts a conclusion without connecting it; misapplied fallacy labels
-             5-6  valid structure with unaddressed gaps
-             7-8  sound chain of reasoning, engages the opponent's strongest point
-             9-10 airtight, defeats the opponent on their own terms
-  Relevance  0-2  ignores the resolution
-             3-4  argues a neighbouring question rather than the one asked
-             5-6  on topic but drifting
-             7-8  directly on the resolution throughout
-             9-10 sharply focused on what actually decides the resolution
+STEP 4 — SCORE. Use the full range (0-10) for Evidence, Logic, and Relevance.
+  Evidence   0-2 pure assertion; 3-4 vague appeals; 5-6 one concrete example; 7-8 multiple specifics; 9-10 precise data/dates/sources.
+  Logic      0-2 incoherent; 3-4 asserts without connection; 5-6 valid with unaddressed gaps; 7-8 sound reasoning; 9-10 airtight synthesis.
+  Relevance  0-2 ignores topic; 3-4 drifting; 5-6 on topic; 7-8 directly addresses core question; 9-10 laser-focused.
 
 CALIBRATION: most real debate turns land between 3 and 6. Scores above 8 are rare and must be earned
-by the specifics you listed in STEP 1. If a debater's evidence list is empty, their evidence score
-must not exceed 3. Repeating a position more forcefully is not an argument and earns nothing.
+by specifics listed in STEP 1. If a debater's evidence list is empty, their evidence score must not exceed 3.
 
 Return ONLY valid JSON. No markdown.
 {
-  "x_evidence_cited": [str],   // complete checkable statements, deduplicated
-  "y_evidence_cited": [str],   // complete checkable statements, deduplicated
+  "x_evidence_cited": [str],
+  "y_evidence_cited": [str],
+  "z_evidence_cited": [str],
   "x_unsupported_claims": [str],
   "y_unsupported_claims": [str],
-  "fallacy_claims": [{"by": "x" | "y", "named": str, "quote": str, "valid": true | false, "note": str}],
+  "z_unsupported_claims": [str],
+  "fallacy_claims": [{"by": "x" | "y" | "z", "named": str, "quote": str, "valid": true | false, "note": str}],
   "x_scores": {"evidence": float, "logic": float, "relevance": float},
   "y_scores": {"evidence": float, "logic": float, "relevance": float},
-  "reasoning": "1-2 sentences citing what was actually said. Never echo a debater's own adjectives about themselves."
+  "z_scores": {"evidence": float, "logic": float, "relevance": float},
+  "reasoning": "2-3 sentences comparing the debaters citing what was actually said."
 }"""
 
 
@@ -196,26 +178,45 @@ def _clean_response(raw: str) -> str:
 
 
 def _format_exchange_for_judge(exchange: list[dict]) -> str:
-    """Labelled transcript — used for the FT scorer, which expects PRO/CON."""
+    """Labelled transcript for judge evaluation."""
     lines = []
     current_sub = 0
     sub_labels = {1: "Opening", 2: "Counter", 3: "Justify"}
+    speaker_map = {"pro": "PRO", "con": "CON", "syn": "SYN"}
     for turn in exchange:
         sr = turn["sub_round"]
         if sr != current_sub:
             current_sub = sr
             lines.append(f"-- Sub-round {sr}: {sub_labels.get(sr, str(sr))} --")
-        label = "PRO" if turn["speaker"] == "pro" else "CON"
+        label = speaker_map.get(turn["speaker"], str(turn["speaker"]).upper())
         lines.append(f"{label}: {turn['text']}")
     return "\n\n".join(lines)
 
 
 def _format_exchange_blind(exchange: list[dict], swap: bool = False) -> str:
     """
-    Anonymised transcript. swap=False maps pro->X, con->Y; swap=True reverses it.
-    Turn order is preserved either way — reordering would break the rebuttal chain.
+    Anonymised transcript.
+    When 3 debaters are present:
+      swap=False -> PRO: DEBATER-X, CON: DEBATER-Y, SYN: DEBATER-Z
+      swap=True  -> PRO: DEBATER-Y, CON: DEBATER-Z, SYN: DEBATER-X (cyclic shift)
+    When 2 debaters are present:
+      swap=False -> PRO: DEBATER-X, CON: DEBATER-Y
+      swap=True  -> PRO: DEBATER-Y, CON: DEBATER-X
     """
-    pro_label, con_label = ("DEBATER-Y", "DEBATER-X") if swap else ("DEBATER-X", "DEBATER-Y")
+    has_syn = any(t.get("speaker") == "syn" for t in exchange)
+    if has_syn:
+        mapping = (
+            {"pro": "DEBATER-Y", "con": "DEBATER-Z", "syn": "DEBATER-X"}
+            if swap else
+            {"pro": "DEBATER-X", "con": "DEBATER-Y", "syn": "DEBATER-Z"}
+        )
+    else:
+        mapping = (
+            {"pro": "DEBATER-Y", "con": "DEBATER-X"}
+            if swap else
+            {"pro": "DEBATER-X", "con": "DEBATER-Y"}
+        )
+
     lines = []
     current_sub = 0
     sub_labels = {1: "Opening", 2: "Counter", 3: "Justify"}
@@ -224,7 +225,8 @@ def _format_exchange_blind(exchange: list[dict], swap: bool = False) -> str:
         if sr != current_sub:
             current_sub = sr
             lines.append(f"-- Sub-round {sr}: {sub_labels.get(sr, str(sr))} --")
-        lines.append(f"{pro_label if turn['speaker'] == 'pro' else con_label}: {turn['text']}")
+        label = mapping.get(turn["speaker"], f"DEBATER-{turn['speaker'].upper()}")
+        lines.append(f"{label}: {turn['text']}")
     return "\n\n".join(lines)
 
 
@@ -386,8 +388,9 @@ def _repetition_penalty(ratio: float) -> float:
 
 
 async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dict:
-    """One blind scoring pass. Returns scores keyed by 'pro'/'con' after unmapping X/Y."""
+    """One blind scoring pass. Returns scores keyed by 'pro'/'con'/'syn' after unmapping X/Y/Z."""
     exchange_text = _format_exchange_blind(exchange, swap=swap)
+    has_syn = any(t.get("speaker") == "syn" for t in exchange)
     print(f"[blind-score] INPUT EXCHANGE LENGTH: {len(exchange_text)}\n{exchange_text[:200]}...", flush=True)
     response = await groq_call(groq_client.chat.completions.create,
         model=JUDGE_MODEL,
@@ -396,7 +399,7 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
             {"role": "user", "content": (
                 f"Resolution being debated: {topic}\n\n"
                 f"Exchange:\n{exchange_text}\n\n"
-                f"Extract first, then score both debaters. Return ONLY the JSON object."
+                f"Extract first, then score the debaters. Return ONLY the JSON object."
             )},
         ],
         max_tokens=4096,
@@ -407,10 +410,16 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
         raise ValueError("Judge returned empty round scores.")
     result = json.loads(raw)
 
-    # swap=False: pro was X. swap=True: pro was Y.
-    pro_key, con_key = ("y", "x") if swap else ("x", "y")
+    if has_syn:
+        # swap=False: pro=x, con=y, syn=z. swap=True: pro=y, con=z, syn=x
+        pro_key, con_key, syn_key = ("y", "z", "x") if swap else ("x", "y", "z")
+    else:
+        pro_key, con_key = ("y", "x") if swap else ("x", "y")
+        syn_key = None
 
-    def side(prefix: str) -> dict:
+    def side(prefix: str | None) -> dict:
+        if not prefix:
+            return {"evidence": 0.0, "logic": 0.0, "relevance": 0.0}
         s = result.get(f"{prefix}_scores", {}) or {}
         return {
             "evidence": float(s.get("evidence", 0) or 0),
@@ -418,23 +427,44 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
             "relevance": float(s.get("relevance", 0) or 0),
         }
 
-    # Unmask the reasoning text so the UI shows PRO/CON instead of DEBATER-X/Y.
+    # Unmask the reasoning text so the UI shows PRO/CON/SYN instead of DEBATER-X/Y/Z.
     reasoning = result.get("reasoning", "")
     if reasoning:
-        x_target = "CON" if swap else "PRO"
-        y_target = "PRO" if swap else "CON"
-        reasoning = re.sub(r"\bdebater[\s\-_]*x\b", x_target, reasoning, flags=re.IGNORECASE)
-        reasoning = re.sub(r"\bdebater[\s\-_]*y\b", y_target, reasoning, flags=re.IGNORECASE)
+        if has_syn:
+            x_target = "SYN" if swap else "PRO"
+            y_target = "PRO" if swap else "CON"
+            z_target = "CON" if swap else "SYN"
+            reasoning = re.sub(r"\bdebater[\s\-_]*x\b", x_target, reasoning, flags=re.IGNORECASE)
+            reasoning = re.sub(r"\bdebater[\s\-_]*y\b", y_target, reasoning, flags=re.IGNORECASE)
+            reasoning = re.sub(r"\bdebater[\s\-_]*z\b", z_target, reasoning, flags=re.IGNORECASE)
+        else:
+            x_target = "CON" if swap else "PRO"
+            y_target = "PRO" if swap else "CON"
+            reasoning = re.sub(r"\bdebater[\s\-_]*x\b", x_target, reasoning, flags=re.IGNORECASE)
+            reasoning = re.sub(r"\bdebater[\s\-_]*y\b", y_target, reasoning, flags=re.IGNORECASE)
+
+    def _unmask_by(by_val: Any) -> str:
+        b = str(by_val).strip().lower()
+        if b == pro_key:
+            return "pro"
+        elif b == con_key:
+            return "con"
+        elif syn_key and b == syn_key:
+            return "syn"
+        return b
 
     return {
         "pro_scores": side(pro_key),
         "con_scores": side(con_key),
+        "syn_scores": side(syn_key) if syn_key else {"evidence": 0.0, "logic": 0.0, "relevance": 0.0},
         "pro_evidence_cited": result.get(f"{pro_key}_evidence_cited", []) or [],
         "con_evidence_cited": result.get(f"{con_key}_evidence_cited", []) or [],
+        "syn_evidence_cited": result.get(f"{syn_key}_evidence_cited", []) or [] if syn_key else [],
         "pro_unsupported_claims": result.get(f"{pro_key}_unsupported_claims", []) or [],
         "con_unsupported_claims": result.get(f"{con_key}_unsupported_claims", []) or [],
+        "syn_unsupported_claims": result.get(f"{syn_key}_unsupported_claims", []) or [] if syn_key else [],
         "fallacy_claims": [
-            {**f, "by": "pro" if f.get("by") == pro_key else "con"}
+            {**f, "by": _unmask_by(f.get("by"))}
             for f in (result.get("fallacy_claims", []) or [])
             if isinstance(f, dict)
         ],
@@ -450,7 +480,7 @@ async def _score_blind_once(topic: str, exchange: list[dict], swap: bool) -> dic
 #
 # 500 is deliberately NOT retried: it means the notebook raised, and greedy
 # decoding is deterministic, so the identical request would fail identically.
-_FT_RETRYABLE_STATUS = {404, 408, 425, 429, 502, 503, 504}
+_FT_RETRYABLE_STATUS = {425, 429, 502, 503, 504}
 
 
 async def _get_ft_round_scores(topic: str, exchange_text: str) -> dict | None:
@@ -495,10 +525,16 @@ async def _get_ft_round_scores(topic: str, exchange_text: str) -> dict | None:
                     err = str(result.get("error", ""))[:160] if isinstance(result, dict) else ""
                     print(f"[FT] 200 but unusable payload, keys={list(result)[:6]} {err}")
                     return None
+                if resp.status_code == 404:
+                    print(f"[FT] HTTP 404 — Kaggle FT endpoint not mounted, falling back to Groq")
+                    return None
                 if resp.status_code not in _FT_RETRYABLE_STATUS:
-                    print(f"[FT] HTTP {resp.status_code} — not retryable")
+                    print(f"[FT] HTTP {resp.status_code} — not retryable, falling back to Groq")
                     return None
                 reason = f"HTTP {resp.status_code}"
+        except (httpx.ConnectError, httpx.ConnectTimeout) as e:
+            print(f"[FT] Kaggle offline ({type(e).__name__}) — falling back to Groq")
+            return None
         except Exception as e:
             reason = f"{type(e).__name__}: {e or '<no message>'}"
 
@@ -582,19 +618,25 @@ async def judge_round(
     exchange: list[dict],
     prior_pro_texts: list[str] | None = None,
     prior_con_texts: list[str] | None = None,
+    prior_syn_texts: list[str] | None = None,
 ) -> dict:
     """
-    Scores a round blind, twice, with the debater labels swapped, and averages —
-    so a scorer preference for either label cancels out. Evidence caps and the
+    Scores a round blind, twice, with debater labels rotated, and averages —
+    so a scorer preference for any label cancels out. Evidence caps and the
     repetition penalty are then applied deterministically in Python.
+    Supports 2 or 3 debating agents.
     """
     exchange_text = _format_exchange_for_judge(exchange)
+    has_syn = any(t.get("speaker") == "syn" for t in exchange)
 
-    # Blind passes and the FT probe run concurrently — the extra accuracy costs
-    # roughly one call of wall time, though it does double the token spend.
+    # Blind passes and FT probe (FT is trained for 2-agent; 3-agent uses 3-way blind rotation)
     scoring = [_score_blind_once(topic, exchange, swap=(i == 1)) for i in range(BLIND_PASSES)]
-    *raw_passes, ft = await asyncio.gather(*scoring, _get_ft_round_scores(topic, exchange_text),
-                                           return_exceptions=True)
+    if has_syn:
+        raw_passes = await asyncio.gather(*scoring, return_exceptions=True)
+        ft = None
+    else:
+        *raw_passes, ft = await asyncio.gather(*scoring, _get_ft_round_scores(topic, exchange_text),
+                                               return_exceptions=True)
 
     passes = [p for p in raw_passes if isinstance(p, dict)]
     if not passes:
@@ -605,6 +647,7 @@ async def judge_round(
 
     pro_scores = {c: averaged("pro", c) for c in ("evidence", "logic", "relevance")}
     con_scores = {c: averaged("con", c) for c in ("evidence", "logic", "relevance")}
+    syn_scores = {c: averaged("syn", c) for c in ("evidence", "logic", "relevance")} if has_syn else {"evidence": 0.0, "logic": 0.0, "relevance": 0.0}
 
     # Union the audit output across passes.
     def merged(key: str) -> list:
@@ -617,86 +660,66 @@ async def judge_round(
                     out.append(item)
         return out
 
-    # Evidence lists get the stronger collapse — they are what the verification
-    # channel divides by, so a claim counted twice distorts coverage directly.
     pro_evidence = _dedup_claims(merged("pro_evidence_cited"))
     con_evidence = _dedup_claims(merged("con_evidence_cited"))
+    syn_evidence = _dedup_claims(merged("syn_evidence_cited")) if has_syn else []
 
-    # The FT scorer, when online, supplies the raw numbers — but the blind audit
-    # still governs the evidence ceiling, so FT cannot certify evidence that the
-    # extraction pass could not find.
-    #
-    # v3 returns a winner and two totals, because those are the only quantities
-    # it was supervised on: the human vote decided an outcome, not a breakdown
-    # into evidence, logic and relevance. v2 returned all three criteria, but
-    # they were derived from one synthetic score and were the same number three
-    # times over. So v3's totals override the totals, and the criteria are left
-    # as the blind Groq passes measured them — which keeps the per-criterion
-    # display honest instead of restating one number in three places.
     ft_used = isinstance(ft, dict) and ft is not None
     ft_totals = None
-    if ft_used and "pro_total" in ft and "con_total" in ft:
+    if not has_syn and ft_used and "pro_total" in ft and "con_total" in ft:
         try:
             ft_totals = (float(ft["pro_total"]), float(ft["con_total"]))
         except (TypeError, ValueError):
             ft_totals = None
-    elif ft_used:
-        # v2 returned all three criteria derived from one synthetic score —
-        # the same number three times over, at 62.3% accuracy vs the blind
-        # swap's own accuracy. Letting it overwrite the per-criterion scores
-        # was the main source of systematic PRO bias: a single biased number
-        # replaced three independently measured ones. Log it for diagnostics
-        # but do NOT override the blind scores.
-        ft_pro = ft.get("pro_scores", {})
-        ft_con = ft.get("con_scores", {})
-        print(f"[FT] v2 scores (NOT applied): PRO={ft_pro} CON={ft_con}")
 
     _apply_evidence_cap(pro_scores, pro_evidence)
     _apply_evidence_cap(con_scores, con_evidence)
+    if has_syn:
+        _apply_evidence_cap(syn_scores, syn_evidence)
 
-    # Retrieval-grounded verification. Runs after extraction because it consumes
-    # the extracted specifics rather than the raw transcript — the scorer says what
-    # was cited, the corpus says whether it holds. Both sides check concurrently.
-    pro_grounding, con_grounding = await asyncio.gather(
-        _ground_side(pro_evidence), _ground_side(con_evidence), return_exceptions=True,
-    )
-    pro_grounding = pro_grounding if isinstance(pro_grounding, dict) else None
-    con_grounding = con_grounding if isinstance(con_grounding, dict) else None
+    # Retrieval-grounded verification. Runs concurrently for all debaters.
+    grounding_coros = [_ground_side(pro_evidence), _ground_side(con_evidence)]
+    if has_syn:
+        grounding_coros.append(_ground_side(syn_evidence))
+    grounding_results = await asyncio.gather(*grounding_coros, return_exceptions=True)
+    pro_grounding = grounding_results[0] if isinstance(grounding_results[0], dict) else None
+    con_grounding = grounding_results[1] if isinstance(grounding_results[1], dict) else None
+    syn_grounding = grounding_results[2] if (has_syn and len(grounding_results) > 2 and isinstance(grounding_results[2], dict)) else None
 
     _apply_grounding(pro_scores, pro_grounding)
     _apply_grounding(con_scores, con_grounding)
+    if has_syn:
+        _apply_grounding(syn_scores, syn_grounding)
 
     pro_rep = repetition_ratio([t["text"] for t in exchange if t["speaker"] == "pro"], prior_pro_texts or [])
     con_rep = repetition_ratio([t["text"] for t in exchange if t["speaker"] == "con"], prior_con_texts or [])
-    pro_penalty, con_penalty = _repetition_penalty(pro_rep), _repetition_penalty(con_rep)
+    syn_rep = repetition_ratio([t["text"] for t in exchange if t["speaker"] == "syn"], prior_syn_texts or []) if has_syn else 0.0
+    pro_penalty, con_penalty, syn_penalty = _repetition_penalty(pro_rep), _repetition_penalty(con_rep), _repetition_penalty(syn_rep)
 
     pro_scores["total"] = _total(pro_scores, pro_penalty)
     con_scores["total"] = _total(con_scores, con_penalty)
+    if has_syn:
+        syn_scores["total"] = _total(syn_scores, syn_penalty)
 
-    # v3's totals replace the averaged ones, after the deterministic rules run.
-    # It is much the better judge of who won — 90.6% against 62.3% for v2 on
-    # identical debates — so its verdict is what the totals should express.
-    #
-    # What it cannot do is escape the penalties. Repetition and fabrication are
-    # measured in code from the transcript and the corpus, not asserted by any
-    # model, so they are subtracted here exactly as they are from a Groq total.
-    #
-    # The evidence ceiling is a genuine narrowing and worth stating plainly: it
-    # bounds the evidence CRITERION, which v3 does not produce, so it no longer
-    # bounds the total when v3 is scoring. The criterion is still capped and
-    # still reported in the audit, so a reader can still see that a side cited
-    # nothing checkable — but that fact no longer arithmetically caps the score.
-    # Bounding v3's total by the criteria-based one instead would let the weaker
-    # scorer veto the stronger, which is the wrong trade at this accuracy gap.
-    if ft_totals is not None:
+    if ft_totals is not None and not has_syn:
         pro_fab = (pro_grounding or {}).get("fabrication_penalty", 0.0)
         con_fab = (con_grounding or {}).get("fabrication_penalty", 0.0)
         for total, scores, penalty in ((ft_totals[0], pro_scores, pro_penalty + pro_fab),
                                        (ft_totals[1], con_scores, con_penalty + con_fab)):
             scores["total"] = round(max(0.0, min(10.0, total) - penalty), 1)
 
-    margin = round(pro_scores["total"] - con_scores["total"], 1)
-    round_winner = "tie" if abs(margin) <= TIE_BAND else ("pro" if margin > 0 else "con")
+    # Determine round winner among 2 or 3 debaters
+    candidates = [("pro", pro_scores["total"]), ("con", con_scores["total"])]
+    if has_syn:
+        candidates.append(("syn", syn_scores["total"]))
+    sorted_candidates = sorted(candidates, key=lambda x: x[1], reverse=True)
+    best_side, best_score = sorted_candidates[0]
+    second_side, second_score = sorted_candidates[1]
+
+    if (best_score - second_score) <= TIE_BAND:
+        round_winner = "tie"
+    else:
+        round_winner = best_side
 
     fallacies = _agreed_fallacy_claims(passes)
     invalid_labels = [
@@ -706,30 +729,40 @@ async def judge_round(
 
     reasoning = _as_text(next((p.get("reasoning") for p in passes if p.get("reasoning")), ""))
 
+    final_scores = {"pro": pro_scores["total"], "con": con_scores["total"]}
+    if has_syn:
+        final_scores["syn"] = syn_scores["total"]
+
     return {
         "pro_scores":            pro_scores,
         "con_scores":            con_scores,
+        "syn_scores":            syn_scores if has_syn else None,
         "round_winner":          round_winner,
         "reasoning":             reasoning,
         "winner_evidence":       "",
         "loser_weakness":        "",
         "fallacy_detected":      invalid_labels[0] if invalid_labels else None,
-        "final_score_out_of_10": {"pro": pro_scores["total"], "con": con_scores["total"]},
+        "final_score_out_of_10": final_scores,
         # Audit trail — why the scores are what they are.
         "audit": {
             "pro_evidence_cited":      pro_evidence,
             "con_evidence_cited":      con_evidence,
+            "syn_evidence_cited":      syn_evidence if has_syn else [],
             "pro_unsupported_claims":  merged("pro_unsupported_claims"),
             "con_unsupported_claims":  merged("con_unsupported_claims"),
+            "syn_unsupported_claims":  merged("syn_unsupported_claims") if has_syn else [],
             "fallacy_claims":          fallacies,
             "pro_repetition":          round(pro_rep, 2),
             "con_repetition":          round(con_rep, 2),
+            "syn_repetition":          round(syn_rep, 2) if has_syn else 0.0,
             "pro_repetition_penalty":  pro_penalty,
             "con_repetition_penalty":  con_penalty,
+            "syn_repetition_penalty":  syn_penalty if has_syn else 0.0,
             "pro_grounding":           pro_grounding,
             "con_grounding":           con_grounding,
+            "syn_grounding":           syn_grounding if has_syn else None,
             "verification_backend":    config.NLI_BACKEND if config.VERIFICATION_ENABLED else "disabled",
-            "scorer":                  "kaggle-ft (audited)" if ft_used else "groq-blind-swap",
+            "scorer":                  "kaggle-ft (audited)" if ft_used and not has_syn else "groq-blind-swap",
             "blind_passes":            len(passes),
             "label_disagreement":      round(abs(
                 passes[0]["pro_scores"]["evidence"] - passes[-1]["pro_scores"]["evidence"]
@@ -884,52 +917,62 @@ async def judge_final_verdict(
     all_rounds: list[dict],
     pro_arguments: list[str] | None = None,
     con_arguments: list[str] | None = None,
+    syn_arguments: list[str] | None = None,
 ) -> dict:
     def _safe_total(r: dict, side: str) -> float:
         s = r.get(f"{side}_scores") or {}
         return float(s.get("total", 0) or 0)
 
+    has_syn = any("syn_scores" in r and r["syn_scores"] is not None and r["syn_scores"].get("total") is not None for r in all_rounds)
+
     pro_total = round(sum(_safe_total(r, "pro") for r in all_rounds), 1)
     con_total = round(sum(_safe_total(r, "con") for r in all_rounds), 1)
+    syn_total = round(sum(_safe_total(r, "syn") for r in all_rounds), 1) if has_syn else 0.0
     max_possible = len(all_rounds) * 10
 
-    # Decided here, in Python, from the scores. The old code let the language
-    # model free-text the winner and the strongest round, so it could contradict
-    # the totals it was handed — and did.
-    margin = round(pro_total - con_total, 1)
-    overall_winner = "tie" if abs(margin) <= TIE_BAND else ("pro" if margin > 0 else "con")
-    win_key = "con_scores" if overall_winner == "con" else "pro_scores"
+    # Determine overall winner among 2 or 3 debaters
+    candidates = [("pro", pro_total), ("con", con_total)]
+    if has_syn:
+        candidates.append(("syn", syn_total))
+    sorted_candidates = sorted(candidates, key=lambda x: x[1], reverse=True)
+    best_side, best_total = sorted_candidates[0]
+    second_side, second_total = sorted_candidates[1]
+
+    margin = round(best_total - second_total, 1)
+    overall_winner = "tie" if margin <= TIE_BAND else best_side
+    win_key = f"{overall_winner}_scores" if overall_winner in ("pro", "con", "syn") else "pro_scores"
     strongest_round = max(
         range(len(all_rounds)), key=lambda i: ((all_rounds[i].get(win_key) or {}).get("total") or 0)
     ) + 1 if all_rounds else 1
 
-    rounds_summary = "\n".join([
-        f"R{i+1}: PRO={_safe_total(r, 'pro')} CON={_safe_total(r, 'con')} "
-        f"Winner={(r.get('round_winner') or 'tie').upper()} — {r.get('reasoning', '')}"
-        for i, r in enumerate(all_rounds)
-    ])
+    rounds_summary_lines = []
+    for i, r in enumerate(all_rounds):
+        line = f"R{i+1}: PRO={_safe_total(r, 'pro')} CON={_safe_total(r, 'con')}"
+        if has_syn:
+            line += f" SYN={_safe_total(r, 'syn')}"
+        line += f" Winner={(r.get('round_winner') or 'tie').upper()} — {r.get('reasoning', '')}"
+        rounds_summary_lines.append(line)
+    rounds_summary = "\n".join(rounds_summary_lines)
 
-    # Hand the verdict writer the extracted evidence, so it describes what was
-    # actually cited instead of echoing whoever said "evidence-based" most.
     audit_lines = []
     for i, r in enumerate(all_rounds):
         a = r.get("audit", {})
-        audit_lines.append(
-            f"R{i+1} evidence actually cited — PRO: {a.get('pro_evidence_cited') or 'NONE'} | "
-            f"CON: {a.get('con_evidence_cited') or 'NONE'}"
-        )
+        line = f"R{i+1} evidence cited — PRO: {a.get('pro_evidence_cited') or 'NONE'} | CON: {a.get('con_evidence_cited') or 'NONE'}"
+        if has_syn:
+            line += f" | SYN: {a.get('syn_evidence_cited') or 'NONE'}"
+        audit_lines.append(line)
     audit_block = "\n".join(audit_lines)
 
     args_block = ""
-    if pro_arguments or con_arguments:
+    if pro_arguments or con_arguments or syn_arguments:
         lines = []
         for i, r in enumerate(all_rounds):
             pro_arg = (pro_arguments or [])[i] if i < len(pro_arguments or []) else ""
             con_arg = (con_arguments or [])[i] if i < len(con_arguments or []) else ""
-            if pro_arg:
-                lines.append(f"R{i+1} PRO: {pro_arg[:200]}")
-            if con_arg:
-                lines.append(f"R{i+1} CON: {con_arg[:200]}")
+            syn_arg = (syn_arguments or [])[i] if (has_syn and i < len(syn_arguments or [])) else ""
+            if pro_arg: lines.append(f"R{i+1} PRO: {pro_arg[:150]}")
+            if con_arg: lines.append(f"R{i+1} CON: {con_arg[:150]}")
+            if syn_arg: lines.append(f"R{i+1} SYN: {syn_arg[:150]}")
         args_block = "\nKey arguments made:\n" + "\n".join(lines)
 
     outcome = (
@@ -937,6 +980,10 @@ async def judge_final_verdict(
         f"{'TIE' if overall_winner == 'tie' else overall_winner.upper() + ' WINS'}. "
         f"Strongest round for the winner: Round {strongest_round}."
     )
+
+    score_line = f"PRO total: {pro_total}/{max_possible} | CON total: {con_total}/{max_possible}"
+    if has_syn:
+        score_line += f" | SYN total: {syn_total}/{max_possible}"
 
     response = await groq_call(groq_client.chat.completions.create,
         model=JUDGE_MODEL,
@@ -947,7 +994,7 @@ async def judge_final_verdict(
                 f"Scores:\n{rounds_summary}\n\n"
                 f"{audit_block}"
                 f"{args_block}\n\n"
-                f"PRO total: {pro_total}/{max_possible} | CON total: {con_total}/{max_possible}\n"
+                f"{score_line}\n"
                 f"{outcome}\n\n"
                 f"Return ONLY the JSON object."
             )},
@@ -962,11 +1009,14 @@ async def judge_final_verdict(
         result = json.loads(raw)
     except Exception as e:
         print(f"Failed to parse final verdict JSON: {e}. Output was: {raw}")
+        exp = {
+            "pro": f"PRO earned {pro_total} total points across {len(all_rounds)} rounds.",
+            "con": f"CON earned {con_total} total points across {len(all_rounds)} rounds.",
+        }
+        if has_syn:
+            exp["syn"] = f"SYN earned {syn_total} total points across {len(all_rounds)} rounds."
         result = {
-            "score_explanation": {
-                "pro": f"PRO earned {pro_total} total points across {len(all_rounds)} rounds.",
-                "con": f"CON earned {con_total} total points across {len(all_rounds)} rounds."
-            },
+            "score_explanation": exp,
             "winner": {
                 "decisive_argument": "Stronger evidence and argument consistency throughout the debate.",
                 "points": ["Maintained key arguments and factual grounding across rounds."],
@@ -976,19 +1026,14 @@ async def judge_final_verdict(
                 "missed_points": ["Could have addressed opponent counterarguments more directly."]
             },
             "verdict": (
-                f"The debate ended in a tie at {pro_total} points each. "
+                f"The debate ended in a tie. "
                 if overall_winner == "tie" else
-                f"{overall_winner.upper()} won the debate with {max(pro_total, con_total)} points "
-                f"versus {min(pro_total, con_total)} points. "
-            ) + "The winning side cited more checkable evidence across rounds. "
-                "Key turning point occurred in the mid-round exchanges."
+                f"{overall_winner.upper()} won the debate with {best_total} points. "
+            ) + "The winning side cited more checkable evidence across rounds."
         }
 
-    # Shape first: the model is free to return the right content in the wrong
-    # container, and the client renders these fields directly.
     _coerce_verdict_strings(result)
 
-    # Sanitize any placeholder ellipsis or empty items
     def _sanitize_list(items: list, fallback: list) -> list:
         cleaned = [s for s in items if s and str(s).strip() not in ("...", ".", "…", "-", "")]
         return cleaned if cleaned else fallback
@@ -1011,20 +1056,22 @@ async def judge_final_verdict(
     if str(l_block.get("fatal_weakness", "")).strip() in ("...", ".", "…", ""):
         l_block["fatal_weakness"] = "Lack of verifiable source citations in core arguments."
 
-    # Deterministic fields always win over anything the model returned.
     result["overall_winner"] = overall_winner
     result["pro_total"] = pro_total
     result["con_total"] = con_total
+    if has_syn:
+        result["syn_total"] = syn_total
     result["margin"] = abs(margin)
     result["is_tie"] = overall_winner == "tie"
-    result["accuracy"] = {
+    accuracy_dict = {
         "pro": round((pro_total / max_possible) * 100, 1) if max_possible else 0.0,
         "con": round((con_total / max_possible) * 100, 1) if max_possible else 0.0,
     }
+    if has_syn:
+        accuracy_dict["syn"] = round((syn_total / max_possible) * 100, 1) if max_possible else 0.0
+    result["accuracy"] = accuracy_dict
     result["winner"]["strongest_round"] = strongest_round
     result["confidence"] = _verdict_confidence(pro_total, con_total)
-    # The arithmetic behind the outcome, so the verdict can be checked rather
-    # than believed.
     result["receipts"] = _verdict_receipts(all_rounds)
 
     # Per-round winners and margins come from the scores, never from the model.
