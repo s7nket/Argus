@@ -1,6 +1,6 @@
 """Provider-neutral async LLM retry helper for ARGUS.
 
-The judge can use NVIDIA NIM (OpenAI-compatible) or Groq. This wrapper does not
+The judge uses Gemini (primary) or Groq (fallback). This wrapper does not
 assume a provider-specific client; it retries only transient/rate-limit failures.
 It keeps ``groq_call`` as a backwards-compatible alias for existing imports.
 """
@@ -100,7 +100,10 @@ def _is_transient(exc: Exception) -> bool:
 
 
 def _provider() -> str:
-    return "nvidia" if os.getenv("NVIDIA_API_KEY", "").strip() else "groq"
+    """Gemini takes priority; fall back to Groq."""
+    if os.getenv("GEMINI_API_KEY", "").strip():
+        return "gemini"
+    return "groq"
 
 
 def _init_groq_api_keys() -> list[str]:
@@ -114,16 +117,15 @@ def _init_groq_api_keys() -> list[str]:
 async def llm_call(fn, *args, **kwargs):
     """Call the configured LLM client with safe retry/backoff behavior.
 
-    NVIDIA NIM uses the OpenAI-compatible client and normally has one key, so a
-    401/429 is surfaced rather than accidentally swapping in a Groq key. Groq
-    retains its existing multi-key rotation behavior.
+    Gemini uses a single key via the OpenAI-compat endpoint.
+    Groq retains its multi-key rotation behavior.
     """
     provider = _provider()
     groq_keys = _init_groq_api_keys() if provider == "groq" else []
     current_key_idx = 0
 
     base_attempts = max(1, config.LLM_MAX_ATTEMPTS)
-    attempts = base_attempts * max(1, len(groq_keys))
+    attempts = base_attempts * max(1, len(groq_keys)) if provider == "groq" else base_attempts
     last: Exception | None = None
 
     for attempt in range(attempts):
@@ -134,8 +136,7 @@ async def llm_call(fn, *args, **kwargs):
             status = _status_code(exc)
             text = str(exc).lower()
 
-            # Groq-only key rotation. Never rotate an NVIDIA request into a
-            # different provider or mutate the NVIDIA client with a Groq key.
+            # Groq-only key rotation.
             quota_exceeded = (
                 provider == "groq"
                 and (

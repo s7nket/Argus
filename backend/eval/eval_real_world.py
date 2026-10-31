@@ -2,15 +2,23 @@ import asyncio
 import json
 import os
 import argparse
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).parent.parent / ".env")
+
+_backend_dir = Path(__file__).resolve().parent.parent
+_project_root = _backend_dir.parent
+for _p in (str(_project_root), str(_backend_dir)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+load_dotenv(_backend_dir / ".env")
 
 from eval import metrics
-
-# Assuming the backend structure allows importing like this
-# This will be run from the backend/ directory using `python -m eval.eval_real_world`
-from debate.orchestrator import run_debate
+from backend.debate.orchestrator import run_debate
 
 class MockWebSocket:
     def __init__(self):
@@ -78,12 +86,27 @@ async def main():
                 failed += 1
                 continue
                 
-            predicted_winner = ws.final_verdict.get("winner", "unknown").lower()
+            winner_raw = ws.final_verdict.get("overall_winner") or ws.final_verdict.get("winner")
+            if isinstance(winner_raw, dict):
+                winner_raw = ws.final_verdict.get("overall_winner") or "unknown"
+            predicted_winner = str(winner_raw or "unknown").strip().lower()
             
             # Print intermediate result
-            match = "✓ MATCH" if predicted_winner == gold_winner else "✗ MISMATCH"
-            print(f"  Predicted: {predicted_winner.upper()} -> {match}")
+            match = "[MATCH]" if predicted_winner == gold_winner else "[MISMATCH]"
+            print(f"  Predicted: {predicted_winner.upper()} -> {match}", flush=True)
             
+            # Diagnostic: show per-round scores and scorer
+            for msg in ws.messages:
+                if msg.get("type") == "round_verdict":
+                    rd = msg.get("data", {})
+                    pro_s = rd.get("pro_scores", {})
+                    con_s = rd.get("con_scores", {})
+                    audit = rd.get("audit", {})
+                    print(f"    R{msg.get('round', '?')}: PRO={pro_s.get('total', '?')} CON={con_s.get('total', '?')} "
+                          f"winner={rd.get('round_winner', '?')} scorer={audit.get('scorer', '?')}")
+                    print(f"      PRO scores: E={pro_s.get('evidence','?')} L={pro_s.get('logic','?')} R={pro_s.get('relevance','?')}")
+                    print(f"      CON scores: E={con_s.get('evidence','?')} L={con_s.get('logic','?')} R={con_s.get('relevance','?')}")
+
             # Store for metrics
             if predicted_winner in ["pro", "con", "tie"]:
                 preds.append(predicted_winner)

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { ArgusLanding } from "./components/ArgusLanding";
 import { DebateDashboard } from "./components/DebateDashboard";
+import { DebateReplay } from "./components/DebateReplay";
 
 export const router = createBrowserRouter([
   {
@@ -10,5 +11,9 @@ export const router = createBrowserRouter([
   {
     path: "/debate-dashboard",
     Component: DebateDashboard,
+  },
+  {
+    path: "/debate/:debateId",
+    Component: DebateReplay,
   }
 ]);

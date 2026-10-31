@@ -35,9 +35,10 @@ if not _PROVIDER_VALID.get(DEBATER_PROVIDER):
             DEBATER_PROVIDER = _p
             break
 
-# If we fell back to Groq, the `.env`'s DEBATER_MODEL (e.g. llama-3.3-70b) won't work on Groq.
-# Force it to a valid Groq model on this account.
-if DEBATER_PROVIDER == "groq" and os.getenv("DEBATER_MODEL") == "llama-3.3-70b":
+# If we fell back to Groq, validate the DEBATER_MODEL is still available.
+# Discontinued models get replaced with a capable default.
+_DISCONTINUED = {"llama-3.3-70b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"}
+if DEBATER_PROVIDER == "groq" and os.getenv("DEBATER_MODEL", "") in _DISCONTINUED:
     os.environ["DEBATER_MODEL"] = "allam-2-7b"
 
 
@@ -46,7 +47,7 @@ def _make_client():
     from groq import AsyncGroq
 
     if DEBATER_PROVIDER == "cerebras":
-        print(f"[debater] Cerebras → {os.getenv('DEBATER_MODEL', 'llama-3.3-70b')}")
+        print(f"[debater] Cerebras -> {os.getenv('DEBATER_MODEL', 'llama-3.3-70b')}")
         return AsyncOpenAI(
             api_key=_CEREBRAS_KEY,
             base_url="https://api.cerebras.ai/v1",
@@ -55,14 +56,14 @@ def _make_client():
     if DEBATER_PROVIDER == "nvidia":
         base = os.getenv("JUDGE_BASE_URL", "https://integrate.api.nvidia.com/v1")
         model = os.getenv("DEBATER_MODEL", "meta/llama-3.3-70b-instruct")
-        print(f"[debater] NVIDIA NIM → {model}")
+        print(f"[debater] NVIDIA NIM -> {model}")
         return AsyncOpenAI(
             api_key=_NVIDIA_KEY,
             base_url=base,
             timeout=60.0,
         )
     # groq
-    print(f"[debater] Groq → {os.getenv('DEBATER_MODEL', 'allam-2-7b')}")
+    print(f"[debater] Groq -> {os.getenv('DEBATER_MODEL', 'per-side config')}")
     return AsyncGroq(api_key=_GROQ_KEY, timeout=20.0)
 
 
