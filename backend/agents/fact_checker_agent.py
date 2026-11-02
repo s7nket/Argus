@@ -85,7 +85,7 @@ async def _extract_claims(text: str) -> list[str]:
             max_tokens=400,
             temperature=0,
         )
-        return _strip_json_array(response.choices[0].message.content)[:5]
+        return _strip_json_array(response.choices[0].message.content)[:3]
     except Exception as e:
         logger.warning(f"Claim extraction failed, returning empty: {e}")
         return []

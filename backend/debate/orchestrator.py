@@ -434,6 +434,16 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2, human_si
 
             pass
 
+    # ── Fire-and-forget fact-check helper ─────────────────────────────────
+    def _make_fc_task(pro, con, syn, rn, sr):
+        async def _run():
+            try:
+                data = await fact_check_speeches(pro, con, rn, sr, syn_text=syn)
+                await safe_send({"type": "fact_check", "round": rn, "sub_round": sr, "data": data})
+            except Exception:
+                pass
+        return asyncio.create_task(_run())
+
 
 
     await safe_send({
@@ -738,15 +748,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2, human_si
 
         })
 
-        try:
-
-            fc1 = await fact_check_speeches(pro_open, con_open, round_num, 1, syn_text=syn_open)
-
-            await safe_send({"type": "fact_check", "round": round_num, "sub_round": 1, "data": fc1})
-
-        except Exception as e:
-
-            print(f"[fact-checker] Sub-round 1 fact-check failed: {e}", flush=True)
+        _make_fc_task(pro_open, con_open, syn_open, round_num, 1)
 
 
 
@@ -1016,15 +1018,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2, human_si
 
         })
 
-        try:
-
-            fc2 = await fact_check_speeches(pro_counter, con_counter, round_num, 2, syn_text=syn_counter)
-
-            await safe_send({"type": "fact_check", "round": round_num, "sub_round": 2, "data": fc2})
-
-        except Exception as e:
-
-            print(f"[fact-checker] Sub-round 2 fact-check failed: {e}", flush=True)
+        _make_fc_task(pro_counter, con_counter, syn_counter, round_num, 2)
 
 
 
@@ -1294,15 +1288,7 @@ async def run_debate(websocket: WebSocket, topic: str, rounds: int = 2, human_si
 
         })
 
-        try:
-
-            fc3 = await fact_check_speeches(pro_justify, con_justify, round_num, 3, syn_text=syn_justify)
-
-            await safe_send({"type": "fact_check", "round": round_num, "sub_round": 3, "data": fc3})
-
-        except Exception as e:
-
-            print(f"[fact-checker] Sub-round 3 fact-check failed: {e}", flush=True)
+        _make_fc_task(pro_justify, con_justify, syn_justify, round_num, 3)
 
 
 

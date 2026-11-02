@@ -115,6 +115,12 @@ Return ONLY a JSON array, one object per claim, in the same order:
 def _strip_json(raw: str) -> str:
     raw = re.sub(r"<think>.*?</think>", "", raw or "", flags=re.DOTALL)
     raw = raw.replace("```json", "").replace("```", "").strip()
+    match = re.search(r"\[\s*\{", raw)
+    if match:
+        start = match.start()
+        end = raw.rfind("]")
+        if end > start:
+            return raw[start:end + 1]
     start, end = raw.find("["), raw.rfind("]")
     return raw[start:end + 1] if start != -1 and end > start else raw
 
