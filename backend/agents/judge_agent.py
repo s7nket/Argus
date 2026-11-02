@@ -36,7 +36,9 @@ if _GEMINI_KEY:
     )
     print(f"[judge] Gemini -> {JUDGE_MODEL}")
 else:
-    JUDGE_MODEL = os.getenv("JUDGE_GROQ_MODEL", "openai/gpt-oss-120b")
+    JUDGE_MODEL = os.getenv("JUDGE_GROQ_MODEL") or os.getenv("JUDGE_MODEL") or "openai/gpt-oss-120b"
+    if JUDGE_MODEL in ("qwen3.8-27b", "qwen3.6-27b", "qwen/qwen3.6-27b"):
+        JUDGE_MODEL = "qwen/qwen3.8-27b"
     key = os.getenv("JUDGE_GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
     if not key:
         raise ValueError("Set GEMINI_API_KEY or GROQ_API_KEY in backend/.env")

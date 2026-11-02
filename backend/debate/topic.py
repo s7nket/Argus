@@ -18,6 +18,8 @@ from dotenv import load_dotenv
 from groq import AsyncGroq
 from llm_retry import groq_call
 
+_here = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(os.path.dirname(_here), ".env"))
 load_dotenv()
 
 PARSER_MODEL = os.getenv("PARSER_MODEL", "openai/gpt-oss-20b")

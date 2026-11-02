@@ -6,6 +6,12 @@ import urllib.error
 import httpx
 from dotenv import load_dotenv
 
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # ── Path bootstrap ────────────────────────────────────────────────────────────
 # The codebase mixes two import styles:
 #   • main.py / orchestrator.py use  `from backend.debate.X`  (absolute from root)
@@ -20,9 +26,9 @@ for _p in (_project_root, _backend_dir):
 load_dotenv(os.path.join(_backend_dir, ".env"), override=True)
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from debate.orchestrator import run_debate, _ClientDisconnected
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from backend.debate.orchestrator import run_debate
 
 from backend.debate.vector_store import get_vector_store
 from backend.debate.history import store_name as history_store_name
@@ -237,13 +243,17 @@ async def debate_websocket(websocket: WebSocket):
 
         await run_debate(websocket, topic, rounds, human_side=human_side)
 
-    except WebSocketDisconnect:
-        pass
+    except WebSocketDisconnect as e:
+        print(f"[ws] Client disconnected: {e}", flush=True)
+    except _ClientDisconnected:
+        print("[ws] Debate aborted cleanly — client disconnected mid-debate.", flush=True)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         try:
             await websocket.send_json({"type": "error", "message": str(e)})
-        except:
-            pass
+        except Exception as send_err:
+            print(f"[ws] Failed to send error to client: {send_err}", flush=True)
 
 
 # ── Frontend ─────────────────────────────────────────────────────────────────

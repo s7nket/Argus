@@ -21,7 +21,7 @@ export default defineConfig({
   assetsInclude: ['**/*.svg', '**/*.csv'],
   server: {
     watch: {
-      ignored: ['**/session-export-extracted/**'],
+      ignored: ['**/session-export-extracted/**', '**/backend/**', '**/.venv/**', '**/data/**'],
     },
   },
 })

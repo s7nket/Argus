@@ -28,8 +28,8 @@ load_dotenv()
 # reasoning_effort="low". For an agent that must produce 120-200 words of
 # argument that is the opposite of token efficiency. They suit the judge, whose
 # job is deliberation and whose output is short JSON; they do not suit debaters.
-DEFAULT_PRO_MODEL = "qwen/qwen3.6-27b"
-DEFAULT_CON_MODEL = "openai/gpt-oss-20b"
+DEFAULT_PRO_MODEL = "allam-2-7b"
+DEFAULT_CON_MODEL = "allam-2-7b"
 DEFAULT_SYN_MODEL = "allam-2-7b"
 
 

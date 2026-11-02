@@ -68,10 +68,9 @@ export function DebateDashboard() {
   // have; the useful thing to show in that slot is which judge is actually
   // running and what it has to verify against.
   const [stack, setStack] = useState<{ model?: string; scorer?: string; ftOnline?: boolean; docs?: number }>({});
-  // Two rounds of two exchanges each: four speeches per side, which matches
-  // a real debate format. Three rounds of three was nine per side and took
-  // about five minutes.
-  const rounds = 2;
+  // One round: three sub-rounds (opening, rebuttal, justify) per side.
+  // Faster feedback; change to 2 for the fuller format.
+  const rounds = 1;
   const wsRef = useRef<WebSocket | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const typingStartRef = useRef<number>(0);
@@ -223,7 +222,7 @@ export function DebateDashboard() {
 
   const handleStartDebate = React.useCallback((e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (typingAgent) return;
+    if (isDebating || typingAgent) return;
 
     // Used to return here silently on an empty topic — a click or an Enter
     // press produced literally nothing, which is indistinguishable from the
@@ -353,7 +352,7 @@ export function DebateDashboard() {
         setError('Connection lost. The debate was interrupted.');
       }
     };
-  }, [prompt, rounds, typingAgent, judgeStatus, humanSide]);
+  }, [prompt, rounds, isDebating, typingAgent, judgeStatus, humanSide]);
 
   // Fetched when the tab is opened rather than on mount, so the dashboard does
   // not pay for data most sessions never look at. Refetched on every open so a
@@ -1520,8 +1519,8 @@ export function DebateDashboard() {
             <form onSubmit={handleStartDebate} className="w-full max-w-4xl bg-[#161618] rounded-full p-2 pl-6 flex items-center border border-white/[0.05]">
               <div className="flex items-center justify-center shrink-0 mr-4"><Zap className="w-5 h-5 text-white" /></div>
               <input type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="ENTER DEBATE TOPIC..." className="flex-1 bg-transparent border-none outline-none text-white/80 font-['JetBrains_Mono'] text-xs tracking-widest placeholder:text-white/30 font-semibold" />
-              <button type="submit" disabled={!!typingAgent || !prompt.trim()} className="bg-white text-black px-6 py-3.5 rounded-full flex items-center gap-2 hover:bg-white/90 transition-transform active:scale-95 shrink-0 ml-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                <span className="font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest uppercase">{typingAgent ? 'Debating...' : 'Start Debate'}</span>
+              <button type="submit" disabled={isDebating || !!typingAgent || !prompt.trim()} className="bg-white text-black px-6 py-3.5 rounded-full flex items-center gap-2 hover:bg-white/90 transition-transform active:scale-95 shrink-0 ml-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span className="font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest uppercase">{isDebating || typingAgent ? 'Debating...' : 'Start Debate'}</span>
                 <span className="text-[#facc15]">{'\u26A1'}</span>
               </button>
             </form>
