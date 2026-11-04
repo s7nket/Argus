@@ -106,3 +106,15 @@ rounds were scored by a different judge with nothing on screen to say so.
 built, what was measured, and the configurations known to be broken.
 
 Hero imagery is AI-generated.
+
+## Running Locally
+
+`powershell
+# 1. Build the frontend (one time)
+cd d:\Argus
+npm run build
+
+# 2. Start the backend (serves both API + UI on http://localhost:8000)
+cd d:\Argus\backend
+.\.venv\Scripts\uvicorn.exe main:app --host 127.0.0.1 --port 8000
+`

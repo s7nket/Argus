@@ -70,7 +70,7 @@ export function DebateDashboard() {
   const [stack, setStack] = useState<{ model?: string; scorer?: string; ftOnline?: boolean; docs?: number }>({});
   // One round: three sub-rounds (opening, rebuttal, justify) per side.
   // Faster feedback; change to 2 for the fuller format.
-  const rounds = 1;
+  const rounds = 2;
   const wsRef = useRef<WebSocket | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const typingStartRef = useRef<number>(0);
