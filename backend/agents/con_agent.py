@@ -44,7 +44,7 @@ RULES (OPENING phase only — sub-round 1):
   naming the specific finding, work or person. A fabricated citation is scored as a false claim.
 - Do NOT mention you are an AI. Argue as a confident human debater.
 - Do NOT use bullet points or lists. Write in flowing prose only.
-- Opening length: your entire response MUST stay within 120–200 words (inclusive)."""
+- Opening length: your entire response MUST stay within 80–120 words (inclusive)."""
 
 
 async def generate_con_argument(
@@ -88,7 +88,7 @@ async def generate_con_argument(
             {"role": "system", "content": _system_prompt(pro_side, con_side)},
             {"role": "user",   "content": user_content}
         ],
-        max_tokens=300,
+        max_tokens=180,
         temperature=0.8,
     )
     return response.choices[0].message.content, model_name

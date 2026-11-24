@@ -6,10 +6,8 @@ import {
   Radio,
   Zap,
   Scale,
-  X,
   Brain,
   ArrowLeft,
-  Share2,
   Check,
   FileDown,
   Loader2,
@@ -19,9 +17,12 @@ import {
   CircleDot
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { api, wsUrl } from '../lib/api';
+import { api } from '../lib/api';
 import { useNavigate } from 'react-router';
 import { exportAndShareDebatePdf } from '../lib/pdfExport';
+import { useDebateSocket } from '../hooks/useDebateSocket';
+import { useDebateHistory } from '../hooks/useDebateHistory';
+import type { HumanSide, JudgeStatus, DebateView, StackInfo } from '../types/debate';
 
 /**
  * Coerce a judge field to renderable text.
@@ -48,44 +49,48 @@ function asText(value: unknown): string {
 
 export function DebateDashboard() {
   const navigate = useNavigate();
-  const [judgeOpen, setJudgeOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
-  const [isDebating, setIsDebating] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [typingAgent, setTypingAgent] = useState<string | null>(null);
-  const [debateComplete, setDebateComplete] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // Transient status the server pushes while it waits out a rate limit.
-  // Distinct from `error`: the debate has not failed, it is just slow.
-  const [notice, setNotice] = useState<string | null>(null);
-  const [judgeStatus, setJudgeStatus] = useState<'online' | 'offline' | 'checking'>('checking');
-  const [view, setView] = useState<'active' | 'history' | 'logs'>('active');
-  const [history, setHistory] = useState<any[] | null>(null);
-  const [logs, setLogs] = useState<any[] | null>(null);
-  const [openDebate, setOpenDebate] = useState<any | null>(null);
-  // Real backend state for the sidebar identity card. The card used to read
-  // "OPERATOR-01 / ACTIVE SESSION", which is a user account this system does not
-  // have; the useful thing to show in that slot is which judge is actually
-  // running and what it has to verify against.
-  const [stack, setStack] = useState<{ model?: string; scorer?: string; ftOnline?: boolean; docs?: number }>({});
+  const [judgeStatus, setJudgeStatus] = useState<JudgeStatus>('checking');
+  const [view, setView] = useState<DebateView>('active');
+  const [stack, setStack] = useState<StackInfo>({});
   // One round: three sub-rounds (opening, rebuttal, justify) per side.
   // Faster feedback; change to 2 for the fuller format.
   const rounds = 2;
-  const wsRef = useRef<WebSocket | null>(null);
-  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const typingStartRef = useRef<number>(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const judgeFailuresRef = useRef(0);
-  const debateCompleteRef = useRef(false);
-  const errorOccurredRef = useRef(false);
-  const [debateId, setDebateId] = useState<string | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [pdfExported, setPdfExported] = useState<'downloaded' | 'shared' | null>(null);
   const [historyPdfExported, setHistoryPdfExported] = useState(false);
-  const [humanSide, setHumanSide] = useState<'pro' | 'con' | 'syn' | null>(null);
-  const [humanTurn, setHumanTurn] = useState<{ role: string; round: number; sub_round: number } | null>(null);
-  const [humanInput, setHumanInput] = useState('');
-  const [agentPipeline, setAgentPipeline] = useState<any[]>([]);
+  const [humanSide, setHumanSide] = useState<HumanSide>(null);
+
+  const {
+    isDebating,
+    messages,
+    typingAgent,
+    debateComplete,
+    error,
+    notice,
+    debateId,
+    agentPipeline,
+    humanTurn,
+    humanInput,
+    setHumanInput,
+    handleStartDebate,
+    sendHumanArgument,
+  } = useDebateSocket({
+    prompt,
+    rounds,
+    humanSide,
+    judgeStatus,
+    onDebateStart: () => setPdfExported(null),
+  });
+
+  const { history, logs, openDebate, setOpenDebate } = useDebateHistory(view);
+
+  // ── scroll to bottom ────────────────────────────────────────────────────────
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, typingAgent]);
 
   const handleExportPdf = async () => {
     if (isExportingPdf || messages.length === 0) return;
@@ -165,24 +170,6 @@ export function DebateDashboard() {
     }
   };
 
-  const sendHumanArgument = () => {
-    if (!wsRef.current || !humanInput.trim()) return;
-    wsRef.current.send(JSON.stringify({ type: 'human_argument', text: humanInput.trim() }));
-    // We do NOT append locally to `messages` here.
-    // The backend orchestrator will immediately broadcast the argument back
-    // over the WebSocket (as `pro_argument` / `con_argument`), which will append it.
-    setHumanInput('');
-    setHumanTurn(null);
-  };
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, typingAgent]);
-
-  useEffect(() => {
-    return () => { wsRef.current?.close(); };
-  }, []);
-
   useEffect(() => {
     const checkJudge = async () => {
       try {
@@ -219,167 +206,6 @@ export function DebateDashboard() {
 
     return () => clearInterval(interval);
   }, []);
-
-  const handleStartDebate = React.useCallback((e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (isDebating || typingAgent) return;
-
-    // Used to return here silently on an empty topic — a click or an Enter
-    // press produced literally nothing, which is indistinguishable from the
-    // button being broken. The button below is now disabled for the same
-    // condition, but Enter-to-submit bypasses a disabled button in some
-    // browsers, so this path needs its own feedback too.
-    if (!prompt.trim()) {
-      setError('Enter a debate topic first.');
-      return;
-    }
-
-    if (judgeStatus === 'offline') {
-      setError('Judge is offline. Check that the backend is running and GROQ_API_KEY is set in backend/.env.');
-      return;
-    }
-    setIsDebating(true);
-    setMessages([]);
-    setTypingAgent(null);
-    setDebateComplete(false);
-    setNotice(null);
-    setDebateId(null);
-    setPdfExported(null);
-    debateCompleteRef.current = false;
-    errorOccurredRef.current = false;
-    setError(null);
-
-    const ws = new WebSocket(wsUrl('/ws/debate'));
-    wsRef.current = ws;
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ topic: prompt, rounds, human_side: humanSide }));
-      // Browsers cannot emit WS ping frames; agent generation can leave the
-      // socket silent for 30-60s, long enough for a middlebox to drop the idle
-      // connection (close 1006). A periodic outbound frame keeps it warm.
-      heartbeatRef.current = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' }));
-      }, 15000);
-    };
-
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      switch (msg.type) {
-        case 'agent_typing':
-          setNotice(null);
-          setTypingAgent(msg.agent);
-          typingStartRef.current = Date.now();
-          break;
-        case 'sub_round_start':
-          setMessages(prev => [...prev, { type: 'sub_round_divider', round: msg.round, sub_round: msg.sub_round, label: msg.label }]);
-          break;
-        case 'pro_argument': {
-          const latency = Date.now() - typingStartRef.current;
-          setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'pro', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: msg.model || 'unknown' }]);
-          break;
-        }
-        case 'con_argument': {
-          const latency = Date.now() - typingStartRef.current;
-          setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'con', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: msg.model || 'unknown' }]);
-          break;
-        }
-        case 'syn_argument': {
-          const latency = Date.now() - typingStartRef.current;
-          setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'syn', round: msg.round, sub_round: msg.sub_round, text: msg.text, latency, model: msg.model || 'unknown' }]);
-          break;
-        }
-        case 'round_verdict':
-          setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'verdict', round: msg.round, data: msg.data }]);
-          break;
-        case 'final_verdict':
-          setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'final_verdict', data: msg.data }]);
-          break;
-        case 'debate_end':
-          setNotice(null);
-          debateCompleteRef.current = true;
-          setDebateComplete(true);
-          setTypingAgent(null);
-          break;
-        // The server confirms it picked the debate up before making any upstream
-        // call. Without this the topic parse — which can stall on a rate limit —
-        // leaves the UI blank and looks like the button did nothing.
-        case 'accepted':
-          setNotice('Starting debate\u2026');
-          break;
-        case 'debate_start':
-          if (msg.debate_id) setDebateId(msg.debate_id);
-          break;
-        case 'human_turn':
-          setTypingAgent(null);
-          setHumanTurn({ role: msg.role, round: msg.round, sub_round: msg.sub_round });
-          break;
-        // A call is waiting out a rate limit or a transient error. These waits
-        // run to minutes, so they have to be visible.
-        case 'notice':
-          setNotice(msg.message);
-          break;
-        case 'fact_check':
-          setTypingAgent(null);
-          setMessages(prev => [...prev, { type: 'fact_check', round: msg.round, sub_round: msg.sub_round, data: msg.data }]);
-          break;
-        case 'agent_status':
-          setAgentPipeline(msg.agents ?? []);
-          break;
-        case 'error':
-          errorOccurredRef.current = true;
-          setError(msg.message);
-          setNotice(null);
-          setTypingAgent(null);
-          break;
-      }
-    };
-    ws.onerror = () => {
-      errorOccurredRef.current = true;
-      setError('WebSocket connection failed. Is the backend running?');
-      setTypingAgent(null);
-      setIsDebating(false);
-    };
-    ws.onclose = () => {
-      if (heartbeatRef.current) { clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
-      wsRef.current = null;
-      setTypingAgent(null);
-      setIsDebating(false);
-      if (!debateCompleteRef.current && !errorOccurredRef.current) {
-        setError('Connection lost. The debate was interrupted.');
-      }
-    };
-  }, [prompt, rounds, isDebating, typingAgent, judgeStatus, humanSide]);
-
-  // Fetched when the tab is opened rather than on mount, so the dashboard does
-  // not pay for data most sessions never look at. Refetched on every open so a
-  // debate finished since the last visit shows up.
-  useEffect(() => {
-    if (view === 'active') return;
-    const url = view === 'history'
-      ? api('/debates?limit=50')
-      : api('/judge/logs?limit=100');
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        if (cancelled) return;
-        if (view === 'history') setHistory(data.debates ?? []);
-        else setLogs(data.logs ?? []);
-      } catch {
-        if (cancelled) return;
-        // Empty array, not null: null means "still loading", and a backend that
-        // is down should read as "nothing here" rather than spin forever.
-        if (view === 'history') setHistory([]);
-        else setLogs([]);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [view]);
 
   const hasStarted = isDebating || messages.length > 0;
 
@@ -456,11 +282,12 @@ export function DebateDashboard() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   {agentPipeline.map((agent: any) => {
-                    const statusConfig = {
+                    const statusConfigMap: Record<string, { dot: string; text: string; label: string }> = {
                       active: { dot: 'bg-cyan-400 shadow-[0_0_6px_#22d3ee] animate-pulse', text: 'text-cyan-400', label: 'ACTIVE' },
                       done:   { dot: 'bg-emerald-400', text: 'text-emerald-400/60', label: '✓ DONE' },
                       idle:   { dot: 'bg-white/20', text: 'text-white/25', label: 'IDLE' },
-                    }[agent.status] ?? { dot: 'bg-white/20', text: 'text-white/25', label: 'IDLE' };
+                    };
+                    const statusConfig = statusConfigMap[agent.status as string] ?? statusConfigMap.idle;
                     const AgentIcon = agent.id === 'fact_checker' ? ShieldCheck
                       : agent.id === 'topic_parser' ? Search
                       : agent.id === 'judge' ? Gavel
@@ -598,7 +425,7 @@ export function DebateDashboard() {
                       <div className="min-w-0">
                         <p className="font-['DM_Sans'] text-sm text-white/85 truncate">{asText(d.topic)}</p>
                         <p className="font-['JetBrains_Mono'] text-[10px] text-white/35 tracking-widest uppercase mt-1">
-                          {new Date(d.created_at).toLocaleString()} · {d.rounds} rounds · {asText(d.scorer)}
+                          {new Date(d.created_at).toLocaleString()} · {d.rounds} rounds · ARGUSCORE-4B
                         </p>
                       </div>
                       <div className="shrink-0 text-right">
@@ -639,7 +466,7 @@ export function DebateDashboard() {
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-['JetBrains_Mono'] text-[10px] text-white/45 mb-2">
                     <span>PRO {l.pro_total} · CON {l.con_total}{l.syn_total != null ? ' · SYN ' + l.syn_total : ''} → {String(l.winner ?? '').toUpperCase()}</span>
-                    <span>scorer: {asText(l.scorer)}</span>
+                    <span>scorer: ARGUSCORE-4B</span>
                     {l.verification_backend && <span>nli: {asText(l.verification_backend)}</span>}
                     {l.blind_passes != null && <span>passes: {l.blind_passes}</span>}
                     {l.label_disagreement != null && <span>bias δ: {l.label_disagreement}</span>}
@@ -653,7 +480,7 @@ export function DebateDashboard() {
                     {!!l.syn_repetition_penalty && <span className="text-amber-400/70">syn rep −{l.syn_repetition_penalty}</span>}
                     {l.fallacy && <span className="text-rose-400/70">{asText(l.fallacy)}</span>}
                   </div>
-                  {(l.pro_evidence_cited?.length > 0 || l.con_evidence_cited?.length > 0 || l.syn_evidence_cited?.length > 0) && (
+                  {((l.pro_evidence_cited?.length ?? 0) > 0 || (l.con_evidence_cited?.length ?? 0) > 0 || (l.syn_evidence_cited?.length ?? 0) > 0) && (
                     <div className="grid sm:grid-cols-3 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
                       <div>
                         <p className="font-['JetBrains_Mono'] text-[9px] text-emerald-400/70 tracking-widest uppercase mb-1">PRO cited</p>

@@ -110,13 +110,13 @@ def _rebuttal_length_and_phase_labels(sub_round: int) -> tuple[str, str]:
     sub_label = sub_labels.get(sub_round, f"Sub-round {sub_round}")
     if sub_round == 2:
         length_rules = (
-            "LENGTH: Your entire response (REBUTTAL + ARGUMENT + POSITION) must be 100–150 words inclusive. "
-            "Do not exceed 150 words."
+            "LENGTH: Your entire response (REBUTTAL + ARGUMENT + POSITION) must be 60–90 words inclusive. "
+            "Do not exceed 90 words."
         )
     elif sub_round == 3:
         length_rules = (
-            "LENGTH: Your entire response (REBUTTAL + ARGUMENT + POSITION) must be 80–120 words inclusive. "
-            "Do not exceed 120 words. Write as a closing justification — tight and decisive."
+            "LENGTH: Your entire response (REBUTTAL + ARGUMENT + POSITION) must be 50–70 words inclusive. "
+            "Do not exceed 70 words. Write as a closing justification — tight and decisive."
         )
     else:
         length_rules = "LENGTH: Keep the response concise."
@@ -208,7 +208,7 @@ async def generate_pro_rebuttal(
             {"role": "system", "content": _pro_rebuttal_prompt(pro_side, con_side, syn_side)},
             {"role": "user",   "content": user_content}
         ],
-        max_tokens=300,
+        max_tokens=150,
         temperature=0.85,
     )
     return response.choices[0].message.content, model_name
@@ -242,7 +242,7 @@ async def generate_con_rebuttal(
             {"role": "system", "content": _con_rebuttal_prompt(pro_side, con_side, syn_side)},
             {"role": "user",   "content": user_content}
         ],
-        max_tokens=300,
+        max_tokens=150,
         temperature=0.85,
     )
     return response.choices[0].message.content, model_name
@@ -277,7 +277,7 @@ async def generate_syn_rebuttal(
             {"role": "system", "content": _syn_rebuttal_prompt(pro_side, con_side, syn_side)},
             {"role": "user",   "content": user_content}
         ],
-        max_tokens=300,
+        max_tokens=150,
         temperature=0.85,
     )
     return response.choices[0].message.content, model_name
