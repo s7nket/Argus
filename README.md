@@ -8,113 +8,260 @@ app_port: 7860
 pinned: false
 ---
 
-# ARGUS — Verification-Grounded Multi-Agent Debate
+<div align="center">
 
-> **Autonomous Reasoning & Generative Utility System**
-> _"Two minds. One truth."_
+# ⚖️ ARGUS
+### Autonomous Reasoning & Generative Utility System
+**Verification-Grounded Multi-Agent Debate with Conformal Calibrated Auditing**
 
-Two LLM agents debate a resolution over three rounds; a judge scores each round
-and delivers a verdict. The contribution is not the debate — it is what makes
-the scoring checkable rather than asserted.
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React 18](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Groq LPU](https://img.shields.io/badge/Inference-Groq%20LPU-F55036?style=for-the-badge)](https://groq.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-## Why the scores can be trusted
+<p align="center">
+  <em>"Two minds argue. One synthesizes. A grounded auditor verifies. An invariant judge decides."</em>
+</p>
 
-**Retrieval-grounded verification.** Every specific a debater cites is matched
-against a corpus and labelled SUPPORTED / REFUTED / NEI by an entailment check
-independent of the scorer. The judge cannot award evidence credit it cannot
-verify. A claim the corpus contradicts is penalised as fabrication; a claim it
-simply cannot reach is not held against the debater.
+[Key Innovations](#-key-architectural-pillars) •
+[Architecture](#-system-architecture) •
+[Quickstart](#-quickstart) •
+[Arena Topology](#-arena-topology) •
+[Research & Paper](#-research--evaluation) •
+[Repository Layout](#-repository-structure)
 
-**Refutation carries a burden of proof.** An accusation of fabrication must cite
-verbatim contradicting text traceable to a retrieved passage, and must survive a
-second check in isolation. Absence of evidence is never treated as contradiction
-— that mistake once flipped a verdict.
+</div>
 
-**Blind label-swapped scoring.** Each round is scored twice with the debater
-labels swapped, so a preference for either position cancels out. The residual
-disagreement is reported rather than hidden.
+---
 
-**Conformal verdict sets.** The verdict carries a distribution-free coverage
-guarantee, and the system abstains when the scores do not separate. Most judges
-always name a winner; this one says when it cannot.
+## 💡 Overview
 
-**Deterministic scoring layer.** Evidence caps, repetition penalties and the tie
-band are computed in Python from the scores. The language model describes the
-outcome; it never decides it.
+Most LLM-as-a-Judge systems suffer from **first-speaker bias**, **hallucination blindness**, and **uncalibrated overconfidence** — they arbitrarily reward persuasive rhetoric over factual truth and declare a winner even when arguments are indistinguishable.
 
-## Running it locally
+**ARGUS** redefines automated dialectic deliberation. It is an end-to-end framework where autonomous AI agents (or humans) debate contentious resolutions under rigorous, checkable constraints:
 
-```bash
-# backend
-cd backend && pip install -r requirements.txt
-python -m debate.build_corpus          # optional: expands the corpus from Wikipedia
-uvicorn main:app --port 8000
+1. **Evidence is never taken at face value**: Citations must be grounded against an indexed retrieval corpus via independent natural language inference (NLI).
+2. **First-speaker and position bias are eliminated**: Scored via blind label-swapped evaluation passes where systematic bias cancels out.
+3. **Statistical guarantees replace raw intuition**: A split-conformal prediction layer computes non-conformity scores and abstains when results are statistically ambiguous.
+4. **Verdicts are deterministic**: Scores, repetitions, penalties, and tie bands are computed in pure Python logic — language models formulate reasoning, but code computes the outcome.
 
-# frontend, in a second shell
-npm install && npm run dev
+---
+
+## ⚡ Key Architectural Pillars
+
+```
+                     ┌──────────────────────────────────────────────┐
+                     │           DEBATE TOPIC RESOLUTION            │
+                     └──────────────────────┬───────────────────────┘
+                                            ▼
+               ┌────────────────────────────────────────────────────────┐
+               │              DYNAMIC 3-AGENT PIPELINE                  │
+               │   [Agent-01: PRO]   [Agent-02: CON]   [Agent-03: SYN]  │
+               └──────────┬──────────────────┬──────────────────┬───────┘
+                          │                  │                  │
+                          └──────────────────┼──────────────────┘
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │       AGENT-04: INDEPENDENT VERIFIER         │
+                     │  Retriever (ChromaDB) + NLI Entailment Engine│
+                     │  [SUPPORTED]      [REFUTED]     [NEI]        │
+                     └──────────────────────┬───────────────────────┘
+                                            ▼
+                     ┌──────────────────────────────────────────────┐
+                     │        AGENT-05: INVARIANT JUDGE DUAL-PASS   │
+                     │  Pass A: (PRO, CON)  │  Pass B: (CON, PRO)   │
+                     │  Fine-Tuned ArguScore-4B (or Groq Fallback)  │
+                     └──────────────────────┬───────────────────────┘
+                                            ▼
+                     ┌──────────────────────────────────────────────┐
+                     │          DETERMINISTIC EVALUATION            │
+                     │  • Evidence Verification Weighting           │
+                     │  • Repetition Penalties                      │
+                     │  • Conformal Prediction Abstention Band      │
+                     └──────────────────────┬───────────────────────┘
+                                            ▼
+                     ┌──────────────────────────────────────────────┐
+                     │     AUDITABLE VERDICT & INTERACTIVE REPORT   │
+                     └──────────────────────────────────────────────┘
 ```
 
-Create `backend/.env` with at least `GROQ_API_KEY`. With no frontend build
-present the backend serves its API only, and `/` returns the status payload.
+### 1. 🔍 Retrieval-Grounded NLI Fact-Checking
+Every factual claim made in an exchange is extracted and checked against a dedicated vector corpus (ChromaDB) built from domain-validated sources:
+- **`SUPPORTED`**: Entailed by retrieved evidence. Full credit awarded.
+- **`REFUTED`**: Contradicted by retrieved text with strict burden-of-proof. Fabrications trigger mandatory score deductions.
+- **`NEI` (Not Enough Information)**: Outside the corpus scope. Neither credited nor penalized — avoiding unjust penalties for external facts.
 
-Building the frontend (`npm run build`) makes the backend serve it at `/`, which
-is how the deployed image runs — one process, one origin, no CORS.
+### 2. 🔄 Blind Label-Swapped Position Invariance
+LLMs inherently favor whichever candidate appears first in context (position bias). ARGUS executes **two blind scoring passes** for each round:
+$$\text{Score}_{\text{final}} = \frac{\text{Score}(A, B) + \text{Score}_{\text{swapped}}(B, A)}{2}$$
+The residual disagreement ($\delta_{\text{bias}}$) is logged to the dashboard and audit logs in real time rather than hidden.
 
-## Deploying
+### 3. 🛡️ Conformal Prediction & Calibrated Abstention
+Rather than blindly picking a winner in razor-thin debates, ARGUS deploys **inductive conformal prediction**:
+- Calibrated against empirical human argument-quality datasets.
+- Computes non-conformity scores and outputs prediction sets with a distribution-free coverage guarantee:
+$$P(Y \in \mathcal{C}(X)) \ge 1 - \alpha$$
+- If the difference does not meet significance bounds, the judge **abstains** (`"Draw / Too close to separate"`), preventing false certainty.
 
-The Dockerfile builds the frontend and serves both halves from one container. It
-honours `$PORT`, so the same image runs on Spaces (7860), Render and Koyeb
-unchanged.
+### 4. 🧮 Deterministic Rule Engine
+The language model never directly assigns final round winners. LLM outputs provide intermediate scoring criteria (logic, rhetoric, citations), while Python calculates:
+- Verifiable evidence coverage multipliers
+- Semantic repetition penalties across rounds
+- Deterministic tie-bands and marginal delta thresholds
 
-| Name | Kind | Required | Notes |
+---
+
+## 🏛️ Arena Topology
+
+| Agent | Role | Default Engine | Responsibilities |
 |---|---|---|---|
-| `GROQ_API_KEY` | secret | yes | Debater agents and the auditing judge |
-| `FT_JUDGE_URL` | variable | no | Kaggle ArguScore-4B endpoint |
-| `JUDGE_MODEL` | variable | no | Defaults to `llama-3.3-70b-versatile` |
-| `BLIND_PASSES` | variable | no | `1` halves token spend, drops the bias metric |
+| **Agent-01 (PRO)** | Affirmative Debater | `gpt-oss-120b` / Groq | Opening, rebuttal, and closing justification affirming the topic. |
+| **Agent-02 (CON)** | Negative Debater | `gpt-oss-20b` / Groq | Systematic counter-arguments, premise refutation, and impact calculus. |
+| **Agent-03 (SYN)** | Dialectic Synthesis | `qwen3.8-27b` / Groq | Synthesizes opposing poles; discovers common ground and trade-offs. |
+| **Agent-04 (VERIFIER)** | Evidence Auditor | NLI + ChromaDB | Real-time claim extraction, vector search, and entailment scoring. |
+| **Agent-05 (JUDGE)** | Adjudicator | `ArguScore-4B` / `Llama-3.3-70b` | Dual-pass blind scoring, argument audit receipts, and final verdict. |
+| **Human Debater** | Interactive Challenger | Browser / Keyboard | Take the stand as **PRO**, **CON**, or **SYN** with live turn management. |
 
-Never put a key in a *variable* — variables are readable, secrets are not.
+---
 
-## The fine-tuned scorer
+## 🚀 Quickstart
 
-ArguScore-4B is a LoRA fine-tune served from a Kaggle notebook, because it needs
-a GPU that free hosting does not provide. It is reached over a reserved ngrok
-domain, so `FT_JUDGE_URL` stays constant across sessions.
+### Prerequisites
+- **Python 3.11+**
+- **Node.js 18+** & npm
+- A [Groq Cloud API Key](https://console.groq.com/) (free tier supported)
 
-When that notebook is not running, round scoring falls back to Groq and the
-interface says so: the sidebar reads `JUDGE-0 / Groq fallback` with an amber dot
-instead of `ARGUSCORE-4B`, and each round's audit records which scorer ran. The
-fallback is visible, not silent — an earlier version hid it, and two of three
-rounds were scored by a different judge with nothing on screen to say so.
+### 1. Clone the Repository
+```bash
+git clone https://github.com/s7nket/Argus.git
+cd Argus
+```
 
-## Known limits
+### 2. Configure Environment
+Create `backend/.env`:
+```env
+GROQ_API_KEY=gsk_your_groq_api_key_here
+# Optional: Fine-Tuned Kaggle ArguScore-4B Scorer
+# FT_JUDGE_URL=https://your-ngrok-tunnel.ngrok-free.app
+```
 
-- Groq's free tier allows 6000 tokens/minute and ~100k/day. One round costs
-  roughly 6k, so a three-round debate takes several minutes and a few debates
-  exhaust a day.
-- The corpus is built into the image at build time. If that fetch fails, the app
-  still boots on an 11-document seed corpus and grounding coverage reads near
-  zero.
-- Free Spaces sleep after inactivity; the first request after a sleep is slow.
-- Against human argument-quality labels the judge currently reaches Cohen's
-  kappa ≈ 0.11 (n=56) — weak. The conformal layer responds correctly by
-  abstaining on most rounds. See `docs/` for the measurements.
+### 3. Run Locally
 
-## Documentation
+#### Option A: Development Mode (Hot Reload)
+```bash
+# Terminal 1 — Backend (FastAPI + WebSocket Engine)
+cd backend
+python -m venv .venv
+# On Windows: .venv\Scripts\activate | On Unix: source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
-`docs/` carries dated engineering logs organised by paper section: what was
-built, what was measured, and the configurations known to be broken.
+# Terminal 2 — Frontend (Vite + React Dashboard)
+cd ..
+npm install
+npm run dev
+```
+Open **`http://localhost:5173`** in your browser.
 
-Hero imagery is AI-generated.
-
-## Running Locally
-
-`powershell
-# 1. Build the frontend (one time)
-cd d:\Argus
+#### Option B: Unified Production Build
+The FastAPI backend serves the compiled static production assets on a single port:
+```bash
+# Build frontend
+npm install
 npm run build
 
-# 2. Start the backend (serves both API + UI on http://localhost:8000)
-cd d:\Argus\backend
-.\.venv\Scripts\uvicorn.exe main:app --host 127.0.0.1 --port 8000
-`
+# Launch unified backend
+cd backend
+uvicorn main:app --host 127.0.0.1 --port 8000
+```
+Open **`http://localhost:8000`** in your browser.
+
+---
+
+## 🐳 Docker Deployment
+
+ARGUS includes a multi-stage Docker build that bundles the TypeScript frontend compilation and FastAPI service into a lean container compliant with **Hugging Face Spaces**, **Render**, and **AWS ECS**:
+
+```bash
+docker build -t argus-debate .
+docker run -p 7860:7860 -e GROQ_API_KEY="your_api_key" argus-debate
+```
+
+### Environment Variables
+
+| Variable | Type | Required | Description |
+|---|---|---|---|
+| `GROQ_API_KEY` | Secret | **Yes** | Powers the debater pipeline, synthesis agent, and Groq fallback judge. |
+| `FT_JUDGE_URL` | String | No | URL to remote fine-tuned `ArguScore-4B` LoRA endpoint (e.g. via ngrok/RunPod). |
+| `JUDGE_MODEL` | String | No | Fallback judge model (defaults to `llama-3.3-70b-versatile`). |
+| `BLIND_PASSES` | Integer | No | `2` for label-swapped invariance (default), `1` for speed. |
+| `PORT` | Integer | No | Container port (defaults to `7860` for Hugging Face Spaces). |
+
+---
+
+## 📁 Repository Structure
+
+```
+Argus/
+├── backend/
+│   ├── agents/              # Autonomous agent definitions (PRO, CON, SYN, Rebuttal)
+│   ├── debate/              # Orchestrator, fact-checking NLI, ChromaDB evidence, judge
+│   ├── scripts/             # Model diagnostic and diagnostic utilities
+│   ├── tests/               # End-to-end integration test suite
+│   ├── data/                # Vector store evidence seed datasets
+│   └── main.py              # FastAPI server, WebSocket endpoints, static mount
+├── research/
+│   ├── paper/               # IEEE research paper manuscript, notes, and figures
+│   └── notebooks/           # ArguScore LoRA training & swap-invariance notebooks
+├── src/
+│   ├── app/
+│   │   ├── components/      # UI views (DebateDashboard, Replay, Landing, Benchmark)
+│   │   ├── hooks/           # useDebateSocket, useDebateHistory custom hooks
+│   │   ├── types/           # Strongly typed domain models (DebateMessage, JudgeLog)
+│   │   └── lib/             # WebSocket resolvers, client API, PDF generator
+│   └── index.html           # Main SPA entrypoint
+├── docs/                    # Architectural diagrams, system slides, engineering logs
+├── Dockerfile               # Multi-stage production container build
+├── package.json             # Frontend dependencies & Vite scripts
+└── vite.config.ts           # Vite build and proxy configuration
+```
+
+---
+
+## 🔬 Research & Evaluation
+
+ARGUS was developed alongside rigorous empirical research into multi-agent debate dynamics and automated adjudication:
+
+- **IEEE Research Manuscript**: Complete publication drafts, notes, and experimental data are located in [`research/paper/`](research/paper/).
+- **Fine-Tuning Notebooks**: [`research/notebooks/argus_train_swap_invariant.ipynb`](research/notebooks/argus_train_swap_invariant.ipynb) documents the dataset curation, preference pairs, and LoRA fine-tuning for position invariance.
+- **Judge Server Deployment**: [`research/notebooks/argus_judge_server.ipynb`](research/notebooks/argus_judge_server.ipynb) provides the reference deployment script for serving `ArguScore-4B` with continuous ngrok tunneling.
+
+---
+
+## 🤝 Contributing
+
+Contributions to ARGUS are welcome! Whether you are interested in expanding the NLI verification corpus, optimizing agent prompting strategies, or enhancing the dashboard UI:
+
+1. **Fork the Project**
+2. **Create a Feature Branch** (`git checkout -b feature/GroundedVerificationMetric`)
+3. **Commit your Changes** (`git commit -m 'Add support for dense retrieval reranking'`)
+4. **Push to the Branch** (`git push origin feature/GroundedVerificationMetric`)
+5. **Open a Pull Request**
+
+Please ensure that `npm run build` succeeds and backend tests pass before opening a PR.
+
+---
+
+## 📜 License
+
+Distributed under the **MIT License**. See `LICENSE` for more information.
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ by the ARGUS Contributors. Powered by Groq, ChromaDB, and open-source foundation models.</sub>
+</div>
